@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Admin } from './entities/admin.entity';
+import { JwtPayload } from './interfaces/JwtPayload';
 
 @Injectable()
 export class AuthService {
@@ -13,8 +14,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signJwt(id: string, role: 'user' | 'admin') {
-    const payload = { sub: id, role };
+  async signJwt({ sub, role }: JwtPayload) {
+    const payload = { sub, role };
     return { access_token: this.jwtService.sign(payload) };
   }
 
