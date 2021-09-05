@@ -15,7 +15,7 @@ export class AuthService {
     return await bcrypt.hash(password, 12);
   }
 
-  async decrypt(id: string, password: string): Promise<boolean> {
+  async validateUser(id: string, password: string): Promise<boolean> {
     const res = await this.adminsRepository.findOne(id);
     if (!res) return false;
     return await bcrypt.compare(password, res.password);
