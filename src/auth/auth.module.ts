@@ -16,7 +16,7 @@ import { JwtStrategy } from './jwt.strategy';
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  controllers: [AuthController, JwtStrategy],
-  providers: [AuthService],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}
