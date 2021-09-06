@@ -5,6 +5,8 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Admin } from './entities/admin.entity';
 import { JwtPayload } from './interfaces/jwtPayload';
+import { UnauthorizedException } from '@nestjs/common';
+import { LoginDto } from './dto/request/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +15,14 @@ export class AuthService {
     private readonly adminsRepository: Repository<Admin>,
     private readonly jwtService: JwtService,
   ) {}
+
+  async login({ id, password }: LoginDto) {
+    const res = await this.validateUser(id, password);
+    if (res) {
+      return await this.signJwt({ sub: id, role: 'admin' });
+    }
+    throw new UnauthorizedException();
+  }
 
   async signJwt({ sub, role }: JwtPayload) {
     const payload = { sub, role };
