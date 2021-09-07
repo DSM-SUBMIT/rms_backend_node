@@ -1,11 +1,17 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
+import { HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Request } from '@nestjs/common';
 import {
+  ApiConflictResponse,
   ApiCreatedResponse,
+  ApiNoContentResponse,
   ApiOperation,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { ChangePwDto } from './dto/request/changePw.dto';
 import { LoginDto } from './dto/request/login.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -19,5 +25,18 @@ export class AuthController {
   })
   login(@Body() payload: LoginDto) {
     return this.authService.login(payload);
+  }
+
+  @Patch('password')
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '어드민 비밀번호 변경' })
+  @ApiNoContentResponse({
+    description: '요청이 성공적으로 완료되었으나 응답 본문이 존재하지 않음',
+  })
+  @ApiUnauthorizedResponse({ description: '기존 비밀번호가 올바르지 않음' })
+  @ApiConflictResponse({ description: '현재 비밀번호와 새 비밀번호가 동일함' })
+  changePw(@Request() req, @Body() payload: ChangePwDto) {
+    return this.authService.changePw(req.user.userId, payload);
   }
 }
