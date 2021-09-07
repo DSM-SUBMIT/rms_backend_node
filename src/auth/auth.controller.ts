@@ -10,9 +10,12 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { Roles } from '../utils/decorators/roles.decorator';
 import { ChangePwDto } from './dto/request/changePw.dto';
 import { LoginDto } from './dto/request/login.dto';
+import { Role } from '../utils/enums/role.enum';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -30,6 +33,8 @@ export class AuthController {
 
   @Patch('password')
   @HttpCode(204)
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '어드민 비밀번호 변경' })
   @ApiBearerAuth()
