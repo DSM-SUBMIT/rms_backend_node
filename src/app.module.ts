@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { Admin } from './auth/entities/admin.entity';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { Admin } from './auth/entities/admin.entity';
       logging: Boolean(process.env.DB_LOGGING),
     }),
     AuthModule,
+    FilesModule,
   ],
   controllers: [],
   providers: [],
