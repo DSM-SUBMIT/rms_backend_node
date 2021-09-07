@@ -2,6 +2,7 @@ import { UseGuards } from '@nestjs/common';
 import { HttpCode } from '@nestjs/common';
 import { Controller, Post, Body, Patch, Request } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiNoContentResponse,
@@ -31,6 +32,7 @@ export class AuthController {
   @HttpCode(204)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: '어드민 비밀번호 변경' })
+  @ApiBearerAuth()
   @ApiNoContentResponse({
     description: '요청이 성공적으로 완료되었으나 응답 본문이 존재하지 않음',
   })
