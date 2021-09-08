@@ -52,6 +52,26 @@ export class FilesService {
     return { uploaded: true, urls: locations };
   }
 
+  async uploadPdf(file: Express.MulterS3.File, folder: string) {
+    const ext = extname(file.originalname).toLowerCase();
+    const regex = new RegExp(/(pdf)/);
+    if (!regex.test(ext)) {
+      throw new BadRequestException(
+        `This file extension(${ext}) is not supported.`,
+      );
+    }
+
+    const bucketS3 = process.env.AWS_S3_BUCKET;
+    const filename = uuid();
+    const location = `https://${bucketS3}.s3.${process.env.AWS_REGION}.amazonaws.com/${folder}/${filename}${ext}`;
+    try {
+      await this.uploadS3(file.buffer, `${bucketS3}/${folder}`, filename + ext);
+    } catch {
+      throw new InternalServerErrorException();
+    }
+    return { uploaded: true, urls: location };
+  }
+
   async uploadS3(file, bucket, name) {
     const s3 = this.getS3();
     const params = {
