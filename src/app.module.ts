@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { Admin } from './auth/entities/admin.entity';
 import { FilesModule } from './files/files.module';
 import { PlansModule } from './plans/plans.module';
 import { Admin } from './auth/entities/admin.entity';
@@ -38,14 +37,12 @@ import { ProjectField } from './shared/projectField/entities/projectField.entity
         Member,
         ProjectField,
       ],
+      synchronize: false,
       logging: Boolean(process.env.DB_LOGGING),
     }),
     AuthModule,
     FilesModule,
     PlansModule,
-    ReportsModule,
-    ProjectsModule,
-    UsersModule,
   ],
   controllers: [],
   providers: [],
