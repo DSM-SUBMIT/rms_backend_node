@@ -32,7 +32,7 @@ export class Project {
   techStacks: string;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  @ManyToOne((type) => User, (user) => user.id)
+  @ManyToOne((type) => User, (user) => user.id, { nullable: false })
   @JoinColumn({ name: 'user_id' })
   userId: number;
 
@@ -44,7 +44,7 @@ export class Project {
   })
   projectType: string;
 
-  @Column({ name: 'github_url', type: 'varchar', length: 1000, nullable: true })
+  @Column({ name: 'github_url', type: 'varchar', length: 500, nullable: true })
   githubUrl: string;
 
   @Column({ name: 'service_url', type: 'varchar', length: 256, nullable: true })
@@ -53,6 +53,6 @@ export class Project {
   @Column({ name: 'docs_url', type: 'varchar', length: 256, nullable: true })
   docsUrl: string;
 
-  @Column({ type: 'varchar', length: 30 })
+  @Column({ type: 'varchar', length: 10 })
   teacher: string;
 }
