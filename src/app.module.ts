@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { Admin } from './auth/entities/admin.entity';
 import { FilesModule } from './files/files.module';
+import { PlansModule } from './plans/plans.module';
 import { ReportsModule } from './reports/reports.module';
 import { ProjectsModule } from './projects/projects.module';
 import { UsersModule } from './users/users.module';
@@ -26,6 +27,7 @@ import { UsersModule } from './users/users.module';
     }),
     AuthModule,
     FilesModule,
+    PlansModule,
     ReportsModule,
     ProjectsModule,
     UsersModule,
