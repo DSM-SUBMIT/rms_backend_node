@@ -32,12 +32,12 @@ export class FilesService {
       const ext = extname(file.originalname).toLowerCase();
 
       locations.push(
-        `https://${bucketS3}.s3.${process.env.AWS_REGION}.amazonaws.com/${folder}/${filename}
+        `https://${bucketS3}.s3.${process.env.AWS_REGION}.amazonaws.com/images/${folder}/${filename}
               ${ext}`,
       );
       return this.uploadS3(
         file.buffer,
-        `${bucketS3}/${folder}`,
+        `${bucketS3}/images/${folder}`,
         filename + ext,
       );
     });
@@ -63,9 +63,13 @@ export class FilesService {
 
     const bucketS3 = process.env.AWS_S3_BUCKET;
     const filename = uuid();
-    const location = `https://${bucketS3}.s3.${process.env.AWS_REGION}.amazonaws.com/${folder}/${filename}${ext}`;
+    const location = `https://${bucketS3}.s3.${process.env.AWS_REGION}.amazonaws.com/pdf/${folder}/${filename}${ext}`;
     try {
-      await this.uploadS3(file.buffer, `${bucketS3}/${folder}`, filename + ext);
+      await this.uploadS3(
+        file.buffer,
+        `${bucketS3}/pdf/${folder}`,
+        filename + ext,
+      );
     } catch {
       throw new InternalServerErrorException();
     }
