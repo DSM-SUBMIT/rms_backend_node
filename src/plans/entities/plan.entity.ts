@@ -1,7 +1,7 @@
 import { Project } from '../../projects/entities/project.entity';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 
-@Entity({ name: 'project_plan ' })
+@Entity({ name: 'project_plan' })
 export class Plan {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @OneToOne((type) => Project)
