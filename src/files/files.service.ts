@@ -1,7 +1,5 @@
 import {
   BadRequestException,
-  HttpException,
-  HttpStatus,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -18,9 +16,8 @@ export class FilesService {
       const ext = extname(file.originalname).toLowerCase();
       const regex = new RegExp(/(jpg)|(png)|(jpeg)/);
       if (!regex.test(ext)) {
-        throw new HttpException(
+        throw new BadRequestException(
           `This file extension(${ext}) is not supported.`,
-          HttpStatus.BAD_REQUEST,
         );
       }
     });
@@ -44,10 +41,7 @@ export class FilesService {
     try {
       await Promise.all(uploadToS3);
     } catch {
-      throw new HttpException(
-        'An error has occured.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new InternalServerErrorException('An error has occured.');
     }
     return { uploaded: true, urls: locations };
   }
