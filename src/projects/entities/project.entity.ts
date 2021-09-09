@@ -1,6 +1,6 @@
 import { Member } from 'src/shared/members/entities/member.entity';
 import { ProjectField } from 'src/shared/projectField/entities/projectField.entity';
-import { User } from 'src/users/entities/user.entity';
+import { User } from '../../shared/users/entities/user.entity';
 import {
   Column,
   Entity,

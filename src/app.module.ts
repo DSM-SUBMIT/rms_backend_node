@@ -3,13 +3,12 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { FilesModule } from './files/files.module';
-import { PlansModule } from './plans/plans.module';
 import { Admin } from './auth/entities/admin.entity';
-import { User } from './users/entities/user.entity';
+import { User } from './shared/users/entities/user.entity';
 import { Project } from './projects/entities/project.entity';
-import { Plan } from './plans/entities/plan.entity';
-import { Report } from './reports/entities/report.entity';
-import { Status } from './status/entities/status.entity';
+import { Plan } from './shared/plans/entities/plan.entity';
+import { Report } from './shared/reports/entities/report.entity';
+import { Status } from './shared/status/entities/status.entity';
 import { Field } from './shared/fields/entities/field.entity';
 import { Member } from './shared/members/entities/member.entity';
 import { ProjectField } from './shared/projectField/entities/projectField.entity';
@@ -42,7 +41,6 @@ import { ProjectField } from './shared/projectField/entities/projectField.entity
     }),
     AuthModule,
     FilesModule,
-    PlansModule,
   ],
   controllers: [],
   providers: [],

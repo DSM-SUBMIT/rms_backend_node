@@ -1,4 +1,4 @@
-import { ProjectField } from 'src/shared/projectField/entities/projectField.entity';
+import { ProjectField } from '../../projectField/entities/projectField.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
