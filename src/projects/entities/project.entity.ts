@@ -1,9 +1,11 @@
+import { Member } from 'src/shared/members/entities/member.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -55,4 +57,8 @@ export class Project {
 
   @Column({ type: 'varchar', length: 10 })
   teacher: string;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @OneToMany((type) => Member, (member) => member.projectId)
+  projectId: Member[];
 }
