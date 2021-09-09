@@ -13,7 +13,6 @@ export class Status {
   @Column({
     name: 'is_plan_submitted',
     type: 'bit',
-    length: 1,
     nullable: false,
   })
   isPlanSubmitted: boolean;
@@ -21,7 +20,6 @@ export class Status {
   @Column({
     name: 'is_report_submitted',
     type: 'bit',
-    length: 1,
     nullable: false,
   })
   isReportSubmitted: boolean;
@@ -32,13 +30,12 @@ export class Status {
   @Column({ name: 'report_submitted_at', type: 'datetime', nullable: true })
   reportSubmittedAt: string;
 
-  @Column({ name: 'is_plan_accepted', type: 'bit', length: 1, nullable: false })
+  @Column({ name: 'is_plan_accepted', type: 'bit', nullable: false })
   isPlanAccepted: boolean;
 
   @Column({
     name: 'is_report_accepted',
     type: 'bit',
-    length: 1,
     nullable: false,
   })
   isReportAccepted: boolean;
