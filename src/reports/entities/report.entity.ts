@@ -20,6 +20,6 @@ export class Report {
   @Column({ name: 'end_date', type: 'char', length: 7, nullable: false })
   endDate: string;
 
-  @Column({ type: 'varchar', length: 20000, nullable: false })
+  @Column({ type: 'varchar', length: 15000, nullable: false })
   content: string;
 }
