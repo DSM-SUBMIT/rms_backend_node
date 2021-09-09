@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { ProjectField } from 'src/shared/projectField/entities/projectField.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Field {
@@ -7,4 +8,8 @@ export class Field {
 
   @Column({ type: 'varchar', length: 10 })
   field: string;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @OneToMany((type) => ProjectField, (projectField) => projectField.fieldId)
+  projectField: ProjectField[];
 }

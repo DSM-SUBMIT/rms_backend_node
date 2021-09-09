@@ -1,4 +1,5 @@
 import { Member } from 'src/shared/members/entities/member.entity';
+import { ProjectField } from 'src/shared/projectField/entities/projectField.entity';
 import { User } from 'src/users/entities/user.entity';
 import {
   Column,
@@ -61,4 +62,8 @@ export class Project {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @OneToMany((type) => Member, (member) => member.projectId)
   projectId: Member[];
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @OneToMany((type) => ProjectField, (projectField) => projectField.projectId)
+  projectField: ProjectField[];
 }
