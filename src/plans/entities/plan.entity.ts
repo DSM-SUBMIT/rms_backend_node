@@ -4,11 +4,11 @@ import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 @Entity()
 export class Plan {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  @OneToOne((type) => Project)
+  @OneToOne((type) => Project, { primary: true })
   @JoinColumn({
     name: 'project_id',
   })
-  projectId: number;
+  projectId: Project;
 
   @Column({ type: 'varchar', length: 4000, nullable: false })
   goal: string;

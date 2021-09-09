@@ -4,7 +4,7 @@ import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 @Entity()
 export class Status {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  @OneToOne((type) => Project, { nullable: false })
+  @OneToOne((type) => Project, { primary: true })
   @JoinColumn({
     name: 'project_id',
   })
