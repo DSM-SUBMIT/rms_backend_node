@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { Admin } from './auth/entities/admin.entity';
 import { FilesModule } from './files/files.module';
 import { ReportsModule } from './reports/reports.module';
+import { ProjectsModule } from './projects/projects.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -26,6 +27,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     FilesModule,
     ReportsModule,
+    ProjectsModule,
     UsersModule,
   ],
   controllers: [],
