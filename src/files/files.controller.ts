@@ -13,6 +13,7 @@ import {
   ApiConsumes,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiNotFoundResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -89,6 +90,7 @@ export class FilesController {
   })
   @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
   @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
   uploadPdf(
     @UploadedFile() file: Express.MulterS3.File,
     @Request() req,
