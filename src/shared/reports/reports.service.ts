@@ -10,7 +10,9 @@ export class ReportsService {
     private readonly reportsRepository: Repository<Report>,
   ) {}
 
-  async getReport(id: number) {
-    return await this.reportsRepository.findOne(id);
+  async getReportById(id: number) {
+    return await this.reportsRepository.findOne(id, {
+      relations: ['projectId'],
+    });
   }
 }

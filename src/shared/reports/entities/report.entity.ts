@@ -6,7 +6,7 @@ export class Report {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @OneToOne((type) => Project, { primary: true })
   @JoinColumn({ name: 'project_id' })
-  projectId: string;
+  projectId: Project;
 
   @Column({ name: 'video_url', type: 'varchar', length: 256, nullable: true })
   videoUrl: string;
