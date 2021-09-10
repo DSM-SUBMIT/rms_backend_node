@@ -1,15 +1,58 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 import { extname } from 'path';
+import { PlansService } from 'src/shared/plans/plans.service';
+import { UsersService } from 'src/shared/users/users.service';
 import { v4 as uuid } from 'uuid';
+import { UploadFileOptions } from './interfaces/uploadFileOptions.interface';
 
 @Injectable()
 export class FilesService {
+  constructor(
+    private readonly plansService: PlansService,
+    private readonly usersService: UsersService,
+  ) {}
+
+  async uploadPdf(
+    file: Express.MulterS3.File,
+    username: string,
+    type: 'plan' | 'report',
+    projectId: number,
+  ): Promise<string> {
+    switch (type) {
+      case 'plan': {
+        const res = await this.plansService.getPlanById(projectId);
+        if (!res) throw new NotFoundException();
+
+        const writerId = res.projectId.userId;
+        const writer = await this.usersService.getUserById(writerId);
+        const email = writer?.email;
+        if (email !== username) throw new ForbiddenException();
+
+        const uploadedUrl = await this.uploadSingleFile({
+          file,
+          username,
+          fileType: 'pdf',
+          folder: 'plan',
+          allowedExt: /(pdf)/,
+        });
+
+        await this.plansService.updatePdfUrl(projectId, uploadedUrl);
+
+        return uploadedUrl;
+      }
+      default:
+        throw new NotFoundException();
+    }
+  }
+
   async uploadImages(files: Express.MulterS3.File[], folder: string) {
     const locations = new Array<string>();
     const extCheck = files.map((file) => {
@@ -46,9 +89,9 @@ export class FilesService {
     return { uploaded: true, urls: locations };
   }
 
-  async uploadPdf(file: Express.MulterS3.File, folder: string) {
-    const ext = extname(file.originalname).toLowerCase();
-    const regex = new RegExp(/(pdf)/);
+  async uploadSingleFile(options: UploadFileOptions): Promise<string> {
+    const ext = extname(options.file.originalname).toLowerCase();
+    const regex = options.allowedExt;
     if (!regex.test(ext)) {
       throw new BadRequestException(
         `This file extension(${ext}) is not supported.`,
@@ -57,17 +100,17 @@ export class FilesService {
 
     const bucketS3 = process.env.AWS_S3_BUCKET;
     const filename = uuid();
-    const location = `https://${bucketS3}.s3.${process.env.AWS_REGION}.amazonaws.com/pdf/${folder}/${filename}${ext}`;
+    const location = `https://${bucketS3}.s3.${process.env.AWS_REGION}.amazonaws.com/${options.fileType}/${options.folder}/${options.username}/${filename}${ext}`;
     try {
       await this.uploadS3(
-        file.buffer,
-        `${bucketS3}/pdf/${folder}`,
+        options.file.buffer,
+        `${bucketS3}/${options.fileType}/${options.folder}/${options.username}`,
         filename + ext,
       );
     } catch {
       throw new InternalServerErrorException();
     }
-    return { uploaded: true, urls: location };
+    return location;
   }
 
   async uploadS3(file, bucket, name) {

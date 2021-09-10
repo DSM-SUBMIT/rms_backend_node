@@ -1,4 +1,5 @@
 import {
+  Param,
   Request,
   UploadedFile,
   UploadedFiles,
@@ -13,6 +14,8 @@ import {
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiOperation,
+  ApiParam,
+  ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,6 +25,7 @@ import { Role } from '../utils/enums/role.enum';
 import { FilesService } from './files.service';
 
 @Controller('files')
+@ApiTags('파일 업로드')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
@@ -59,18 +63,20 @@ export class FilesController {
     return this.filesService.uploadImages(files, `${req.user.userId}`);
   }
 
-  @Post('pdf')
+  @Post('pdf/:type/:projectId')
   @Roles(Role.User)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('pdf'))
   @ApiOperation({ summary: 'PDF 파일 업로드' })
   @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'type', enum: ['plan', 'report'] })
+  @ApiParam({ name: 'projectId', type: 'number' })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        file: {
+        pdf: {
           type: 'string',
           format: 'binary',
         },
@@ -83,7 +89,17 @@ export class FilesController {
   })
   @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
   @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
-  uploadPdf(@UploadedFile() file: Express.MulterS3.File, @Request() req) {
-    return this.filesService.uploadPdf(file, `${req.user.userId}`);
+  uploadPdf(
+    @UploadedFile() file: Express.MulterS3.File,
+    @Request() req,
+    @Param('type') type: 'plan' | 'report',
+    @Param('projectId') projectId: number,
+  ) {
+    return this.filesService.uploadPdf(
+      file,
+      `${req.user.userId}`,
+      type,
+      projectId,
+    );
   }
 }
