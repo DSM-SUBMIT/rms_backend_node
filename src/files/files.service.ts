@@ -79,6 +79,9 @@ export class FilesService {
           process.env.AWS_S3_BUCKET + s3Path,
         );
       }
+      default: {
+        throw new NotFoundException();
+      }
     }
   }
 
