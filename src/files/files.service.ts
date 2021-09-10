@@ -100,7 +100,7 @@ export class FilesService {
 
     const bucketS3 = process.env.AWS_S3_BUCKET;
     const filename = uuid();
-    const location = `https://${bucketS3}.s3.${process.env.AWS_REGION}.amazonaws.com/${options.fileType}/${options.folder}/${options.username}/${filename}${ext}`;
+    const location = `${options.fileType}/${options.folder}/${options.username}/${filename}${ext}`;
     try {
       await this.uploadS3(
         options.file.buffer,
