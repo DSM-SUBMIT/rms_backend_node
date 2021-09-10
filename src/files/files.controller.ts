@@ -24,7 +24,7 @@ import { Roles } from '../utils/decorators/roles.decorator';
 import { Role } from '../utils/enums/role.enum';
 import { FilesService } from './files.service';
 
-@Controller('files')
+@Controller({ host: 'files.dsm-rms.com', path: 'files' })
 @ApiTags('파일 업로드')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
