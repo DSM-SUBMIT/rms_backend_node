@@ -10,7 +10,9 @@ export class PlansService {
   ) {}
 
   async getPlanById(id: number): Promise<Plan> {
-    return await this.plansRepository.findOne(id);
+    return await this.plansRepository.findOne(id, {
+      relations: ['projectId'],
+    });
   }
 
   async updatePdfUrl(id: number, url: string): Promise<boolean> {
