@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  StreamableFile,
 } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 import { extname } from 'path';
@@ -50,6 +51,34 @@ export class FilesService {
       }
       default:
         throw new NotFoundException();
+    }
+  }
+
+  async getPdf(type: 'plan' | 'report', projectId: number, req: any) {
+    switch (type) {
+      case 'plan': {
+        const plan = await this.plansService.getPlanById(projectId);
+        if (!plan) throw new NotFoundException();
+
+        const { pdfUrl } = plan;
+        const s3Path = '/' + pdfUrl.substring(0, pdfUrl.lastIndexOf('/'));
+        const s3Filename = pdfUrl.substring(
+          pdfUrl.lastIndexOf('/') + 1,
+          pdfUrl.length,
+        );
+
+        const filename = `[계획서] ${plan.projectId.projectName} - ${plan.projectId.teamName}.pdf`;
+
+        req.res.set('Content-Type', 'application/octet-stream; charset=utf-8');
+        req.res.set(
+          'Content-Disposition',
+          `attachment; filename="${encodeURI(filename)}"`,
+        );
+        return this.downloadFromS3(
+          s3Filename,
+          process.env.AWS_S3_BUCKET + s3Path,
+        );
+      }
     }
   }
 
@@ -111,6 +140,23 @@ export class FilesService {
       throw new InternalServerErrorException();
     }
     return location;
+  }
+
+  async downloadFromS3(
+    filename: string,
+    bucket: string,
+  ): Promise<StreamableFile> {
+    const s3 = this.getS3();
+    return new Promise((resolve, reject) => {
+      try {
+        const stream = s3
+          .getObject({ Bucket: bucket, Key: filename })
+          .createReadStream();
+        resolve(new StreamableFile(stream));
+      } catch (e) {
+        reject(e);
+      }
+    });
   }
 
   async uploadS3(file, bucket, name) {

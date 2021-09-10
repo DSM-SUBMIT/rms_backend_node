@@ -1,4 +1,5 @@
 import {
+  Get,
   Param,
   Request,
   UploadedFile,
@@ -14,6 +15,7 @@ import {
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -103,5 +105,22 @@ export class FilesController {
       type,
       projectId,
     );
+  }
+
+  @Get('pdf/:type/:projectId')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'PDF 파일 다운로드' })
+  @ApiParam({ name: 'type', enum: ['plan', 'report'] })
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: '요청이 성공하여 파일이 반환됨' })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
+  downloadPdf(
+    @Param('type') type: 'plan' | 'report',
+    @Param('projectId') projectId: number,
+    @Request() req,
+  ) {
+    return this.filesService.getPdf(type, projectId, req);
   }
 }
