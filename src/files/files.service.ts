@@ -102,6 +102,29 @@ export class FilesService {
           process.env.AWS_S3_BUCKET + s3Path,
         );
       }
+      case 'report': {
+        const report = await this.reportsService.getReportById(projectId);
+        if (!report) throw new NotFoundException();
+        const { pdfUrl } = report;
+
+        const s3Path = '/' + pdfUrl.substring(0, pdfUrl.lastIndexOf('/'));
+        const s3Filename = pdfUrl.substring(
+          pdfUrl.lastIndexOf('/') + 1,
+          pdfUrl.length,
+        );
+
+        const filename = `[보고서] ${report.projectId.projectName} - ${report.projectId.teamName}.pdf`;
+
+        req.res.set('Content-Type', 'application/octet-stream; charset=utf-8');
+        req.res.set(
+          'Content-Disposition',
+          `attachment; filename="${encodeURI(filename)}"`,
+        );
+        return this.downloadFromS3(
+          s3Filename,
+          process.env.AWS_S3_BUCKET + s3Path,
+        );
+      }
       default: {
         throw new NotFoundException();
       }
