@@ -7,6 +7,7 @@ import {
   ApiCreatedResponse,
   ApiNoContentResponse,
   ApiOperation,
+  ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -18,6 +19,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 
 @Controller('auth')
+@ApiTags('인증 관련')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
