@@ -81,7 +81,7 @@ export class FilesService {
     switch (type) {
       case 'plan': {
         const plan = await this.plansService.getPlanById(projectId);
-        if (!plan) throw new NotFoundException();
+        if (!plan || !plan.pdfUrl) throw new NotFoundException();
 
         const { pdfUrl } = plan;
         const s3Path = '/' + pdfUrl.substring(0, pdfUrl.lastIndexOf('/'));
@@ -104,7 +104,7 @@ export class FilesService {
       }
       case 'report': {
         const report = await this.reportsService.getReportById(projectId);
-        if (!report) throw new NotFoundException();
+        if (!report || !report.pdfUrl) throw new NotFoundException();
         const { pdfUrl } = report;
 
         const s3Path = '/' + pdfUrl.substring(0, pdfUrl.lastIndexOf('/'));
