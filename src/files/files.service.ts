@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
@@ -33,6 +34,7 @@ export class FilesService {
       case 'plan': {
         const plan = await this.plansService.getPlanById(projectId);
         if (!plan) throw new NotFoundException();
+        if (plan.pdfUrl) throw new ConflictException();
 
         const writerId = plan.projectId.userId;
         const writer = await this.usersService.getUserById(writerId);
@@ -54,6 +56,7 @@ export class FilesService {
       case 'report': {
         const report = await this.reportsService.getReportById(projectId);
         if (!report) throw new NotFoundException();
+        if (report.pdfUrl) throw new ConflictException();
 
         const writerId = report.projectId.userId;
         const writer = await this.usersService.getUserById(writerId);

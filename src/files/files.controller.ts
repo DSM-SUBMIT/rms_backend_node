@@ -11,6 +11,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConflictResponse,
   ApiConsumes,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -93,6 +94,7 @@ export class FilesController {
   @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
   @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
   @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
+  @ApiConflictResponse({ description: '이미 PDF 파일이 업로드되어 있음' })
   uploadPdf(
     @UploadedFile() file: Express.MulterS3.File,
     @Request() req,
