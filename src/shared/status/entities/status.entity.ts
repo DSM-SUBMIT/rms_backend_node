@@ -30,13 +30,17 @@ export class Status {
   @Column({ name: 'report_submitted_at', type: 'datetime', nullable: true })
   reportSubmittedAt: string;
 
-  @Column({ name: 'is_plan_accepted', type: 'bit', nullable: false })
+  @Column({
+    name: 'is_plan_accepted',
+    type: 'bit',
+    nullable: true,
+  })
   isPlanAccepted: boolean;
 
   @Column({
     name: 'is_report_accepted',
     type: 'bit',
-    nullable: false,
+    nullable: true,
   })
   isReportAccepted: boolean;
 }
