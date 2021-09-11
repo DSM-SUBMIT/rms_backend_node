@@ -36,6 +36,7 @@ export class FilesService {
         const plan = await this.plansService.getPlanById(projectId);
         if (!plan) throw new NotFoundException();
         if (plan.pdfUrl && conflictCheck) throw new ConflictException();
+        if (!plan.pdfUrl && !conflictCheck) throw new NotFoundException();
 
         const writerId = plan.projectId.userId;
         const writer = await this.usersService.getUserById(writerId);
@@ -50,6 +51,20 @@ export class FilesService {
           allowedExt: /(pdf)/,
         });
 
+        if (!conflictCheck) {
+          const { pdfUrl } = plan;
+
+          const s3Path = '/' + pdfUrl.substring(0, pdfUrl.lastIndexOf('/'));
+          const s3Filename = pdfUrl.substring(
+            pdfUrl.lastIndexOf('/') + 1,
+            pdfUrl.length,
+          );
+          await this.deleteFromS3(
+            s3Filename,
+            process.env.AWS_S3_BUCKET + s3Path,
+          );
+        }
+
         await this.plansService.updatePdfUrl(projectId, uploadedUrl);
 
         return;
@@ -58,6 +73,7 @@ export class FilesService {
         const report = await this.reportsService.getReportById(projectId);
         if (!report) throw new NotFoundException();
         if (report.pdfUrl && conflictCheck) throw new ConflictException();
+        if (!report.pdfUrl && !conflictCheck) throw new NotFoundException();
 
         const writerId = report.projectId.userId;
         const writer = await this.usersService.getUserById(writerId);
@@ -71,6 +87,22 @@ export class FilesService {
           folder: 'report',
           allowedExt: /(pdf)/,
         });
+
+        if (!conflictCheck) {
+          const { pdfUrl } = report;
+
+          const s3Path = '/' + pdfUrl.substring(0, pdfUrl.lastIndexOf('/'));
+          const s3Filename = pdfUrl.substring(
+            pdfUrl.lastIndexOf('/') + 1,
+            pdfUrl.length,
+          );
+          console.log(process.env.AWS_S3_BUCKET + s3Path + s3Filename);
+
+          await this.deleteFromS3(
+            s3Filename,
+            process.env.AWS_S3_BUCKET + s3Path,
+          );
+        }
 
         await this.reportsService.updatePdfUrl(projectId, uploadedUrl);
 
@@ -90,6 +122,7 @@ export class FilesService {
     const report = await this.reportsService.getReportById(projectId);
     if (!report) throw new NotFoundException();
     if (report.videoUrl && conflictCheck) throw new ConflictException();
+    if (!report.videoUrl && !conflictCheck) throw new NotFoundException();
 
     const writerId = report.projectId.userId;
     const writer = await this.usersService.getUserById(writerId);
@@ -103,6 +136,18 @@ export class FilesService {
       fileType: 'video',
       allowedExt: /(mp4)|(mov)|(wmv)|(avi)|(mkv)/,
     });
+
+    if (!conflictCheck) {
+      const { videoUrl } = report;
+
+      const s3Path = '/' + videoUrl.substring(0, videoUrl.lastIndexOf('/'));
+      const s3Filename = videoUrl.substring(
+        videoUrl.lastIndexOf('/') + 1,
+        videoUrl.length,
+      );
+
+      await this.deleteFromS3(s3Filename, process.env.AWS_S3_BUCKET + s3Path);
+    }
 
     await this.reportsService.updateVideoUrl(projectId, uploadedUrl);
 
@@ -266,7 +311,7 @@ export class FilesService {
         if (err) {
           Logger.error(err);
           return reject(err.message);
-  }
+        }
         resolve(data);
       });
     });
