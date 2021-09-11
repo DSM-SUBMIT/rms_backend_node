@@ -27,9 +27,46 @@ describe('StatusService', () => {
     }).compile();
 
     service = module.get<StatusService>(StatusService);
+    statusRepository = module.get<MockRepository<Status>>(
+      getRepositoryToken(Status),
+    );
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('getStatusById', () => {
+    const mockStatus = {
+      projectId: 1,
+      isPlanSubmitted: false,
+      isReportSubmitted: false,
+      planSubmittedAt: null,
+      reportSubmittedAt: null,
+      isPlanAccepted: false,
+      isReportAccepted: false,
+    };
+
+    it('should return Status', async () => {
+      statusRepository.findOne.mockResolvedValue(mockStatus);
+
+      const result = await service.getStatusById(1);
+
+      expect(statusRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(statusRepository.findOne).toHaveBeenCalledWith(1);
+
+      expect(result).toEqual(mockStatus);
+    });
+
+    it('should return nothing', async () => {
+      statusRepository.findOne.mockResolvedValue(undefined);
+
+      const result = await service.getStatusById(1);
+
+      expect(statusRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(statusRepository.findOne).toHaveBeenCalledWith(1);
+
+      expect(result).toBeUndefined();
+    });
   });
 });
