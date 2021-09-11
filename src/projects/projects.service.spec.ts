@@ -42,4 +42,26 @@ describe('ProjectsService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+  describe('getProject', () => {
+    it('should return undefined', async () => {
+      projectsRepository.findOne.mockResolvedValue(undefined);
+
+      const result = await service.getProject(1);
+
+      expect(projectsRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(projectsRepository.findOne).toHaveBeenCalledWith(1);
+
+      expect(result).toBeUndefined();
+    });
+    it('should return project', async () => {
+      projectsRepository.findOne.mockResolvedValue('project');
+
+      const result = await service.getProject(1);
+
+      expect(projectsRepository.findOne).toHaveBeenCalledTimes(1);
+      expect(projectsRepository.findOne).toHaveBeenCalledWith(1);
+
+      expect(result).toEqual('project');
+    });
+  });
 });
