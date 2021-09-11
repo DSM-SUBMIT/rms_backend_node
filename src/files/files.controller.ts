@@ -29,7 +29,7 @@ import { Roles } from '../utils/decorators/roles.decorator';
 import { Role } from '../utils/enums/role.enum';
 import { FilesService } from './files.service';
 
-@Controller({ host: 'files.dsm-rms.com', path: 'files' })
+@Controller({ path: 'files' })
 @ApiTags('파일 업로드')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
@@ -110,6 +110,41 @@ export class FilesController {
     );
   }
 
+  @Post('video/:projectId')
+  @Roles(Role.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('video'))
+  @ApiOperation({ summary: '시연 영상 업로드' })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        pdf: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
+  @ApiConflictResponse({ description: '이미 동영상 파일이 업로드되어 있음' })
+  uploadVideo(
+    @UploadedFile() file: Express.MulterS3.File,
+    @Request() req,
+    @Param('projectId') projectId: number,
+  ) {
+    return this.filesService.uploadVideo(file, req.user.userId, projectId);
+  }
+
   @Put('pdf/:type/:projectId')
   @Roles(Role.User)
   @UseGuards(RolesGuard)
@@ -147,6 +182,45 @@ export class FilesController {
       file,
       `${req.user.userId}`,
       type,
+      projectId,
+      false,
+    );
+  }
+
+  @Put('video/:projectId')
+  @Roles(Role.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('video'))
+  @ApiOperation({ summary: '시연 영상 업로드' })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        pdf: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
+  reUploadVideo(
+    @UploadedFile() file: Express.MulterS3.File,
+    @Request() req,
+    @Param('projectId') projectId: number,
+  ) {
+    return this.filesService.uploadVideo(
+      file,
+      req.user.userId,
       projectId,
       false,
     );

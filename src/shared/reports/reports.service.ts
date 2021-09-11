@@ -20,4 +20,9 @@ export class ReportsService {
     const res = await this.reportsRepository.update(id, { pdfUrl: url });
     return res ? true : false;
   }
+
+  async updateVideoUrl(id: number, url: string): Promise<boolean> {
+    const res = await this.reportsRepository.update(id, { videoUrl: url });
+    return res ? true : false;
+  }
 }
