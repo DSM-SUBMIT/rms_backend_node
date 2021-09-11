@@ -97,4 +97,31 @@ describe('StatusService', () => {
       expect(result).toBeFalsy();
     });
   });
+  describe('updateReportAccepted', () => {
+    it('should return true', async () => {
+      statusRepository.update.mockResolvedValue({ affected: 1 });
+
+      const result = await service.updateReportAccepted(1, true);
+
+      expect(statusRepository.update).toHaveBeenCalledTimes(1);
+      expect(statusRepository.update).toHaveBeenCalledWith(1, {
+        isReportAccepted: true,
+      });
+
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false', async () => {
+      statusRepository.update.mockResolvedValue({ affected: 0 });
+
+      const result = await service.updateReportAccepted(2, true);
+
+      expect(statusRepository.update).toHaveBeenCalledTimes(1);
+      expect(statusRepository.update).toHaveBeenCalledWith(2, {
+        isReportAccepted: true,
+      });
+
+      expect(result).toBeFalsy();
+    });
+  });
 });
