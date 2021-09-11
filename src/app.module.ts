@@ -12,6 +12,7 @@ import { Status } from './shared/status/entities/status.entity';
 import { Field } from './shared/fields/entities/field.entity';
 import { Member } from './shared/members/entities/member.entity';
 import { ProjectField } from './shared/projectField/entities/projectField.entity';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ProjectField } from './shared/projectField/entities/projectField.entity
     }),
     AuthModule,
     FilesModule,
+    ProjectsModule,
   ],
   controllers: [],
   providers: [],
