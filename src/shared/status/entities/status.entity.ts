@@ -25,10 +25,10 @@ export class Status {
   isReportSubmitted: boolean;
 
   @Column({ name: 'plan_submitted_at', type: 'datetime', nullable: true })
-  planSubmittedAt: string;
+  planSubmittedAt: Date;
 
   @Column({ name: 'report_submitted_at', type: 'datetime', nullable: true })
-  reportSubmittedAt: string;
+  reportSubmittedAt: Date;
 
   @Column({
     name: 'is_plan_accepted',
