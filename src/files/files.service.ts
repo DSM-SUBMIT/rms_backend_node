@@ -259,6 +259,19 @@ export class FilesService {
     });
   }
 
+  async deleteFromS3(filename: string, bucket: string) {
+    const s3 = this.getS3();
+    return new Promise((resolve, reject) => {
+      s3.deleteObject({ Bucket: bucket, Key: filename }, (err, data) => {
+        if (err) {
+          Logger.error(err);
+          return reject(err.message);
+  }
+        resolve(data);
+      });
+    });
+  }
+
   getS3() {
     return new S3({
       accessKeyId: process.env.AWS_ACCESS_KEY,
