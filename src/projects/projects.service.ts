@@ -20,7 +20,7 @@ export class ProjectsService {
 
   async confirmProject(
     projectId: number,
-    type: 'plan' | 'report',
+    type: string,
     payload: ConfirmProjectDto,
     conflictCheck = true,
   ) {
