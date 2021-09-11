@@ -1,6 +1,7 @@
 import {
   Get,
   Param,
+  Put,
   Request,
   UploadedFile,
   UploadedFiles,
@@ -106,6 +107,48 @@ export class FilesController {
       `${req.user.userId}`,
       type,
       projectId,
+    );
+  }
+
+  @Put('pdf/:type/:projectId')
+  @Roles(Role.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('pdf'))
+  @ApiOperation({ summary: 'PDF 파일 재업로드' })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'type', enum: ['plan', 'report'] })
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        pdf: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
+  reUploadPdf(
+    @UploadedFile() file: Express.MulterS3.File,
+    @Request() req,
+    @Param('type') type: 'plan' | 'report',
+    @Param('projectId') projectId: number,
+  ) {
+    return this.filesService.uploadPdf(
+      file,
+      `${req.user.userId}`,
+      type,
+      projectId,
+      false,
     );
   }
 

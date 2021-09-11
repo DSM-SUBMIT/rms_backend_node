@@ -29,12 +29,13 @@ export class FilesService {
     username: string,
     type: 'plan' | 'report',
     projectId: number,
+    conflictCheck = true,
   ): Promise<string> {
     switch (type) {
       case 'plan': {
         const plan = await this.plansService.getPlanById(projectId);
         if (!plan) throw new NotFoundException();
-        if (plan.pdfUrl) throw new ConflictException();
+        if (plan.pdfUrl && conflictCheck) throw new ConflictException();
 
         const writerId = plan.projectId.userId;
         const writer = await this.usersService.getUserById(writerId);
@@ -56,7 +57,7 @@ export class FilesService {
       case 'report': {
         const report = await this.reportsService.getReportById(projectId);
         if (!report) throw new NotFoundException();
-        if (report.pdfUrl) throw new ConflictException();
+        if (report.pdfUrl && conflictCheck) throw new ConflictException();
 
         const writerId = report.projectId.userId;
         const writer = await this.usersService.getUserById(writerId);
