@@ -20,4 +20,11 @@ export class StatusService {
     });
     return res.affected ? true : false;
   }
+
+  async updateReportAccepted(id: number, status: boolean): Promise<boolean> {
+    const res = await this.statusRepository.update(id, {
+      isReportAccepted: status,
+    });
+    return res.affected ? true : false;
+  }
 }
