@@ -60,6 +60,7 @@ const mockStatusService = () => ({
     return mockStatus[id];
   }),
   updatePlanAccepted: jest.fn(),
+  updateReportAccepted: jest.fn(),
 });
 
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -134,6 +135,54 @@ describe('ProjectsService', () => {
         ).rejects.toThrow(ConflictException);
         expect(
           service.confirmProject(5, 'plan', {
+            type: 'approve',
+            comment: 'test',
+          }),
+        ).rejects.toThrow(ConflictException);
+      });
+    });
+
+    describe('report', () => {
+      it('should return nothing', async () => {
+        const result = await service.confirmProject(1, 'report', {
+          type: 'approve',
+          comment: 'test',
+        });
+
+        expect(statusService.getStatusById).toHaveBeenCalledTimes(1);
+        expect(statusService.updateReportAccepted).toHaveBeenCalledTimes(1);
+
+        expect(statusService.getStatusById).toHaveBeenCalledWith(1);
+        expect(statusService.updateReportAccepted).toHaveBeenCalledWith(
+          1,
+          true,
+        );
+
+        expect(result).toBeUndefined();
+      });
+      it('should throw NotFoundException', () => {
+        expect(
+          service.confirmProject(2, 'report', {
+            type: 'approve',
+            comment: 'test',
+          }),
+        ).rejects.toThrow(NotFoundException);
+      });
+      it('should throw ConflictException', () => {
+        expect(
+          service.confirmProject(3, 'report', {
+            type: 'approve',
+            comment: 'test',
+          }),
+        ).rejects.toThrow(ConflictException);
+        expect(
+          service.confirmProject(4, 'report', {
+            type: 'approve',
+            comment: 'test',
+          }),
+        ).rejects.toThrow(ConflictException);
+        expect(
+          service.confirmProject(5, 'report', {
             type: 'approve',
             comment: 'test',
           }),
