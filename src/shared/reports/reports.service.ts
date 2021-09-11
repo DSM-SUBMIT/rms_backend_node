@@ -15,4 +15,9 @@ export class ReportsService {
       relations: ['projectId'],
     });
   }
+
+  async updatePdfUrl(id: number, url: string): Promise<boolean> {
+    const res = await this.reportsRepository.update(id, { pdfUrl: url });
+    return res ? true : false;
+  }
 }

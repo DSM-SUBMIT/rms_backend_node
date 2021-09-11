@@ -10,6 +10,7 @@ import {
 import { S3 } from 'aws-sdk';
 import { extname } from 'path';
 import { PlansService } from 'src/shared/plans/plans.service';
+import { ReportsService } from 'src/shared/reports/reports.service';
 import { UsersService } from 'src/shared/users/users.service';
 import { v4 as uuid } from 'uuid';
 import { UploadFileOptions } from './interfaces/uploadFileOptions.interface';
@@ -18,6 +19,7 @@ import { UploadFileOptions } from './interfaces/uploadFileOptions.interface';
 export class FilesService {
   constructor(
     private readonly plansService: PlansService,
+    private readonly reportsService: ReportsService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -29,10 +31,10 @@ export class FilesService {
   ): Promise<string> {
     switch (type) {
       case 'plan': {
-        const res = await this.plansService.getPlanById(projectId);
-        if (!res) throw new NotFoundException();
+        const plan = await this.plansService.getPlanById(projectId);
+        if (!plan) throw new NotFoundException();
 
-        const writerId = res.projectId.userId;
+        const writerId = plan.projectId.userId;
         const writer = await this.usersService.getUserById(writerId);
         const email = writer?.email;
         if (email !== username) throw new ForbiddenException();
@@ -47,7 +49,28 @@ export class FilesService {
 
         await this.plansService.updatePdfUrl(projectId, uploadedUrl);
 
-        return uploadedUrl;
+        return;
+      }
+      case 'report': {
+        const report = await this.reportsService.getReportById(projectId);
+        if (!report) throw new NotFoundException();
+
+        const writerId = report.projectId.userId;
+        const writer = await this.usersService.getUserById(writerId);
+        const email = writer?.email;
+        if (email !== username) throw new ForbiddenException();
+
+        const uploadedUrl = await this.uploadSingleFile({
+          file,
+          username,
+          fileType: 'pdf',
+          folder: 'report',
+          allowedExt: /(pdf)/,
+        });
+
+        await this.reportsService.updatePdfUrl(projectId, uploadedUrl);
+
+        return;
       }
       default:
         throw new NotFoundException();
