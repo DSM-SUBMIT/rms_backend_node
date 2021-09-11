@@ -69,4 +69,44 @@ describe('StatusService', () => {
       expect(result).toBeUndefined();
     });
   });
+
+  describe('updatePlanAccepted', () => {
+    const mockStatus = {
+      projectId: 1,
+      isPlanSubmitted: false,
+      isReportSubmitted: false,
+      planSubmittedAt: null,
+      reportSubmittedAt: null,
+      isPlanAccepted: false,
+      isReportAccepted: false,
+    };
+
+    it('should return true', async () => {
+      mockStatus.isPlanAccepted = true;
+      statusRepository.update.mockResolvedValue({ affected: 1 });
+
+      const result = await service.updatePlanAccepted(1, true);
+
+      expect(statusRepository.update).toHaveBeenCalledTimes(1);
+      expect(statusRepository.update).toHaveBeenCalledWith(1, {
+        isPlanAccepted: true,
+      });
+
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false', async () => {
+      mockStatus.isPlanAccepted = true;
+      statusRepository.update.mockResolvedValue({ affected: 0 });
+
+      const result = await service.updatePlanAccepted(2, true);
+
+      expect(statusRepository.update).toHaveBeenCalledTimes(1);
+      expect(statusRepository.update).toHaveBeenCalledWith(2, {
+        isPlanAccepted: true,
+      });
+
+      expect(result).toBeFalsy();
+    });
+  });
 });
