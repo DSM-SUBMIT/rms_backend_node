@@ -81,6 +81,34 @@ export class FilesService {
     }
   }
 
+  async uploadVideo(
+    file: Express.MulterS3.File,
+    username: string,
+    projectId: number,
+    conflictCheck = true,
+  ) {
+    const report = await this.reportsService.getReportById(projectId);
+    if (!report) throw new NotFoundException();
+    if (report.videoUrl && conflictCheck) throw new ConflictException();
+
+    const writerId = report.projectId.userId;
+    const writer = await this.usersService.getUserById(writerId);
+    const email = writer?.email;
+    if (email !== username) throw new ForbiddenException();
+
+    const uploadedUrl = await this.uploadSingleFile({
+      file,
+      username,
+      folder: 'report',
+      fileType: 'video',
+      allowedExt: /(mp4)|(mov)|(wmv)|(avi)|(mkv)/,
+    });
+
+    await this.reportsService.updateVideoUrl(projectId, uploadedUrl);
+
+    return;
+  }
+
   async getPdf(type: 'plan' | 'report', projectId: number, req: any) {
     switch (type) {
       case 'plan': {
