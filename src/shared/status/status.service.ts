@@ -18,6 +18,6 @@ export class StatusService {
     const res = await this.statusRepository.update(id, {
       isPlanAccepted: status,
     });
-    return res ? true : false;
+    return res.affected ? true : false;
   }
 }
