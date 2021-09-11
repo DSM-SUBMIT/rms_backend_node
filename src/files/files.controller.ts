@@ -187,6 +187,45 @@ export class FilesController {
     );
   }
 
+  @Put('video/:projectId')
+  @Roles(Role.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('video'))
+  @ApiOperation({ summary: '시연 영상 업로드' })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        pdf: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
+  reUploadVideo(
+    @UploadedFile() file: Express.MulterS3.File,
+    @Request() req,
+    @Param('projectId') projectId: number,
+  ) {
+    return this.filesService.uploadVideo(
+      file,
+      req.user.userId,
+      projectId,
+      false,
+    );
+  }
+
   @Get('pdf/:type/:projectId')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'PDF 파일 다운로드' })
