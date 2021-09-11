@@ -21,7 +21,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/utils/decorators/roles.decorator';
 import { Role } from 'src/utils/enums/role.enum';
-import { ConfirmProjectDto } from './dto/confirmProject.dto';
+import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
 import { ProjectsService } from './projects.service';
 
 @Controller('projects')

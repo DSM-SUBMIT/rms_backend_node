@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { StatusService } from 'src/shared/status/status.service';
 import { Repository } from 'typeorm';
-import { ConfirmProjectDto } from './dto/confirmProject.dto';
+import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
 import { Project } from './entities/project.entity';
 
 @Injectable()
