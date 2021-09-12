@@ -97,7 +97,6 @@ type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 describe('ProjectsService', () => {
   let service: ProjectsService;
   let statusService: StatusService;
-  let usersService: UsersService;
   let projectsRepository: MockRepository<Project>;
 
   beforeEach(async () => {
@@ -121,7 +120,6 @@ describe('ProjectsService', () => {
 
     service = module.get<ProjectsService>(ProjectsService);
     statusService = module.get<StatusService>(StatusService);
-    usersService = module.get<UsersService>(UsersService);
     projectsRepository = module.get<MockRepository<Project>>(
       getRepositoryToken(Project),
     );
