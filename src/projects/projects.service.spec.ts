@@ -6,6 +6,7 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { StatusService } from 'src/shared/status/status.service';
+import { UsersService } from 'src/shared/users/users.service';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { ProjectsService } from './projects.service';
@@ -50,7 +51,24 @@ const mockStatus = [
     isReportAccepted: false,
   },
 ];
-
+const mockStatusPlan = [
+  {
+    projectId: {
+      userId: 1,
+      teamName: 'test',
+      projectName: 'test',
+      projectType: 'test',
+      projectField: [
+        {
+          fieldId: {
+            id: 1,
+            field: 'test',
+          },
+        },
+      ],
+    },
+  },
+];
 const mockProjectsRepository = () => ({
   findOne: jest.fn(),
 });
@@ -59,8 +77,14 @@ const mockStatusService = () => ({
     if (id !== mockStatus[id].projectId) return undefined;
     return mockStatus[id];
   }),
+  getStatusDescByPlanDate: jest.fn().mockImplementation(async (limit, page) => {
+    return page === 1 ? mockStatusPlan : [];
+  }),
   updatePlanAccepted: jest.fn(),
   updateReportAccepted: jest.fn(),
+});
+const mockUsersService = () => ({
+  getUserById: jest.fn(),
 });
 
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -68,6 +92,7 @@ type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 describe('ProjectsService', () => {
   let service: ProjectsService;
   let statusService: StatusService;
+  let usersService: UsersService;
   let projectsRepository: MockRepository<Project>;
 
   beforeEach(async () => {
@@ -82,11 +107,16 @@ describe('ProjectsService', () => {
           provide: StatusService,
           useValue: mockStatusService(),
         },
+        {
+          provide: UsersService,
+          useValue: mockUsersService(),
+        },
       ],
     }).compile();
 
     service = module.get<ProjectsService>(ProjectsService);
     statusService = module.get<StatusService>(StatusService);
+    usersService = module.get<UsersService>(UsersService);
     projectsRepository = module.get<MockRepository<Project>>(
       getRepositoryToken(Project),
     );
@@ -197,6 +227,29 @@ describe('ProjectsService', () => {
           comment: '',
         }),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('getPendingProjects', () => {
+    describe('plan', () => {
+      it('should return entity', async () => {
+        expect(service.getPendingProjects('plan', 8, 1)).resolves.toEqual({
+          projects: [
+            {
+              type: 'test',
+              title: 'test',
+              team_name: 'test',
+              fields: ['test'],
+            },
+          ],
+          order_by: 'plan',
+        });
+      });
+      it('should return undefined', async () => {
+        expect(
+          service.getPendingProjects('plan', 8, 2),
+        ).resolves.toBeUndefined();
+      });
     });
   });
 
