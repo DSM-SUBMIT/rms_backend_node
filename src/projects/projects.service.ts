@@ -6,8 +6,11 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StatusService } from 'src/shared/status/status.service';
+import { UsersService } from 'src/shared/users/users.service';
 import { Repository } from 'typeorm';
+import { ProjectItem } from 'src/projects/interfaces/project.interface';
 import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
+import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { Project } from './entities/project.entity';
 
 @Injectable()
@@ -16,6 +19,7 @@ export class ProjectsService {
     @InjectRepository(Project)
     private readonly projectsRepository: Repository<Project>,
     private readonly statusService: StatusService,
+    private readonly usersService: UsersService,
   ) {}
 
   async confirmProject(
@@ -71,6 +75,41 @@ export class ProjectsService {
       }
       default: {
         throw new BadRequestException();
+      }
+    }
+  }
+
+  async getPendingProjects(type: string, limit: number, page: number) {
+    const projectsList: ProjectsListDto = {};
+    projectsList.projects = [];
+    switch (type) {
+      case 'plan': {
+        const status = await this.statusService.getStatusDescByPlanDate(
+          limit,
+          page,
+        );
+        if (!status.length) return;
+        projectsList.order_by = 'plan';
+        for await (const s of status) {
+          const projectItem: ProjectItem = {};
+          const project = s.projectId;
+          const writer = await this.usersService.getUserById(project.userId);
+          if (writer.name === project.teamName)
+            projectItem.type = '개인프로젝트';
+          else projectItem.type = 'test';
+          projectItem.title = project.projectName;
+          projectItem.team_name = project.teamName;
+          projectItem.fields = [];
+
+          const fields = project.projectField;
+
+          for (const field of fields) {
+            projectItem.fields.push(field.fieldId.field);
+          }
+
+          projectsList.projects.push(projectItem);
+        }
+        return projectsList;
       }
     }
   }

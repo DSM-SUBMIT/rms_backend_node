@@ -1,19 +1,24 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Param,
   Post,
+  Query,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
   ApiForbiddenResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -22,6 +27,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/utils/decorators/roles.decorator';
 import { Role } from 'src/utils/enums/role.enum';
 import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
+import { NoContentInterceptor } from './interceptors/NoContent.interceptor';
 import { ProjectsService } from './projects.service';
 
 @Controller('projects')
@@ -49,5 +55,23 @@ export class ProjectsController {
     @Body() payload: ConfirmProjectDto,
   ) {
     return this.projectsService.confirmProject(projectId, type, payload);
+  }
+
+  @Get('pending')
+  @UseInterceptors(NoContentInterceptor)
+  @ApiOperation({ summary: '승인 대기중인 계획서/보고서 목록' })
+  @ApiQuery({ name: 'type', enum: ['plan', 'report'] })
+  @ApiQuery({ name: 'limit', schema: { type: 'number', default: '8' } })
+  @ApiQuery({ name: 'page', schema: { type: 'number', default: 1 } })
+  @ApiOkResponse()
+  @ApiNoContentResponse()
+  @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
+  getPendingProjects(
+    @Query('type') type: string,
+    @Query('limit') limit = 8,
+    @Query('page') page = 1,
+  ) {
+    return this.projectsService.getPendingProjects(type, limit, page);
   }
 }
