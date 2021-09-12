@@ -93,6 +93,7 @@ export class ProjectsService {
         for await (const s of status) {
           const projectItem: ProjectItem = {};
           const project = s.projectId;
+          projectItem.id = project.id;
           projectItem.type = project.projectType;
           projectItem.title = project.projectName;
           projectItem.team_name = project.teamName;
@@ -118,6 +119,7 @@ export class ProjectsService {
         for await (const s of status) {
           const projectItem: ProjectItem = {};
           const project = s.projectId;
+          projectItem.id = project.id;
           projectItem.type = project.projectType;
           projectItem.title = project.projectName;
           projectItem.team_name = project.teamName;
