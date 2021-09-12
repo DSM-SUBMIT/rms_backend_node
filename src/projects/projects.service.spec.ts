@@ -131,7 +131,7 @@ describe('ProjectsService', () => {
 
   describe('confirmProject', () => {
     describe('plan', () => {
-      it('should return nothing', async () => {
+      it('should return nothing(action: approve)', async () => {
         const result = await service.confirmProject(1, 'plan', {
           type: 'approve',
           comment: 'test',
@@ -145,6 +145,21 @@ describe('ProjectsService', () => {
 
         expect(result).toBeUndefined();
       });
+      it('should return nothing(action: deny)', async () => {
+        const result = await service.confirmProject(1, 'plan', {
+          type: 'deny',
+          comment: 'test',
+        });
+
+        expect(statusService.getStatusById).toHaveBeenCalledTimes(1);
+        expect(statusService.updatePlanAccepted).toHaveBeenCalledTimes(1);
+
+        expect(statusService.getStatusById).toHaveBeenCalledWith(1);
+        expect(statusService.updatePlanAccepted).toHaveBeenCalledWith(1, false);
+
+        expect(result).toBeUndefined();
+      });
+
       it('should throw NotFoundException', () => {
         expect(
           service.confirmProject(2, 'plan', {
@@ -176,7 +191,7 @@ describe('ProjectsService', () => {
     });
 
     describe('report', () => {
-      it('should return nothing', async () => {
+      it('should return nothing(action: approve)', async () => {
         const result = await service.confirmProject(1, 'report', {
           type: 'approve',
           comment: 'test',
@@ -189,6 +204,24 @@ describe('ProjectsService', () => {
         expect(statusService.updateReportAccepted).toHaveBeenCalledWith(
           1,
           true,
+        );
+
+        expect(result).toBeUndefined();
+      });
+
+      it('should return nothing(action: deny)', async () => {
+        const result = await service.confirmProject(1, 'report', {
+          type: 'deny',
+          comment: 'test',
+        });
+
+        expect(statusService.getStatusById).toHaveBeenCalledTimes(1);
+        expect(statusService.updateReportAccepted).toHaveBeenCalledTimes(1);
+
+        expect(statusService.getStatusById).toHaveBeenCalledWith(1);
+        expect(statusService.updateReportAccepted).toHaveBeenCalledWith(
+          1,
+          false,
         );
 
         expect(result).toBeUndefined();
