@@ -32,6 +32,24 @@ export class StatusService {
       ],
     });
   }
+  async getStatusDescByReportDate(
+    limit: number,
+    page: number,
+  ): Promise<Status[]> {
+    return await this.statusRepository.find({
+      where: { reportSubmittedAt: Not(IsNull()) },
+      order: {
+        planSubmittedAt: 'ASC',
+      },
+      take: limit,
+      skip: limit * (page - 1),
+      relations: [
+        'projectId',
+        'projectId.projectField',
+        'projectId.projectField.fieldId',
+      ],
+    });
+  }
 
   async updatePlanAccepted(id: number, status: boolean): Promise<boolean> {
     const res = await this.statusRepository.update(id, {
