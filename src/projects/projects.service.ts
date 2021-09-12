@@ -93,6 +93,31 @@ export class ProjectsService {
         for await (const s of status) {
           const projectItem: ProjectItem = {};
           const project = s.projectId;
+          projectItem.type = project.projectType;
+          projectItem.title = project.projectName;
+          projectItem.team_name = project.teamName;
+          projectItem.fields = [];
+
+          const fields = project.projectField;
+
+          for (const field of fields) {
+            projectItem.fields.push(field.fieldId.field);
+          }
+
+          projectsList.projects.push(projectItem);
+        }
+        return projectsList;
+      }
+      case 'report': {
+        const status = await this.statusService.getStatusDescByPlanDate(
+          limit,
+          page,
+        );
+        if (!status.length) return;
+        projectsList.order_by = 'report';
+        for await (const s of status) {
+          const projectItem: ProjectItem = {};
+          const project = s.projectId;
           const writer = await this.usersService.getUserById(project.userId);
           if (writer.name === project.teamName)
             projectItem.type = '개인프로젝트';
