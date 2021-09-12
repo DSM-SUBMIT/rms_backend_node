@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { StatusService } from 'src/shared/status/status.service';
+import { UsersService } from 'src/shared/users/users.service';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { ProjectsController } from './projects.controller';
@@ -11,6 +12,9 @@ const mockProjectsRepository = () => ({
 });
 const mockStatusService = () => ({
   getStatusById: jest.fn(),
+});
+const mockUsersService = () => ({
+  getUserById: jest.fn(),
 });
 
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -30,6 +34,10 @@ describe('ProjectsController', () => {
         {
           provide: StatusService,
           useValue: mockStatusService(),
+        },
+        {
+          provide: UsersService,
+          useValue: mockUsersService(),
         },
         ProjectsService,
       ],
