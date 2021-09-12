@@ -80,6 +80,11 @@ const mockStatusService = () => ({
   getStatusDescByPlanDate: jest.fn().mockImplementation(async (limit, page) => {
     return page === 1 ? mockStatusPlan : [];
   }),
+  getStatusDescByReportDate: jest
+    .fn()
+    .mockImplementation(async (limit, page) => {
+      return page === 1 ? mockStatusPlan : [];
+    }),
   updatePlanAccepted: jest.fn(),
   updateReportAccepted: jest.fn(),
 });
@@ -248,6 +253,27 @@ describe('ProjectsService', () => {
       it('should return undefined', async () => {
         expect(
           service.getPendingProjects('plan', 8, 2),
+        ).resolves.toBeUndefined();
+      });
+    });
+
+    describe('report', () => {
+      it('should return entity', async () => {
+        expect(service.getPendingProjects('report', 8, 1)).resolves.toEqual({
+          projects: [
+            {
+              type: 'test',
+              title: 'test',
+              team_name: 'test',
+              fields: ['test'],
+            },
+          ],
+          order_by: 'report',
+        });
+      });
+      it('should return undefined', async () => {
+        expect(
+          service.getPendingProjects('report', 8, 2),
         ).resolves.toBeUndefined();
       });
     });
