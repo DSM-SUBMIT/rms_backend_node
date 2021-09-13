@@ -39,7 +39,7 @@ import { ProjectsService } from './projects.service';
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @Post(':projectId/confirm/:type')
+  @Post('confirm/:projectId/:type')
   @HttpCode(200)
   @ApiOperation({ summary: '계획서/보고서 승인 여부 결정' })
   @ApiParam({ name: 'type', enum: ['plan', 'report'] })
