@@ -1,4 +1,5 @@
 import { Project } from 'src/projects/entities/project.entity';
+import { BoolBitTransformer } from 'src/utils/transformers/boolBit.transformer';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 
 @Entity()
@@ -14,6 +15,7 @@ export class Status {
     name: 'is_plan_submitted',
     type: 'bit',
     nullable: false,
+    transformer: new BoolBitTransformer(),
   })
   isPlanSubmitted: boolean;
 
@@ -21,6 +23,7 @@ export class Status {
     name: 'is_report_submitted',
     type: 'bit',
     nullable: false,
+    transformer: new BoolBitTransformer(),
   })
   isReportSubmitted: boolean;
 
@@ -34,6 +37,7 @@ export class Status {
     name: 'is_plan_accepted',
     type: 'bit',
     nullable: true,
+    transformer: new BoolBitTransformer(),
   })
   isPlanAccepted: boolean;
 
@@ -41,6 +45,7 @@ export class Status {
     name: 'is_report_accepted',
     type: 'bit',
     nullable: true,
+    transformer: new BoolBitTransformer(),
   })
   isReportAccepted: boolean;
 }
