@@ -88,10 +88,12 @@ export class ProjectsController {
   }
 
   @Get(':projectId/:type')
+  @UseInterceptors(NoContentInterceptor)
   @ApiOperation({ summary: '프로젝트 상세 보기' })
   @ApiParam({ name: 'projectId', type: 'number' })
   @ApiParam({ name: 'type', enum: ['plan', 'report'] })
   @ApiOkResponse()
+  @ApiNoContentResponse()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiNotFoundResponse()

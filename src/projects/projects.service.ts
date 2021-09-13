@@ -12,8 +12,10 @@ import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { Project } from './entities/project.entity';
 import { PlansService } from 'src/shared/plans/plans.service';
+import { ReportsService } from 'src/shared/reports/reports.service';
 import { PlanDetailDto } from './dto/response/planDetail.dto';
 import { MembersService } from 'src/shared/members/members.service';
+import { ReportDetailDto } from './dto/response/reportDetail.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -22,6 +24,7 @@ export class ProjectsService {
     private readonly projectsRepository: Repository<Project>,
     private readonly membersService: MembersService,
     private readonly plansService: PlansService,
+    private readonly reportsService: ReportsService,
     private readonly statusService: StatusService,
   ) {}
 
@@ -195,6 +198,25 @@ export class ProjectsService {
         };
 
         return planDetail;
+      }
+      case 'report': {
+        const project = await this.getProject(projectId);
+        if (!project) throw new NotFoundException();
+        const report = await this.reportsService.getReportById(projectId);
+        if (!report) return;
+        const members = await this.membersService.getUsersByProject(projectId);
+
+        const reportDetail: ReportDetailDto = {
+          project_name: project.projectName,
+          writer: project.userId.name,
+          members: members.map((member) => {
+            return { name: member.userId.name, role: member.role };
+          }),
+          video_url: report.videoUrl,
+          content: report.content,
+        };
+
+        return reportDetail;
       }
     }
   }
