@@ -167,6 +167,8 @@ export class ProjectsService {
   }
 
   async getProject(id: number): Promise<Project> {
-    return await this.projectsRepository.findOne(id);
+    return await this.projectsRepository.findOne(id, {
+      relations: ['userId'],
+    });
   }
 }

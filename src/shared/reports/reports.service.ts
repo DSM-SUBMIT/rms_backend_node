@@ -12,7 +12,7 @@ export class ReportsService {
 
   async getReportById(id: number) {
     return await this.reportsRepository.findOne(id, {
-      relations: ['projectId'],
+      relations: ['projectId', 'projectId.userId'],
     });
   }
 

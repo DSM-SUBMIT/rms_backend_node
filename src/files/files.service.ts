@@ -39,7 +39,7 @@ export class FilesService {
         if (!plan.pdfUrl && !conflictCheck) throw new NotFoundException();
 
         const writerId = plan.projectId.userId;
-        const writer = await this.usersService.getUserById(writerId);
+        const writer = await this.usersService.getUserById(writerId.id);
         const email = writer?.email;
         if (email !== username) throw new ForbiddenException();
 
@@ -76,7 +76,7 @@ export class FilesService {
         if (!report.pdfUrl && !conflictCheck) throw new NotFoundException();
 
         const writerId = report.projectId.userId;
-        const writer = await this.usersService.getUserById(writerId);
+        const writer = await this.usersService.getUserById(writerId.id);
         const email = writer?.email;
         if (email !== username) throw new ForbiddenException();
 
@@ -125,7 +125,7 @@ export class FilesService {
     if (!report.videoUrl && !conflictCheck) throw new NotFoundException();
 
     const writerId = report.projectId.userId;
-    const writer = await this.usersService.getUserById(writerId);
+    const writer = await this.usersService.getUserById(writerId.id);
     const email = writer?.email;
     if (email !== username) throw new ForbiddenException();
 

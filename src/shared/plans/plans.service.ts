@@ -11,7 +11,7 @@ export class PlansService {
 
   async getPlanById(id: number): Promise<Plan> {
     return await this.plansRepository.findOne(id, {
-      relations: ['projectId'],
+      relations: ['projectId', 'projectId.userId'],
     });
   }
 
