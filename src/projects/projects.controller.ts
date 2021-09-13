@@ -4,7 +4,7 @@ import {
   Get,
   HttpCode,
   Param,
-  Post,
+  Patch,
   Query,
   UseGuards,
   UseInterceptors,
@@ -39,12 +39,12 @@ import { ProjectsService } from './projects.service';
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
 
-  @Post('confirm/:projectId/:type')
-  @HttpCode(200)
+  @Patch('confirm/:projectId/:type')
+  @HttpCode(204)
   @ApiOperation({ summary: '계획서/보고서 승인 여부 결정' })
-  @ApiParam({ name: 'type', enum: ['plan', 'report'] })
   @ApiParam({ name: 'projectId', type: 'number' })
-  @ApiOkResponse()
+  @ApiParam({ name: 'type', enum: ['plan', 'report'] })
+  @ApiNoContentResponse()
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiNotFoundResponse()
