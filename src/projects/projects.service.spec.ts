@@ -5,6 +5,9 @@ import {
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { MembersService } from 'src/shared/members/members.service';
+import { PlansService } from 'src/shared/plans/plans.service';
+import { ReportsService } from 'src/shared/reports/reports.service';
 import { StatusService } from 'src/shared/status/status.service';
 import { UsersService } from 'src/shared/users/users.service';
 import { Repository } from 'typeorm';
@@ -72,6 +75,15 @@ const mockStatusPlan = [
 const mockProjectsRepository = () => ({
   findOne: jest.fn(),
 });
+const mockMembersService = () => ({
+  getUsersByProject: jest.fn(),
+});
+const mockPlansService = () => ({
+  getPlanById: jest.fn(),
+});
+const mockReportsService = () => ({
+  getReportById: jest.fn(),
+});
 const mockStatusService = () => ({
   getStatusById: jest.fn().mockImplementation(async (id) => {
     if (id !== mockStatus[id].projectId) return undefined;
@@ -106,6 +118,18 @@ describe('ProjectsService', () => {
         {
           provide: getRepositoryToken(Project),
           useValue: mockProjectsRepository(),
+        },
+        {
+          provide: MembersService,
+          useValue: mockMembersService(),
+        },
+        {
+          provide: PlansService,
+          useValue: mockPlansService(),
+        },
+        {
+          provide: ReportsService,
+          useValue: mockReportsService(),
         },
         {
           provide: StatusService,
@@ -317,7 +341,9 @@ describe('ProjectsService', () => {
       const result = await service.getProject(1);
 
       expect(projectsRepository.findOne).toHaveBeenCalledTimes(1);
-      expect(projectsRepository.findOne).toHaveBeenCalledWith(1);
+      expect(projectsRepository.findOne).toHaveBeenCalledWith(1, {
+        relations: ['userId'],
+      });
 
       expect(result).toBeUndefined();
     });
@@ -327,7 +353,9 @@ describe('ProjectsService', () => {
       const result = await service.getProject(1);
 
       expect(projectsRepository.findOne).toHaveBeenCalledTimes(1);
-      expect(projectsRepository.findOne).toHaveBeenCalledWith(1);
+      expect(projectsRepository.findOne).toHaveBeenCalledWith(1, {
+        relations: ['userId'],
+      });
 
       expect(result).toEqual('project');
     });

@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { MembersService } from 'src/shared/members/members.service';
+import { PlansService } from 'src/shared/plans/plans.service';
+import { ReportsService } from 'src/shared/reports/reports.service';
 import { StatusService } from 'src/shared/status/status.service';
 import { UsersService } from 'src/shared/users/users.service';
 import { Repository } from 'typeorm';
@@ -9,6 +12,15 @@ import { ProjectsService } from './projects.service';
 
 const mockProjectsRepository = () => ({
   findOne: jest.fn(),
+});
+const mockMembersService = () => ({
+  getUsersByProject: jest.fn(),
+});
+const mockPlansService = () => ({
+  getPlanById: jest.fn(),
+});
+const mockReportsService = () => ({
+  getReportById: jest.fn(),
 });
 const mockStatusService = () => ({
   getStatusById: jest.fn(),
@@ -30,6 +42,18 @@ describe('ProjectsController', () => {
         {
           provide: getRepositoryToken(Project),
           useValue: mockProjectsRepository(),
+        },
+        {
+          provide: MembersService,
+          useValue: mockMembersService(),
+        },
+        {
+          provide: PlansService,
+          useValue: mockPlansService(),
+        },
+        {
+          provide: ReportsService,
+          useValue: mockReportsService(),
         },
         {
           provide: StatusService,
