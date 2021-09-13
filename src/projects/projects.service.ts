@@ -18,7 +18,6 @@ export class ProjectsService {
     @InjectRepository(Project)
     private readonly projectsRepository: Repository<Project>,
     private readonly statusService: StatusService,
-    private readonly usersService: UsersService,
   ) {}
 
   async confirmProject(
@@ -135,6 +134,29 @@ export class ProjectsService {
         return projectsList;
       }
     }
+  }
+
+  async search(query: string) {
+    const projects = await this.findLike(query);
+
+    const projectList = new Array<ProjectItem>();
+    for (const p of projects) {
+      const projectItem: ProjectItem = {};
+      projectItem.id = p.id;
+      projectItem.type = p.projectType;
+      projectItem.title = p.projectName;
+      projectItem.team_name = p.teamName;
+      projectItem.fields = [];
+
+      const fields = p.projectField;
+
+      for (const field of fields) {
+        projectItem.fields.push(field.fieldId.field);
+      }
+      projectList.push(projectItem);
+    }
+
+    return projectList;
   }
 
   async findLike(query: string) {

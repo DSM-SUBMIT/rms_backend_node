@@ -74,4 +74,16 @@ export class ProjectsController {
   ) {
     return this.projectsService.getPendingProjects(type, limit, page);
   }
+
+  @Get('search')
+  @UseInterceptors(NoContentInterceptor)
+  @ApiOperation({ summary: '프로젝트 검색' })
+  @ApiQuery({ name: 'query', type: 'string', description: '검색어' })
+  @ApiOkResponse()
+  @ApiNoContentResponse()
+  @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
+  search(@Query('query') query: string) {
+    return this.projectsService.search(query);
+  }
 }
