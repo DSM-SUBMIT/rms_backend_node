@@ -6,8 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StatusService } from 'src/shared/status/status.service';
-import { UsersService } from 'src/shared/users/users.service';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { ProjectItem } from 'src/projects/interfaces/projectItem.interface';
 import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
@@ -136,6 +135,13 @@ export class ProjectsService {
         return projectsList;
       }
     }
+  }
+
+  async findLike(query: string) {
+    return await this.projectsRepository.find({
+      where: { projectName: Like(`%${query}%`) },
+      relations: ['projectField', 'projectField.fieldId'],
+    });
   }
 
   async getProject(id: number): Promise<Project> {
