@@ -11,12 +11,17 @@ import { ProjectItem } from 'src/projects/interfaces/projectItem.interface';
 import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { Project } from './entities/project.entity';
+import { PlansService } from 'src/shared/plans/plans.service';
+import { PlanDetailDto } from './dto/response/planDetail.dto';
+import { MembersService } from 'src/shared/members/members.service';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private readonly projectsRepository: Repository<Project>,
+    private readonly membersService: MembersService,
+    private readonly plansService: PlansService,
     private readonly statusService: StatusService,
   ) {}
 
@@ -157,6 +162,39 @@ export class ProjectsService {
     }
 
     return projectList;
+  }
+
+  async getDetail(projectId: number, type: string) {
+    switch (type) {
+      case 'plan': {
+        const project = await this.getProject(projectId);
+        if (!project) throw new NotFoundException();
+        const plan = await this.plansService.getPlanById(projectId);
+        if (!plan) return;
+        const members = await this.membersService.getUsersByProject(projectId);
+
+        const planDetail: PlanDetailDto = {
+          project_name: project.projectName,
+          writer: project.userId.name,
+          members: members.map((member) => {
+            return { name: member.userId.name, role: member.role };
+          }),
+          goal: plan.goal,
+          content: plan.content,
+          start_date: plan.startDate,
+          end_date: plan.endDate,
+          includes: {
+            result_report: plan.includeResultReport,
+            code: plan.includeCode,
+            outcome: plan.includeOutcome,
+            others: Boolean(plan.includeOthers),
+            others_content: plan.includeOthers ? plan.includeOthers : '',
+          },
+        };
+
+        return planDetail;
+      }
+    }
   }
 
   async findLike(query: string) {

@@ -86,4 +86,20 @@ export class ProjectsController {
   search(@Query('query') query: string) {
     return this.projectsService.search(query);
   }
+
+  @Get(':projectId/:type')
+  @ApiOperation({ summary: '프로젝트 상세 보기' })
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiParam({ name: 'type', enum: ['plan', 'report'] })
+  @ApiOkResponse()
+  @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
+  @ApiNotFoundResponse()
+  @ApiConflictResponse({})
+  projectDetail(
+    @Param('projectId') projectId: number,
+    @Param('type') type: 'plan' | 'report',
+  ) {
+    return this.projectsService.getDetail(projectId, type);
+  }
 }
