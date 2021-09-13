@@ -138,6 +138,8 @@ export class ProjectsService {
         }
         return projectsList;
       }
+      default:
+        throw new BadRequestException();
     }
   }
 
