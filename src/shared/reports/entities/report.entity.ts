@@ -14,12 +14,6 @@ export class Report {
   @Column({ name: 'pdf_url', type: 'varchar', length: 256, nullable: true })
   pdfUrl: string;
 
-  @Column({ name: 'start_date', type: 'char', length: 7, nullable: false })
-  startDate: string;
-
-  @Column({ name: 'end_date', type: 'char', length: 7, nullable: false })
-  endDate: string;
-
   @Column({ type: 'varchar', length: 15000, nullable: false })
   content: string;
 }
