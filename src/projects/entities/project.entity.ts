@@ -1,6 +1,6 @@
 import { Member } from 'src/shared/members/entities/member.entity';
 import { ProjectField } from 'src/shared/projectField/entities/projectField.entity';
-import { User } from '../../shared/users/entities/user.entity';
+import { User } from 'src/shared/users/entities/user.entity';
 import {
   Column,
   Entity,
@@ -37,7 +37,7 @@ export class Project {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @ManyToOne((type) => User, (user) => user.id, { nullable: false })
   @JoinColumn({ name: 'user_id' })
-  userId: number;
+  userId: User;
 
   @Column({
     name: 'project_type',
