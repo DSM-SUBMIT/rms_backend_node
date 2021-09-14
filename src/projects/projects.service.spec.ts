@@ -12,6 +12,7 @@ import { StatusService } from 'src/shared/status/status.service';
 import { UsersService } from 'src/shared/users/users.service';
 import { Like, Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
+import { ProjectItem } from './interfaces/projectItem.interface';
 import { ProjectsService } from './projects.service';
 
 const mockStatus = [
@@ -332,6 +333,38 @@ describe('ProjectsService', () => {
           service.getPendingProjects('report', 8, 2),
         ).resolves.toBeUndefined();
       });
+    });
+  });
+
+  describe('search', () => {
+    it('should return array of projects', async () => {
+      const projectList = new Array<ProjectItem>({
+        id: 1,
+        type: 'test',
+        title: 'test',
+        team_name: 'test',
+        fields: ['test'],
+      });
+      const projectItem = new Array({
+        id: 1,
+        projectType: 'test',
+        projectName: 'test',
+        teamName: 'test',
+        projectField: [
+          {
+            fieldId: {
+              field: 'test',
+            },
+          },
+        ],
+      });
+      projectsRepository.find.mockResolvedValue(projectItem);
+      expect(await service.search('test')).toEqual(projectList);
+    });
+
+    it('should return nothing', async () => {
+      projectsRepository.find.mockResolvedValue([]);
+      expect(await service.search('test')).toBeFalsy();
     });
   });
 
