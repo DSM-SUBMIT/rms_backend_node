@@ -10,7 +10,7 @@ import { PlansService } from 'src/shared/plans/plans.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
 import { StatusService } from 'src/shared/status/status.service';
 import { UsersService } from 'src/shared/users/users.service';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { ProjectsService } from './projects.service';
 
@@ -73,6 +73,7 @@ const mockStatusPlan = [
   },
 ];
 const mockProjectsRepository = () => ({
+  find: jest.fn(),
   findOne: jest.fn(),
 });
 const mockMembersService = () => ({
@@ -331,6 +332,30 @@ describe('ProjectsService', () => {
           service.getPendingProjects('report', 8, 2),
         ).resolves.toBeUndefined();
       });
+    });
+  });
+
+  describe('findLike', () => {
+    const callOptions = {
+      where: { projectName: Like(`%query%`) },
+      relations: ['projectField', 'projectField.fieldId'],
+    };
+
+    it('should return projects', async () => {
+      projectsRepository.find.mockResolvedValue(['project', 'project']);
+
+      expect(await service.findLike('query')).toEqual(['project', 'project']);
+
+      expect(projectsRepository.find).toHaveBeenCalledTimes(1);
+      expect(projectsRepository.find).toHaveBeenCalledWith(callOptions);
+    });
+    it('should return an empty array', async () => {
+      projectsRepository.find.mockResolvedValue([]);
+
+      expect(await service.findLike('query')).toEqual([]);
+
+      expect(projectsRepository.find).toHaveBeenCalledTimes(1);
+      expect(projectsRepository.find).toHaveBeenCalledWith(callOptions);
     });
   });
 
