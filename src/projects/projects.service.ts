@@ -148,6 +148,7 @@ export class ProjectsService {
 
   async search(query: string) {
     const projects = await this.findLike(query);
+    if (!projects.length) return;
 
     const projectList = new Array<ProjectItem>();
     for (const p of projects) {
