@@ -6,11 +6,15 @@ import {
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { MembersService } from 'src/shared/members/members.service';
+import { Plan } from 'src/shared/plans/entities/plan.entity';
 import { PlansService } from 'src/shared/plans/plans.service';
+import { Report } from 'src/shared/reports/entities/report.entity';
 import { ReportsService } from 'src/shared/reports/reports.service';
 import { StatusService } from 'src/shared/status/status.service';
 import { UsersService } from 'src/shared/users/users.service';
 import { Like, Repository } from 'typeorm';
+import { PlanDetailDto } from './dto/response/planDetail.dto';
+import { ReportDetailDto } from './dto/response/reportDetail.dto';
 import { Project } from './entities/project.entity';
 import { ProjectItem } from './interfaces/projectItem.interface';
 import { ProjectsService } from './projects.service';
@@ -73,18 +77,98 @@ const mockStatusPlan = [
     },
   },
 ];
+
+const mockProjectItem: Project = {
+  id: 1,
+  projectType: 'test',
+  projectName: 'test',
+  teamName: 'test',
+  userId: {
+    id: 1,
+    name: 'test',
+    email: 'test@example.com',
+    userId: [],
+    projects: [],
+  },
+  projectField: [],
+  techStacks: '',
+  githubUrl: null,
+  serviceUrl: null,
+  docsUrl: null,
+  teacher: 'test',
+  projectId: [],
+};
+const planItem: Plan = {
+  projectId: mockProjectItem,
+  goal: 'test',
+  content: 'test',
+  startDate: '2021.09',
+  endDate: '2021.09',
+  pdfUrl: '',
+  includeResultReport: true,
+  includeCode: true,
+  includeOutcome: true,
+  includeOthers: null,
+};
+const planDetail: PlanDetailDto = {
+  project_name: 'test',
+  writer: 'test',
+  members: [{ name: 'test', role: 'test' }],
+  goal: 'test',
+  content: 'test',
+  start_date: '2021.09',
+  end_date: '2021.09',
+  includes: {
+    result_report: true,
+    code: true,
+    outcome: true,
+    others: false,
+    others_content: '',
+  },
+};
+const reportItem: Report = {
+  projectId: mockProjectItem,
+  videoUrl: 'http://example.com',
+  pdfUrl: 'test',
+  content: 'test',
+};
+const reportDetail: ReportDetailDto = {
+  project_name: 'test',
+  writer: 'test',
+  members: [{ name: 'test', role: 'test' }],
+  video_url: 'http://example.com',
+  content: 'test',
+};
 const mockProjectsRepository = () => ({
   find: jest.fn(),
   findOne: jest.fn(),
 });
 const mockMembersService = () => ({
-  getUsersByProject: jest.fn(),
+  getUsersByProject: jest.fn().mockResolvedValue([
+    {
+      projectId: mockProjectItem,
+      userId: {
+        id: 1,
+        name: 'test',
+        email: 'test@example.com',
+        userId: [],
+        projects: [],
+      },
+      role: 'test',
+    },
+  ]),
 });
 const mockPlansService = () => ({
-  getPlanById: jest.fn(),
+  getPlanById: jest.fn().mockImplementation(async (id) => {
+    if (id !== planItem.projectId.id) return undefined;
+    return planItem;
+  }),
 });
 const mockReportsService = () => ({
-  getReportById: jest.fn(),
+  getReportById: jest.fn().mockImplementation(async (id) => {
+    if (id !== reportItem.projectId.id) return undefined;
+    return reportItem;
+  }),
 });
 const mockStatusService = () => ({
   getStatusById: jest.fn().mockImplementation(async (id) => {
@@ -368,6 +452,38 @@ describe('ProjectsService', () => {
     });
   });
 
+  describe('getDetail', () => {
+    describe('plan', () => {
+      it('should return plan detail', async () => {
+        jest.spyOn(service, 'getProject').mockResolvedValue(mockProjectItem);
+        expect(await service.getDetail(1, 'plan')).toEqual(planDetail);
+      });
+      it('should throw NotFoundException', () => {
+        jest.spyOn(service, 'getProject').mockResolvedValue(undefined);
+        expect(service.getDetail(1, 'plan')).rejects.toThrow(NotFoundException);
+      });
+      it('should return nothing', async () => {
+        jest.spyOn(service, 'getProject').mockResolvedValue(mockProjectItem);
+        expect(await service.getDetail(2, 'plan')).toBeFalsy();
+      });
+    });
+
+    describe('report', () => {
+      it('should return report detail', async () => {
+        jest.spyOn(service, 'getProject').mockResolvedValue(mockProjectItem);
+        expect(await service.getDetail(1, 'report')).toEqual(reportDetail);
+      });
+      it('should throw NotFoundException', () => {
+        jest.spyOn(service, 'getProject').mockResolvedValue(undefined);
+        expect(service.getDetail(1, 'report')).rejects.toThrow(
+          NotFoundException,
+        );
+      });
+      it('should return nothing', async () => {
+        jest.spyOn(service, 'getProject').mockResolvedValue(mockProjectItem);
+        expect(await service.getDetail(2, 'report')).toBeFalsy();
+      });
+    });
   describe('findLike', () => {
     const callOptions = {
       where: { projectName: Like(`%query%`) },
