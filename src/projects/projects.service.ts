@@ -218,6 +218,9 @@ export class ProjectsService {
 
         return reportDetail;
       }
+      default: {
+        throw new BadRequestException();
+      }
     }
   }
 
