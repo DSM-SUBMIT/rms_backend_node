@@ -418,6 +418,12 @@ describe('ProjectsService', () => {
         ).resolves.toBeUndefined();
       });
     });
+
+    it('should throw BadRequestException', () => {
+      expect(service.getPendingProjects('wrong type', 8, 1)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
   });
 
   describe('search', () => {
@@ -484,6 +490,14 @@ describe('ProjectsService', () => {
         expect(await service.getDetail(2, 'report')).toBeFalsy();
       });
     });
+
+    it('should throw BadRequestException', () => {
+      expect(service.getDetail(1, 'wrong type')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
   describe('findLike', () => {
     const callOptions = {
       where: { projectName: Like(`%query%`) },
