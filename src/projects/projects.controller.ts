@@ -61,7 +61,7 @@ export class ProjectsController {
   @UseInterceptors(NoContentInterceptor)
   @ApiOperation({ summary: '승인 대기중인 계획서/보고서 목록' })
   @ApiQuery({ name: 'type', enum: ['plan', 'report'] })
-  @ApiQuery({ name: 'limit', schema: { type: 'number', default: '8' } })
+  @ApiQuery({ name: 'limit', schema: { type: 'number', default: 8 } })
   @ApiQuery({ name: 'page', schema: { type: 'number', default: 1 } })
   @ApiOkResponse()
   @ApiNoContentResponse()
@@ -97,7 +97,7 @@ export class ProjectsController {
   @ApiUnauthorizedResponse()
   @ApiForbiddenResponse()
   @ApiNotFoundResponse()
-  @ApiConflictResponse({})
+  @ApiConflictResponse()
   projectDetail(
     @Param('projectId') projectId: number,
     @Param('type') type: 'plan' | 'report',
