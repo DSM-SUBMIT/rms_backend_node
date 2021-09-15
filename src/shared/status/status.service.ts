@@ -56,6 +56,16 @@ export class StatusService {
       ],
     });
   }
+
+  async getConfirmedStatus(
+    limit: number,
+    page: number,
+  ): Promise<[Status[], number]> {
+    return await this.statusRepository.findAndCount({
+      where: {
+        isPlanAccepted: true,
+        isReportAccepted: true,
+      },
       order: {
         planSubmittedAt: 'ASC',
       },

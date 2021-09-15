@@ -104,4 +104,17 @@ export class ProjectsController {
   ) {
     return this.projectsService.getDetail(projectId, type);
   }
+
+  @Get('confirmed')
+  @UseInterceptors(NoContentInterceptor)
+  @ApiOperation({ summary: '모두 승인된 프로젝트 목록' })
+  @ApiQuery({ name: 'limit', schema: { type: 'number', default: 8 } })
+  @ApiQuery({ name: 'page', schema: { type: 'number', default: 1 } })
+  @ApiOkResponse()
+  @ApiNoContentResponse()
+  @ApiUnauthorizedResponse()
+  @ApiForbiddenResponse()
+  confirmedProjects(@Query('limit') limit = 8, @Query('page') page = 1) {
+    return this.projectsService.getConfirmed(limit, page);
+  }
 }
