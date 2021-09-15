@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Field } from 'src/shared/fields/entities/Field.entity';
+import { Field } from 'src/shared/fields/entities/field.entity';
 import { FieldsService } from 'src/shared/fields/fields.service';
 
 const mockProjectFieldRepository = () => ({
