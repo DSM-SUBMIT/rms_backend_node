@@ -187,6 +187,17 @@ const mockStatusService = () => ({
     .mockImplementation(async (limit, page) => {
       return page === 1 ? mockStatusPlan : [];
     }),
+  getConfirmedStatus: jest.fn().mockImplementation(async (limit, page) => {
+    if (page !== 1) return [[], 0];
+    return [
+      [
+        {
+          projectId: mockProjectItem,
+        },
+      ],
+      1,
+    ];
+  }),
   updatePlanAccepted: jest.fn(),
   updateReportAccepted: jest.fn(),
 });
@@ -501,6 +512,27 @@ describe('ProjectsService', () => {
       expect(service.getDetail(1, 'wrong type')).rejects.toThrow(
         BadRequestException,
       );
+    });
+  });
+
+  describe('getConfirmed', () => {
+    it('should return projects', async () => {
+      expect(await service.getConfirmed(8, 1)).toMatchObject({
+        total_page: 1,
+        total_amount: 1,
+        projects: [
+          {
+            id: 1,
+            type: 'test',
+            title: 'test',
+            team_name: 'test',
+            fields: [],
+          },
+        ],
+      });
+    });
+    it('should return undefined', async () => {
+      expect(await service.getConfirmed(8, 2)).toBeUndefined();
     });
   });
 
