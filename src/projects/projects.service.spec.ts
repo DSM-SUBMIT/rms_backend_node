@@ -60,22 +60,26 @@ const mockStatus = [
   },
 ];
 const mockStatusPlan = [
-  {
-    projectId: {
-      userId: 1,
-      teamName: 'test',
-      projectName: 'test',
-      projectType: 'test',
-      projectField: [
-        {
-          fieldId: {
-            id: 1,
-            field: 'test',
+  [
+    {
+      projectId: {
+        id: 1,
+        userId: 1,
+        teamName: 'test',
+        projectName: 'test',
+        projectType: 'test',
+        projectField: [
+          {
+            fieldId: {
+              id: 1,
+              field: 'test',
+            },
           },
-        },
-      ],
+        ],
+      },
     },
-  },
+  ],
+  1,
 ];
 
 const mockProjectItem: Project = {
@@ -379,43 +383,45 @@ describe('ProjectsService', () => {
   describe('getPendingProjects', () => {
     describe('plan', () => {
       it('should return entity', async () => {
-        expect(service.getPendingProjects('plan', 8, 1)).resolves.toEqual({
+        expect(await service.getPendingProjects('plan', 8, 1)).toEqual({
           projects: [
             {
+              id: 1,
               type: 'test',
               title: 'test',
               team_name: 'test',
               fields: ['test'],
             },
           ],
-          order_by: 'plan',
+          total_amount: 1,
+          total_page: 1,
         });
       });
       it('should return undefined', async () => {
-        expect(
-          service.getPendingProjects('plan', 8, 2),
-        ).resolves.toBeUndefined();
+        expect(await service.getPendingProjects('plan', 8, 2)).toBeUndefined();
       });
     });
 
     describe('report', () => {
       it('should return entity', async () => {
-        expect(service.getPendingProjects('report', 8, 1)).resolves.toEqual({
+        expect(await service.getPendingProjects('report', 8, 1)).toEqual({
           projects: [
             {
+              id: 1,
               type: 'test',
               title: 'test',
               team_name: 'test',
               fields: ['test'],
             },
           ],
-          order_by: 'report',
+          total_amount: 1,
+          total_page: 1,
         });
       });
       it('should return undefined', async () => {
         expect(
-          service.getPendingProjects('report', 8, 2),
-        ).resolves.toBeUndefined();
+          await service.getPendingProjects('report', 8, 2),
+        ).toBeUndefined();
       });
     });
 
