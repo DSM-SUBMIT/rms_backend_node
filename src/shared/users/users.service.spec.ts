@@ -34,4 +34,22 @@ describe('UsersService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  describe('getUserById', () => {
+    it('should return an user', async () => {
+      const user = {
+        id: 1,
+        email: 'foo@bar.com',
+        name: 'foo',
+        projects: [{ id: 1 }],
+        userId: [{ id: 1 }],
+      };
+      usersRepository.findOne.mockResolvedValue(user);
+      expect(await service.getUserById(1)).toEqual(user);
+    });
+    it('should return null', async () => {
+      usersRepository.findOne.mockResolvedValue(null);
+      expect(await service.getUserById(1)).toBeNull();
+    });
+  });
 });

@@ -2,10 +2,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { AuthService } from './auth.service';
 import { Admin } from './entities/admin.entity';
 
-class MockRepository {}
+const mockAdminRepository = () => ({
+  findOne: jest.fn(),
+});
+
+type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -23,7 +28,7 @@ describe('AuthService', () => {
         AuthService,
         {
           provide: getRepositoryToken(Admin),
-          useValue: MockRepository,
+          useValue: mockAdminRepository(),
         },
       ],
     }).compile();
