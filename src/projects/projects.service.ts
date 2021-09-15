@@ -86,16 +86,12 @@ export class ProjectsService {
   }
 
   async getPendingProjects(type: string, limit: number, page: number) {
-    const projectsList: ProjectsListDto = {};
-    projectsList.projects = [];
+    const projectList = new Array<ProjectItem>();
     switch (type) {
       case 'plan': {
-        const status = await this.statusService.getStatusDescByPlanDate(
-          limit,
-          page,
-        );
-        if (!status.length) return;
-        projectsList.order_by = 'plan';
+        const [status, count] =
+          await this.statusService.getStatusDescByPlanDate(limit, page);
+        if (!count) return;
         for await (const s of status) {
           const projectItem: ProjectItem = {};
           const project = s.projectId;
@@ -111,17 +107,19 @@ export class ProjectsService {
             projectItem.fields.push(field.fieldId.field);
           }
 
-          projectsList.projects.push(projectItem);
+          projectList.push(projectItem);
         }
+        const projectsList: ProjectsListDto = {
+          total_page: Math.ceil(count / limit),
+          total_amount: count,
+          projects: projectList,
+        };
         return projectsList;
       }
       case 'report': {
-        const status = await this.statusService.getStatusDescByReportDate(
-          limit,
-          page,
-        );
-        if (!status.length) return;
-        projectsList.order_by = 'report';
+        const [status, count] =
+          await this.statusService.getStatusDescByReportDate(limit, page);
+        if (!count) return;
         for await (const s of status) {
           const projectItem: ProjectItem = {};
           const project = s.projectId;
@@ -137,8 +135,13 @@ export class ProjectsService {
             projectItem.fields.push(field.fieldId.field);
           }
 
-          projectsList.projects.push(projectItem);
+          projectList.push(projectItem);
         }
+        const projectsList: ProjectsListDto = {
+          total_page: Math.ceil(count / limit),
+          total_amount: count,
+          projects: projectList,
+        };
         return projectsList;
       }
       default:
@@ -223,6 +226,42 @@ export class ProjectsService {
         throw new BadRequestException();
       }
     }
+  }
+
+  async getConfirmed(limit: number, page: number) {
+    const [status, count] = await this.statusService.getConfirmedStatus(
+      limit,
+      page,
+    );
+    if (!count) return;
+
+    const projects = status.map((s) => {
+      return s.projectId;
+    });
+
+    const projectList = new Array<ProjectItem>();
+    for (const p of projects) {
+      const projectItem: ProjectItem = {};
+      projectItem.id = p.id;
+      projectItem.type = p.projectType;
+      projectItem.title = p.projectName;
+      projectItem.team_name = p.teamName;
+      projectItem.fields = [];
+
+      const fields = p.projectField;
+
+      for (const field of fields) {
+        projectItem.fields.push(field.fieldId.field);
+      }
+      projectList.push(projectItem);
+    }
+    const projectsList: ProjectsListDto = {
+      total_page: Math.ceil(count / limit),
+      total_amount: count,
+      projects: projectList,
+    };
+
+    return projectsList;
   }
 
   async findLike(query: string) {

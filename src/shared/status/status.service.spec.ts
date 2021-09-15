@@ -37,15 +37,18 @@ describe('StatusService', () => {
   });
 
   describe('getStatusById', () => {
-    const mockStatus = {
-      projectId: 1,
-      isPlanSubmitted: false,
-      isReportSubmitted: false,
-      planSubmittedAt: null,
-      reportSubmittedAt: null,
-      isPlanAccepted: false,
-      isReportAccepted: false,
-    };
+    const mockStatus = [
+      {
+        projectId: 1,
+        isPlanSubmitted: false,
+        isReportSubmitted: false,
+        planSubmittedAt: null,
+        reportSubmittedAt: null,
+        isPlanAccepted: false,
+        isReportAccepted: false,
+      },
+      1,
+    ];
 
     it('should return Status', async () => {
       statusRepository.findOne.mockResolvedValue(mockStatus);
