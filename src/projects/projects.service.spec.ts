@@ -18,11 +18,21 @@ import { ReportDetailDto } from './dto/response/reportDetail.dto';
 import { Project } from './entities/project.entity';
 import { ProjectItem } from './interfaces/projectItem.interface';
 import { ProjectsService } from './projects.service';
+import { MailService } from 'src/mail/mail.service';
+
+jest.mock('src/mail/mail.service');
 
 const mockStatus = [
   {},
   {
-    projectId: 1,
+    projectId: {
+      id: 1,
+      projectName: 'test',
+      userId: {
+        name: 'test',
+        email: 'test@example.com',
+      },
+    },
     isPlanSubmitted: true,
     isReportSubmitted: true,
     planSubmittedAt: null,
@@ -32,7 +42,14 @@ const mockStatus = [
   },
   {},
   {
-    projectId: 3,
+    projectId: {
+      id: 3,
+      projectName: 'test',
+      userId: {
+        name: 'test',
+        email: 'test@example.com',
+      },
+    },
     isPlanSubmitted: false,
     isReportSubmitted: false,
     planSubmittedAt: null,
@@ -41,7 +58,14 @@ const mockStatus = [
     isReportAccepted: null,
   },
   {
-    projectId: 4,
+    projectId: {
+      id: 4,
+      projectName: 'test',
+      userId: {
+        name: 'test',
+        email: 'test@example.com',
+      },
+    },
     isPlanSubmitted: true,
     isReportSubmitted: true,
     planSubmittedAt: null,
@@ -50,7 +74,14 @@ const mockStatus = [
     isReportAccepted: true,
   },
   {
-    projectId: 5,
+    projectId: {
+      id: 5,
+      projectName: 'test',
+      userId: {
+        name: 'test',
+        email: 'test@example.com',
+      },
+    },
     isPlanSubmitted: true,
     isReportSubmitted: true,
     planSubmittedAt: null,
@@ -176,7 +207,7 @@ const mockReportsService = () => ({
 });
 const mockStatusService = () => ({
   getStatusById: jest.fn().mockImplementation(async (id) => {
-    if (id !== mockStatus[id].projectId) return undefined;
+    if (id !== mockStatus[id].projectId.id) return undefined;
     return mockStatus[id];
   }),
   getStatusDescByPlanDate: jest.fn().mockImplementation(async (limit, page) => {
@@ -220,6 +251,7 @@ describe('ProjectsService', () => {
           provide: getRepositoryToken(Project),
           useValue: mockProjectsRepository(),
         },
+        MailService,
         {
           provide: MembersService,
           useValue: mockMembersService(),

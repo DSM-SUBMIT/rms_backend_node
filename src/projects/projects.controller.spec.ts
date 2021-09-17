@@ -9,6 +9,8 @@ import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
+import { MailService } from 'src/mail/mail.service';
+jest.mock('src/mail/mail.service');
 
 const mockProjectsRepository = () => ({
   findOne: jest.fn(),
@@ -43,6 +45,7 @@ describe('ProjectsController', () => {
           provide: getRepositoryToken(Project),
           useValue: mockProjectsRepository(),
         },
+        MailService,
         {
           provide: MembersService,
           useValue: mockMembersService(),
