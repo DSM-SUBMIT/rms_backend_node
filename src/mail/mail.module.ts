@@ -1,8 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { MailService } from './mail.service';
-import * as path from 'path';
 
 @Module({
   imports: [
@@ -17,13 +15,6 @@ import * as path from 'path';
           clientId: process.env.OAUTH_CLIENT_ID,
           clientSecret: process.env.OAUTH_CLIENT_SECRET,
           refreshToken: process.env.OAUTH_REFRESH,
-        },
-        template: {
-          dir: path.join(__dirname, '/templates/'),
-          adapter: new EjsAdapter(),
-          options: {
-            strict: true,
-          },
         },
       },
     }),
