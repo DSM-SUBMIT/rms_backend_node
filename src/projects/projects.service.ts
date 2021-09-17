@@ -16,12 +16,14 @@ import { ReportsService } from 'src/shared/reports/reports.service';
 import { PlanDetailDto } from './dto/response/planDetail.dto';
 import { MembersService } from 'src/shared/members/members.service';
 import { ReportDetailDto } from './dto/response/reportDetail.dto';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private readonly projectsRepository: Repository<Project>,
+    private readonly mailService: MailService,
     private readonly membersService: MembersService,
     private readonly plansService: PlansService,
     private readonly reportsService: ReportsService,
@@ -47,10 +49,32 @@ export class ProjectsService {
 
         switch (payload.type) {
           case 'approve': {
+            await this.mailService.sendMail(
+              status.projectId.userId.email,
+              '[RMS] 계획서 승인 알림 메일입니다.',
+              'planApproved',
+              {
+                writerName: status.projectId.userId.name,
+                projectName: status.projectId.projectName,
+                teacher: status.projectId.teacher,
+                comment: payload.comment,
+              },
+            );
             await this.statusService.updatePlanAccepted(projectId, true);
             break;
           }
           case 'deny': {
+            await this.mailService.sendMail(
+              status.projectId.userId.email,
+              '[RMS] 계획서 거절 알림 메일입니다.',
+              'planDenied',
+              {
+                writerName: status.projectId.userId.name,
+                projectName: status.projectId.projectName,
+                teacher: status.projectId.teacher,
+                comment: payload.comment,
+              },
+            );
             await this.statusService.updatePlanAccepted(projectId, false);
             break;
           }
@@ -69,10 +93,32 @@ export class ProjectsService {
 
         switch (payload.type) {
           case 'approve': {
+            await this.mailService.sendMail(
+              status.projectId.userId.email,
+              '[RMS] 보고서 승인 알림 메일입니다.',
+              'reportApproved',
+              {
+                writerName: status.projectId.userId.name,
+                projectName: status.projectId.projectName,
+                teacher: status.projectId.teacher,
+                comment: payload.comment,
+              },
+            );
             await this.statusService.updateReportAccepted(projectId, true);
             break;
           }
           case 'deny': {
+            await this.mailService.sendMail(
+              status.projectId.userId.email,
+              '[RMS] 보고서 거절 알림 메일입니다.',
+              'reportDenied',
+              {
+                writerName: status.projectId.userId.name,
+                projectName: status.projectId.projectName,
+                teacher: status.projectId.teacher,
+                comment: payload.comment,
+              },
+            );
             await this.statusService.updateReportAccepted(projectId, false);
             break;
           }
