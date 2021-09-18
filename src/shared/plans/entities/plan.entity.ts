@@ -1,6 +1,5 @@
 import { Project } from '../../../projects/entities/project.entity';
 import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
-import { BoolBitTransformer } from 'src/utils/transformers/boolBit.transformer';
 
 @Entity()
 export class Plan {
@@ -28,25 +27,19 @@ export class Plan {
 
   @Column({
     name: 'include_result_report',
-    type: 'bit',
     nullable: false,
-    transformer: new BoolBitTransformer(),
   })
   includeResultReport: boolean;
 
   @Column({
     name: 'include_code',
-    type: 'bit',
     nullable: false,
-    transformer: new BoolBitTransformer(),
   })
   includeCode: boolean;
 
   @Column({
     name: 'include_outcome',
-    type: 'bit',
     nullable: false,
-    transformer: new BoolBitTransformer(),
   })
   includeOutcome: boolean;
 
