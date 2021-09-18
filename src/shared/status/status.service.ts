@@ -11,7 +11,9 @@ export class StatusService {
   ) {}
 
   async getStatusById(id: number): Promise<Status> {
-    return await this.statusRepository.findOne(id);
+    return await this.statusRepository.findOne(id, {
+      relations: ['projectId', 'projectId.userId'],
+    });
   }
 
   async getStatusDescByPlanDate(
