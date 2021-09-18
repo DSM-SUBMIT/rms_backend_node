@@ -37,7 +37,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
       
       - name: Trigger the CodeDeploy in EC2 instance
-        run: aws deploy --region ap-northeast-2 create-deployment --application-name rms --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name rms-deployment-group-node --github-location repository=DSM-SUBMIT/rms_backend_node,commitId=${GITHUB_SHA}
+        run: aws deploy --region ap-northeast-2 create-deployment --application-name rms --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name rms-codedeploy-group-node --github-location repository=DSM-SUBMIT/rms_backend_node,commitId=${GITHUB_SHA}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
