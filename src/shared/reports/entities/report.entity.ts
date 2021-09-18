@@ -11,9 +11,6 @@ export class Report {
   @Column({ name: 'video_url', type: 'varchar', length: 256, nullable: true })
   videoUrl: string;
 
-  @Column({ name: 'pdf_url', type: 'varchar', length: 256, nullable: true })
-  pdfUrl: string;
-
   @Column({ type: 'varchar', length: 15000, nullable: false })
   content: string;
 }
