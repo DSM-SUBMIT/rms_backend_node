@@ -1,6 +1,6 @@
 FROM node:lts-alpine
 
-WORKDIR /app
+VOLUME /rms-backend-node
 
 COPY package.json ./
 COPY yarn.lock ./
