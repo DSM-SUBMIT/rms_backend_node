@@ -16,9 +16,6 @@ export class Plan {
   @Column({ type: 'varchar', length: 10000, nullable: false })
   content: string;
 
-  @Column({ name: 'pdf_url', type: 'varchar', length: 256, nullable: true })
-  pdfUrl: string;
-
   @Column({ name: 'start_date', type: 'char', length: 7, nullable: false })
   startDate: string;
 
