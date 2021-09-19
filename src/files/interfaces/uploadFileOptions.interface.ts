@@ -1,7 +1,9 @@
 export interface UploadFileOptions {
-  file: Express.MulterS3.File;
+  file?: Express.MulterS3.File;
+  files?: Express.MulterS3.File[];
   username: string;
-  fileType: 'pdf' | 'video';
+  fileType: 'pdf' | 'video' | 'images';
   folder: string;
+  projectId: number;
   allowedExt: RegExp;
 }

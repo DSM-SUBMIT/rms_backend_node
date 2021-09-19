@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 import { extname } from 'path';
-import { PlansService } from 'src/shared/plans/plans.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
 import { UsersService } from 'src/shared/users/users.service';
 import { v4 as uuid } from 'uuid';
@@ -19,7 +18,6 @@ import { UploadFileOptions } from './interfaces/uploadFileOptions.interface';
 @Injectable()
 export class FilesService {
   constructor(
-    private readonly plansService: PlansService,
     private readonly reportsService: ReportsService,
     private readonly usersService: UsersService,
   ) {}
@@ -45,6 +43,7 @@ export class FilesService {
       username,
       folder: 'report',
       fileType: 'video',
+      projectId,
       allowedExt: /(mp4)|(mov)|(wmv)|(avi)|(mkv)/,
     });
 
@@ -65,40 +64,22 @@ export class FilesService {
     return;
   }
 
-  async uploadImages(files: Express.MulterS3.File[], folder: string) {
-    const locations = new Array<string>();
-    const extCheck = files.map((file) => {
-      const ext = extname(file.originalname).toLowerCase();
-      const regex = new RegExp(/(jpg)|(png)|(jpeg)/);
-      if (!regex.test(ext)) {
-        throw new BadRequestException(
-          `This file extension(${ext}) is not supported.`,
-        );
-      }
+  async uploadImages(
+    files: Express.MulterS3.File[],
+    username: string,
+    projectId: number,
+  ): Promise<string[]> {
+    const report = await this.reportsService.getReportById(projectId);
+    if (!report) throw new NotFoundException();
+    const uploadedUrls = await this.uploadMultipleFiles({
+      files,
+      username,
+      folder: 'report',
+      fileType: 'images',
+      projectId,
+      allowedExt: /(jpg)|(png)|(jpeg)|(bmp)/,
     });
-    await Promise.all(extCheck);
-
-    const uploadToS3 = files.map((file) => {
-      const bucketS3 = process.env.AWS_S3_BUCKET;
-      const filename = uuid();
-      const ext = extname(file.originalname).toLowerCase();
-
-      locations.push(
-        `https://${bucketS3}.s3.${process.env.AWS_REGION}.amazonaws.com/images/${folder}/${filename}
-              ${ext}`,
-      );
-      return this.uploadS3(
-        file.buffer,
-        `${bucketS3}/images/${folder}`,
-        filename + ext,
-      );
-    });
-    try {
-      await Promise.all(uploadToS3);
-    } catch {
-      throw new InternalServerErrorException('An error has occured.');
-    }
-    return { uploaded: true, urls: locations };
+    return uploadedUrls;
   }
 
   async uploadSingleFile(options: UploadFileOptions): Promise<string> {
@@ -112,17 +93,51 @@ export class FilesService {
 
     const bucketS3 = process.env.AWS_S3_BUCKET;
     const filename = uuid();
-    const location = `${options.fileType}/${options.folder}/${options.username}/${filename}${ext}`;
+    const location = `${options.fileType}/${options.folder}/${options.projectId}/${options.username}/${filename}${ext}`;
     try {
-      await this.uploadS3(
+      await this.uploadToS3(
         options.file.buffer,
-        `${bucketS3}/${options.fileType}/${options.folder}/${options.username}`,
+        `${bucketS3}/${options.fileType}/${options.folder}/${options.projectId}/${options.username}`,
         filename + ext,
       );
     } catch {
       throw new InternalServerErrorException();
     }
     return location;
+  }
+
+  async uploadMultipleFiles(options: UploadFileOptions): Promise<string[]> {
+    const locations = new Array<string>();
+    const extCheck = options.files.map((file) => {
+      const ext = extname(file.originalname).toLowerCase();
+      if (!options.allowedExt.test(ext)) {
+        throw new BadRequestException(
+          `This file extension(${ext}) is not supported.`,
+        );
+      }
+    });
+    await Promise.all(extCheck);
+
+    const uploadToS3 = options.files.map((file) => {
+      const bucketS3 = process.env.AWS_S3_BUCKET;
+      const filename = uuid();
+      const ext = extname(file.originalname).toLowerCase();
+
+      locations.push(
+        `${options.fileType}/${options.folder}/${options.projectId}/${options.username}/${filename}${ext}`,
+      );
+      return this.uploadToS3(
+        options.file.buffer,
+        `${bucketS3}/${options.fileType}/${options.folder}/${options.projectId}/${options.username}`,
+        filename + ext,
+      );
+    });
+    try {
+      await Promise.all(uploadToS3);
+    } catch {
+      throw new InternalServerErrorException('An error has occured.');
+    }
+    return locations;
   }
 
   async downloadFromS3(
@@ -142,7 +157,7 @@ export class FilesService {
     });
   }
 
-  async uploadS3(file, bucket, name) {
+  async uploadToS3(file, bucket, name) {
     const s3 = this.getS3();
     const params = {
       Bucket: bucket,
