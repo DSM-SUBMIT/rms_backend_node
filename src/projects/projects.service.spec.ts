@@ -139,7 +139,6 @@ const planItem: Plan = {
   content: 'test',
   startDate: '2021.09',
   endDate: '2021.09',
-  pdfUrl: '',
   includeResultReport: true,
   includeCode: true,
   includeOutcome: true,
@@ -164,7 +163,6 @@ const planDetail: PlanDetailDto = {
 const reportItem: Report = {
   projectId: mockProjectItem,
   videoUrl: 'http://example.com',
-  pdfUrl: 'test',
   content: 'test',
 };
 const reportDetail: ReportDetailDto = {
@@ -207,7 +205,7 @@ const mockReportsService = () => ({
 });
 const mockStatusService = () => ({
   getStatusById: jest.fn().mockImplementation(async (id) => {
-    if (id !== mockStatus[id].projectId.id) return undefined;
+    if (id !== mockStatus[id].projectId?.id) return undefined;
     return mockStatus[id];
   }),
   getStatusDescByPlanDate: jest.fn().mockImplementation(async (limit, page) => {

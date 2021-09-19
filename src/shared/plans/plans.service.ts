@@ -14,9 +14,4 @@ export class PlansService {
       relations: ['projectId', 'projectId.userId'],
     });
   }
-
-  async updatePdfUrl(id: number, url: string): Promise<boolean> {
-    const res = await this.plansRepository.update(id, { pdfUrl: url });
-    return res ? true : false;
-  }
 }
