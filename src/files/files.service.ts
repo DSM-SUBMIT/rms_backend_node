@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 import { extname } from 'path';
-import { PlansService } from 'src/shared/plans/plans.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
 import { UsersService } from 'src/shared/users/users.service';
 import { v4 as uuid } from 'uuid';
@@ -19,7 +18,6 @@ import { UploadFileOptions } from './interfaces/uploadFileOptions.interface';
 @Injectable()
 export class FilesService {
   constructor(
-    private readonly plansService: PlansService,
     private readonly reportsService: ReportsService,
     private readonly usersService: UsersService,
   ) {}
