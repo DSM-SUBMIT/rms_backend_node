@@ -67,7 +67,7 @@ export class FilesController {
     @Request() req,
     @Param('projectId') projectId: number,
   ) {
-    return this.filesService.uploadImages(files, `${req.user.userId}`);
+    return this.filesService.uploadImages(files, req.user.userId, projectId);
   }
 
   @Post('video/:projectId')
