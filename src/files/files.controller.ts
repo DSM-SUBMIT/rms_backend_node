@@ -28,7 +28,7 @@ import { Roles } from '../utils/decorators/roles.decorator';
 import { Role } from '../utils/enums/role.enum';
 import { FilesService } from './files.service';
 
-@Controller({ path: 'files' })
+@Controller('files')
 @ApiTags('파일 업로드')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
