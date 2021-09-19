@@ -30,7 +30,7 @@ import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
 import { NoContentInterceptor } from './interceptors/NoContent.interceptor';
 import { ProjectsService } from './projects.service';
 
-@Controller('projects')
+@Controller({ host: 'admin-api.dsm-rms.com', path: 'projects' })
 @ApiTags('프로젝트 관련')
 @Roles(Role.Admin)
 @UseGuards(RolesGuard)
