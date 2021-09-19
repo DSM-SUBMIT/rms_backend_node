@@ -29,7 +29,7 @@ import { Role } from '../utils/enums/role.enum';
 import { FilesService } from './files.service';
 
 @Controller('files')
-@ApiTags('파일 업로드')
+@ApiTags('파일 API')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
@@ -60,6 +60,7 @@ export class FilesController {
   })
   @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
   @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
   uploadImages(
     @UploadedFiles() files: Express.MulterS3.File[],
     @Request() req,
