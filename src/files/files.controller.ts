@@ -87,7 +87,7 @@ export class FilesController {
     },
   })
   @ApiBearerAuth()
-  @ApiOkResponse({
+  @ApiCreatedResponse({
     description: '요청이 정상적으로 완료됨',
   })
   @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
