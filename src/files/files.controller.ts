@@ -33,13 +33,14 @@ import { FilesService } from './files.service';
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
-  @Post('images')
+  @Post('images/:projectId')
   @Roles(Role.User)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FilesInterceptor('images'))
   @ApiOperation({ summary: '이미지 파일 업로드' })
   @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'projectId', type: 'number' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -64,6 +65,7 @@ export class FilesController {
   uploadImages(
     @UploadedFiles() files: Express.MulterS3.File[],
     @Request() req,
+    @Param('projectId') projectId: number,
   ) {
     return this.filesService.uploadImages(files, `${req.user.userId}`);
   }
