@@ -15,8 +15,8 @@ import {
   ApiConsumes,
   ApiCreatedResponse,
   ApiForbiddenResponse,
+  ApiNoContentResponse,
   ApiNotFoundResponse,
-  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -122,9 +122,7 @@ export class FilesController {
     },
   })
   @ApiBearerAuth()
-  @ApiOkResponse({
-    description: '요청이 정상적으로 완료됨',
-  })
+  @ApiNoContentResponse({ description: '요청이 정상적으로 완료됨' })
   @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
   @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
   @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
