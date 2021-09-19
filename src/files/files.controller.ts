@@ -107,7 +107,7 @@ export class FilesController {
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('video'))
-  @ApiOperation({ summary: '시연 영상 업로드' })
+  @ApiOperation({ summary: '시연 영상 재업로드' })
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'projectId', type: 'number' })
   @ApiBody({
