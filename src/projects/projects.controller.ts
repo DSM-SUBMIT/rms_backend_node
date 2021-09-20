@@ -31,7 +31,7 @@ import { NoContentInterceptor } from './interceptors/NoContent.interceptor';
 import { ProjectsService } from './projects.service';
 
 @Controller({ host: 'admin-api.dsm-rms.com', path: 'projects' })
-@ApiTags('프로젝트 관련')
+@ApiTags('프로젝트 API')
 @Roles(Role.Admin)
 @UseGuards(RolesGuard)
 @UseGuards(JwtAuthGuard)

@@ -19,7 +19,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 
 @Controller({ host: 'admin-api.dsm-rms.com', path: 'auth' })
-@ApiTags('인증 관련')
+@ApiTags('인증 API')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
