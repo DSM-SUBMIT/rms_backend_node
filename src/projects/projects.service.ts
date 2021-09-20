@@ -231,8 +231,17 @@ export class ProjectsService {
         if (!project) throw new NotFoundException();
     const plan = await this.plansService.getConfirmedPlanById(projectId);
     const report = await this.reportsService.getConfirmedReportById(projectId);
-    if (!plan || !report) rejects;
         const members = await this.membersService.getUsersByProject(projectId);
+    if (!plan || !report) {
+      const projectDetail: ProjectDetailDto = {
+        project_name: project.projectName,
+        writer: project.writerId.name,
+        members: members.map((member) => {
+          return { name: member.userId.name, role: member.role };
+        }),
+      };
+      return projectDetail;
+    }
 
     const projectDetail: ProjectDetailDto = {
           project_name: project.projectName,
