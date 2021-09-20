@@ -33,7 +33,7 @@ export class FilesService {
     if (report.videoUrl && conflictCheck) throw new ConflictException();
     if (!report.videoUrl && !conflictCheck) throw new NotFoundException();
 
-    const writerId = report.projectId.userId;
+    const writerId = report.projectId.writerId;
     const writer = await this.usersService.getUserById(writerId.id);
     const email = writer?.email;
     if (email !== username) throw new ForbiddenException();

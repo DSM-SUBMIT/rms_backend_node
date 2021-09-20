@@ -28,7 +28,7 @@ const mockStatus = [
     projectId: {
       id: 1,
       projectName: 'test',
-      userId: {
+      writerId: {
         name: 'test',
         email: 'test@example.com',
       },
@@ -45,7 +45,7 @@ const mockStatus = [
     projectId: {
       id: 3,
       projectName: 'test',
-      userId: {
+      writerId: {
         name: 'test',
         email: 'test@example.com',
       },
@@ -61,7 +61,7 @@ const mockStatus = [
     projectId: {
       id: 4,
       projectName: 'test',
-      userId: {
+      writerId: {
         name: 'test',
         email: 'test@example.com',
       },
@@ -77,7 +77,7 @@ const mockStatus = [
     projectId: {
       id: 5,
       projectName: 'test',
-      userId: {
+      writerId: {
         name: 'test',
         email: 'test@example.com',
       },
@@ -95,7 +95,7 @@ const mockStatusPlan = [
     {
       projectId: {
         id: 1,
-        userId: 1,
+        writerId: 1,
         teamName: 'test',
         projectName: 'test',
         projectType: 'test',
@@ -118,7 +118,7 @@ const mockProjectItem: Project = {
   projectType: 'test',
   projectName: 'test',
   teamName: 'test',
-  userId: {
+  writerId: {
     id: 1,
     name: 'test',
     email: 'test@example.com',
@@ -598,7 +598,7 @@ describe('ProjectsService', () => {
 
       expect(projectsRepository.findOne).toHaveBeenCalledTimes(1);
       expect(projectsRepository.findOne).toHaveBeenCalledWith(1, {
-        relations: ['userId'],
+        relations: ['writerId'],
       });
 
       expect(result).toBeUndefined();
@@ -610,7 +610,7 @@ describe('ProjectsService', () => {
 
       expect(projectsRepository.findOne).toHaveBeenCalledTimes(1);
       expect(projectsRepository.findOne).toHaveBeenCalledWith(1, {
-        relations: ['userId'],
+        relations: ['writerId'],
       });
 
       expect(result).toEqual('project');

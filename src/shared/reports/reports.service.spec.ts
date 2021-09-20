@@ -49,7 +49,7 @@ describe('ReportsService', () => {
 
       expect(reportsRepository.findOne).toHaveBeenCalledTimes(1);
       expect(reportsRepository.findOne).toHaveBeenCalledWith(1, {
-        relations: ['projectId', 'projectId.userId'],
+        relations: ['projectId', 'projectId.writerId'],
       });
     });
 
@@ -60,7 +60,7 @@ describe('ReportsService', () => {
 
       expect(reportsRepository.findOne).toHaveBeenCalledTimes(1);
       expect(reportsRepository.findOne).toHaveBeenCalledWith(2, {
-        relations: ['projectId', 'projectId.userId'],
+        relations: ['projectId', 'projectId.writerId'],
       });
     });
   });

@@ -18,7 +18,7 @@ import { Role } from '../utils/enums/role.enum';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 
-@Controller('auth')
+@Controller({ host: 'admin-api.dsm-rms.com', path: 'auth' })
 @ApiTags('인증 관련')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
