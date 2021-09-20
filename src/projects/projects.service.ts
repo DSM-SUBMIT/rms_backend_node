@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { StatusService } from 'src/shared/status/status.service';
 import { Like, Repository } from 'typeorm';
-import { ProjectItem } from 'src/projects/interfaces/projectItem.interface';
+import { ProjectItem } from 'src/projects/dto/response/projectItem.dto';
 import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { Project } from './entities/project.entity';
