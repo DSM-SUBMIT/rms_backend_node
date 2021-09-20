@@ -2,6 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { FilesModule } from './files/files.module';
+import { AuthModule } from './auth/auth.module';
+import { ProjectsModule } from './projects/projects.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,14 +17,29 @@ async function bootstrap() {
     }),
   );
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('RMS API document')
-    .setVersion('0.8.0')
+  const fileSwaggerConfig = new DocumentBuilder()
+    .setTitle('RMS File API document')
+    .setVersion('0.9.0')
     .addBearerAuth()
+    .setBasePath('files-api.dsm-rms.com')
     .build();
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('apidocs', app, document);
+  const fileDocument = SwaggerModule.createDocument(app, fileSwaggerConfig, {
+    include: [FilesModule],
+  });
+  SwaggerModule.setup('apidocs/file', app, fileDocument);
+
+  const adminSwaggerConfig = new DocumentBuilder()
+    .setTitle('RMS Admin API document')
+    .setVersion('0.9.0')
+    .addBearerAuth()
+    .setBasePath('admin-api.dsm-rms.com')
+    .build();
+
+  const adminDocument = SwaggerModule.createDocument(app, adminSwaggerConfig, {
+    include: [AuthModule, ProjectsModule],
+  });
+  SwaggerModule.setup('apidocs/admin', app, adminDocument);
 
   await app.listen(3000);
 }
