@@ -27,6 +27,8 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/utils/decorators/roles.decorator';
 import { Role } from 'src/utils/enums/role.enum';
 import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
+import { ProjectDetailDto } from './dto/response/projectDetail.dto';
+import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { NoContentInterceptor } from './interceptors/NoContent.interceptor';
 import { ProjectsService } from './projects.service';
 
@@ -44,11 +46,14 @@ export class ProjectsController {
   @ApiOperation({ summary: '계획서/보고서 승인 여부 결정' })
   @ApiParam({ name: 'projectId', type: 'number' })
   @ApiParam({ name: 'type', enum: ['plan', 'report'] })
-  @ApiNoContentResponse()
-  @ApiUnauthorizedResponse()
-  @ApiForbiddenResponse()
-  @ApiNotFoundResponse()
-  @ApiConflictResponse({})
+  @ApiNoContentResponse({
+    description:
+      '요청이 성공적으로 완료되었으며, 추가적인 내용이 존재하지 않음',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 없음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
+  @ApiConflictResponse({ description: '이미 승인 여부가 결정된 프로젝트임' })
   confirm(
     @Param('projectId') projectId: number,
     @Param('type') type: 'plan' | 'report',
@@ -63,10 +68,15 @@ export class ProjectsController {
   @ApiQuery({ name: 'type', enum: ['plan', 'report'] })
   @ApiQuery({ name: 'limit', schema: { type: 'number', default: 8 } })
   @ApiQuery({ name: 'page', schema: { type: 'number', default: 1 } })
-  @ApiOkResponse()
-  @ApiNoContentResponse()
-  @ApiUnauthorizedResponse()
-  @ApiForbiddenResponse()
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+    type: ProjectsListDto,
+  })
+  @ApiNoContentResponse({
+    description: '요청은 정상적이나, 일치하는 내용이 존재하지 않음',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 없음' })
   getPendingProjects(
     @Query('type') type: string,
     @Query('limit') limit = 8,
@@ -79,6 +89,15 @@ export class ProjectsController {
   @UseInterceptors(NoContentInterceptor)
   @ApiOperation({ summary: '프로젝트 검색' })
   @ApiQuery({ name: 'query', type: 'string', description: '검색어' })
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+    type: ProjectsListDto,
+  })
+  @ApiNoContentResponse({
+    description: '요청은 정상적이나, 일치하는 내용이 존재하지 않음',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 없음' })
   search(
     @Query('query') query: string,
     @Query('limit') limit = 8,
@@ -91,6 +110,17 @@ export class ProjectsController {
   @UseInterceptors(NoContentInterceptor)
   @ApiOperation({ summary: '프로젝트 상세 보기' })
   @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+    type: ProjectDetailDto,
+  })
+  @ApiNoContentResponse({
+    description:
+      '요청은 정상적이나, 계획서와 보고서가 존재하지 않는 프로젝트임.',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 없음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
   projectDetail(@Param('projectId') projectId: number) {
     return this.projectsService.getDetail(projectId);
   }
@@ -100,10 +130,15 @@ export class ProjectsController {
   @ApiOperation({ summary: '모두 승인된 프로젝트 목록' })
   @ApiQuery({ name: 'limit', schema: { type: 'number', default: 8 } })
   @ApiQuery({ name: 'page', schema: { type: 'number', default: 1 } })
-  @ApiOkResponse()
-  @ApiNoContentResponse()
-  @ApiUnauthorizedResponse()
-  @ApiForbiddenResponse()
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+    type: ProjectsListDto,
+  })
+  @ApiNoContentResponse({
+    description: '요청은 정상적이나, 일치하는 내용이 존재하지 않음',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 없음' })
   confirmedProjects(@Query('limit') limit = 8, @Query('page') page = 1) {
     return this.projectsService.getConfirmed(limit, page);
   }
