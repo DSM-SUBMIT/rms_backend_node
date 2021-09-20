@@ -79,12 +79,12 @@ export class ProjectsController {
   @UseInterceptors(NoContentInterceptor)
   @ApiOperation({ summary: '프로젝트 검색' })
   @ApiQuery({ name: 'query', type: 'string', description: '검색어' })
-  @ApiOkResponse()
-  @ApiNoContentResponse()
-  @ApiUnauthorizedResponse()
-  @ApiForbiddenResponse()
-  search(@Query('query') query: string) {
-    return this.projectsService.search(query);
+  search(
+    @Query('query') query: string,
+    @Query('limit') limit = 8,
+    @Query('page') page = 1,
+  ) {
+    return this.projectsService.search(query, limit, page);
   }
 
   @Get(':projectId')

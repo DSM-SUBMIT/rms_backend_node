@@ -195,18 +195,19 @@ export class ProjectsService {
     }
   }
 
-  async search(query: string) {
-    const projects = await this.findLike(query);
-    if (!projects.length) return;
+  async search(query: string, limit: number, page: number) {
+    const [projects, count] = await this.findLike(query, limit, page);
+    if (!count) return;
 
     const projectList = new Array<ProjectItem>();
     for (const p of projects) {
-      const projectItem: ProjectItem = {};
-      projectItem.id = p.id;
-      projectItem.type = p.projectType;
-      projectItem.title = p.projectName;
-      projectItem.team_name = p.teamName;
-      projectItem.fields = [];
+      const projectItem: ProjectItem = {
+        id: p.id,
+        type: p.projectType,
+        title: p.projectName,
+        team_name: p.teamName,
+        fields: [],
+      };
 
       const fields = p.projectField;
 
@@ -216,7 +217,13 @@ export class ProjectsService {
       projectList.push(projectItem);
     }
 
-    return projectList;
+    const response: ProjectsListDto = {
+      total_page: Math.ceil(count / limit),
+      total_amount: count,
+      projects: projectList,
+    };
+
+    return response;
   }
 
   async getDetail(projectId: number) {
@@ -290,9 +297,11 @@ export class ProjectsService {
     return projectsList;
   }
 
-  async findLike(query: string) {
-    return await this.projectsRepository.find({
+  async findLike(query: string, limit: number, page: number) {
+    return await this.projectsRepository.findAndCount({
       where: { projectName: Like(`%${query}%`) },
+      take: limit,
+      skip: limit * (page - 1),
       relations: ['projectField', 'projectField.fieldId'],
     });
   }
