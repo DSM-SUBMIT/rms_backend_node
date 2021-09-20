@@ -87,22 +87,12 @@ export class ProjectsController {
     return this.projectsService.search(query);
   }
 
-  @Get(':projectId/:type')
+  @Get(':projectId')
   @UseInterceptors(NoContentInterceptor)
   @ApiOperation({ summary: '프로젝트 상세 보기' })
   @ApiParam({ name: 'projectId', type: 'number' })
-  @ApiParam({ name: 'type', enum: ['plan', 'report'] })
-  @ApiOkResponse()
-  @ApiNoContentResponse()
-  @ApiUnauthorizedResponse()
-  @ApiForbiddenResponse()
-  @ApiNotFoundResponse()
-  @ApiConflictResponse()
-  projectDetail(
-    @Param('projectId') projectId: number,
-    @Param('type') type: 'plan' | 'report',
-  ) {
-    return this.projectsService.getDetail(projectId, type);
+  projectDetail(@Param('projectId') projectId: number) {
+    return this.projectsService.getDetail(projectId);
   }
 
   @Get('confirmed')
