@@ -16,7 +16,7 @@ async function bootstrap() {
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('RMS API document')
-    .setVersion('1.0')
+    .setVersion('0.8.0')
     .addBearerAuth()
     .build();
 
