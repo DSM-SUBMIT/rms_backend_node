@@ -21,7 +21,7 @@ async function bootstrap() {
     .setTitle('RMS File API document')
     .setVersion('0.9.0')
     .addBearerAuth()
-    .setBasePath('files-api.dsm-rms.com')
+    .addServer('files-api.dsm-rms.com')
     .build();
 
   const fileDocument = SwaggerModule.createDocument(app, fileSwaggerConfig, {
@@ -33,7 +33,7 @@ async function bootstrap() {
     .setTitle('RMS Admin API document')
     .setVersion('0.9.0')
     .addBearerAuth()
-    .setBasePath('admin-api.dsm-rms.com')
+    .addServer('admin-api.dsm-rms.com')
     .build();
 
   const adminDocument = SwaggerModule.createDocument(app, adminSwaggerConfig, {
