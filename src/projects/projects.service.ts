@@ -50,11 +50,11 @@ export class ProjectsService {
         switch (payload.type) {
           case 'approve': {
             await this.mailService.sendMail(
-              status.projectId.userId.email,
+              status.projectId.writerId.email,
               '[RMS] 계획서 승인 알림 메일입니다.',
               'planApproved',
               {
-                writerName: status.projectId.userId.name,
+                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
                 comment: payload.comment,
@@ -65,11 +65,11 @@ export class ProjectsService {
           }
           case 'deny': {
             await this.mailService.sendMail(
-              status.projectId.userId.email,
+              status.projectId.writerId.email,
               '[RMS] 계획서 거절 알림 메일입니다.',
               'planDenied',
               {
-                writerName: status.projectId.userId.name,
+                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
                 comment: payload.comment,
@@ -94,11 +94,11 @@ export class ProjectsService {
         switch (payload.type) {
           case 'approve': {
             await this.mailService.sendMail(
-              status.projectId.userId.email,
+              status.projectId.writerId.email,
               '[RMS] 보고서 승인 알림 메일입니다.',
               'reportApproved',
               {
-                writerName: status.projectId.userId.name,
+                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
                 comment: payload.comment,
@@ -109,11 +109,11 @@ export class ProjectsService {
           }
           case 'deny': {
             await this.mailService.sendMail(
-              status.projectId.userId.email,
+              status.projectId.writerId.email,
               '[RMS] 보고서 거절 알림 메일입니다.',
               'reportDenied',
               {
-                writerName: status.projectId.userId.name,
+                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
                 comment: payload.comment,
@@ -230,7 +230,7 @@ export class ProjectsService {
 
         const planDetail: PlanDetailDto = {
           project_name: project.projectName,
-          writer: project.userId.name,
+          writer: project.writerId.name,
           members: members.map((member) => {
             return { name: member.userId.name, role: member.role };
           }),
@@ -258,7 +258,7 @@ export class ProjectsService {
 
         const reportDetail: ReportDetailDto = {
           project_name: project.projectName,
-          writer: project.userId.name,
+          writer: project.writerId.name,
           members: members.map((member) => {
             return { name: member.userId.name, role: member.role };
           }),
@@ -319,7 +319,7 @@ export class ProjectsService {
 
   async getProject(id: number): Promise<Project> {
     return await this.projectsRepository.findOne(id, {
-      relations: ['userId'],
+      relations: ['writerId'],
     });
   }
 }

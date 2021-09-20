@@ -57,7 +57,7 @@ describe('StatusService', () => {
 
       expect(statusRepository.findOne).toHaveBeenCalledTimes(1);
       expect(statusRepository.findOne).toHaveBeenCalledWith(1, {
-        relations: ['projectId', 'projectId.userId'],
+        relations: ['projectId', 'projectId.writerId'],
       });
 
       expect(result).toEqual(mockStatus);
@@ -70,7 +70,7 @@ describe('StatusService', () => {
 
       expect(statusRepository.findOne).toHaveBeenCalledTimes(1);
       expect(statusRepository.findOne).toHaveBeenCalledWith(1, {
-        relations: ['projectId', 'projectId.userId'],
+        relations: ['projectId', 'projectId.writerId'],
       });
 
       expect(result).toBeUndefined();

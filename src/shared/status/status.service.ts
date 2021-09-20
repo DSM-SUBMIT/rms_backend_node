@@ -12,7 +12,7 @@ export class StatusService {
 
   async getStatusById(id: number): Promise<Status> {
     return await this.statusRepository.findOne(id, {
-      relations: ['projectId', 'projectId.userId'],
+      relations: ['projectId', 'projectId.writerId'],
     });
   }
 
