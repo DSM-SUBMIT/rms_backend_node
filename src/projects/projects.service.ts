@@ -219,21 +219,21 @@ export class ProjectsService {
     return projectList;
   }
 
-  async getDetail(projectId: number, type: string) {
-    switch (type) {
-      case 'plan': {
+  async getDetail(projectId: number) {
         const project = await this.getProject(projectId);
         if (!project) throw new NotFoundException();
-        const plan = await this.plansService.getPlanById(projectId);
-        if (!plan) return;
+    const plan = await this.plansService.getConfirmedPlanById(projectId);
+    const report = await this.reportsService.getConfirmedReportById(projectId);
+    if (!plan || !report) rejects;
         const members = await this.membersService.getUsersByProject(projectId);
 
-        const planDetail: PlanDetailDto = {
+    const projectDetail: ProjectDetailDto = {
           project_name: project.projectName,
           writer: project.writerId.name,
           members: members.map((member) => {
             return { name: member.userId.name, role: member.role };
           }),
+      plan: {
           goal: plan.goal,
           content: plan.content,
           start_date: plan.startDate,
@@ -245,33 +245,13 @@ export class ProjectsService {
             others: Boolean(plan.includeOthers),
             others_content: plan.includeOthers ? plan.includeOthers : '',
           },
-        };
-
-        return planDetail;
-      }
-      case 'report': {
-        const project = await this.getProject(projectId);
-        if (!project) throw new NotFoundException();
-        const report = await this.reportsService.getReportById(projectId);
-        if (!report) return;
-        const members = await this.membersService.getUsersByProject(projectId);
-
-        const reportDetail: ReportDetailDto = {
-          project_name: project.projectName,
-          writer: project.writerId.name,
-          members: members.map((member) => {
-            return { name: member.userId.name, role: member.role };
-          }),
+      },
+      report: {
           video_url: report.videoUrl,
           content: report.content,
+      },
         };
-
-        return reportDetail;
-      }
-      default: {
-        throw new BadRequestException();
-      }
-    }
+    return projectDetail;
   }
 
   async getConfirmed(limit: number, page: number) {
