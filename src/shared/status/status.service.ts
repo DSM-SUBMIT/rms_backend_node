@@ -85,6 +85,11 @@ export class StatusService {
     const res = await this.statusRepository.update(id, {
       isPlanAccepted: status,
     });
+    if (status === false) {
+      await this.statusRepository.update(id, {
+        isPlanSubmitted: false,
+      });
+    }
     return res.affected ? true : false;
   }
 
@@ -92,6 +97,11 @@ export class StatusService {
     const res = await this.statusRepository.update(id, {
       isReportAccepted: status,
     });
+    if (status === false) {
+      await this.statusRepository.update(id, {
+        isReportSubmitted: false,
+      });
+    }
     return res.affected ? true : false;
   }
 }
