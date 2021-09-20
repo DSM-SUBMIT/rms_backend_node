@@ -138,13 +138,14 @@ export class ProjectsService {
           await this.statusService.getStatusDescByPlanDate(limit, page);
         if (!count) return;
         for await (const s of status) {
-          const projectItem: ProjectItem = {};
           const project = s.projectId;
-          projectItem.id = project.id;
-          projectItem.type = project.projectType;
-          projectItem.title = project.projectName;
-          projectItem.team_name = project.teamName;
-          projectItem.fields = [];
+          const projectItem: ProjectItem = {
+            id: project.id,
+            type: project.projectType,
+            title: project.projectName,
+            team_name: project.teamName,
+            fields: [],
+          };
 
           const fields = project.projectField;
 
@@ -166,13 +167,14 @@ export class ProjectsService {
           await this.statusService.getStatusDescByReportDate(limit, page);
         if (!count) return;
         for await (const s of status) {
-          const projectItem: ProjectItem = {};
           const project = s.projectId;
-          projectItem.id = project.id;
-          projectItem.type = project.projectType;
-          projectItem.title = project.projectName;
-          projectItem.team_name = project.teamName;
-          projectItem.fields = [];
+          const projectItem: ProjectItem = {
+            id: project.id,
+            type: project.projectType,
+            title: project.projectName,
+            team_name: project.teamName,
+            fields: [],
+          };
 
           const fields = project.projectField;
 
@@ -226,11 +228,11 @@ export class ProjectsService {
   }
 
   async getDetail(projectId: number) {
-        const project = await this.getProject(projectId);
-        if (!project) throw new NotFoundException();
+    const project = await this.getProject(projectId);
+    if (!project) throw new NotFoundException();
     const plan = await this.plansService.getConfirmedPlanById(projectId);
     const report = await this.reportsService.getConfirmedReportById(projectId);
-        const members = await this.membersService.getUsersByProject(projectId);
+    const members = await this.membersService.getUsersByProject(projectId);
     if (!plan || !report) {
       const projectDetail: ProjectDetailDto = {
         project_name: project.projectName,
@@ -243,29 +245,29 @@ export class ProjectsService {
     }
 
     const projectDetail: ProjectDetailDto = {
-          project_name: project.projectName,
-          writer: project.writerId.name,
-          members: members.map((member) => {
-            return { name: member.userId.name, role: member.role };
-          }),
+      project_name: project.projectName,
+      writer: project.writerId.name,
+      members: members.map((member) => {
+        return { name: member.userId.name, role: member.role };
+      }),
       plan: {
-          goal: plan.goal,
-          content: plan.content,
-          start_date: plan.startDate,
-          end_date: plan.endDate,
-          includes: {
-            result_report: plan.includeResultReport,
-            code: plan.includeCode,
-            outcome: plan.includeOutcome,
-            others: Boolean(plan.includeOthers),
-            others_content: plan.includeOthers ? plan.includeOthers : '',
-          },
+        goal: plan.goal,
+        content: plan.content,
+        start_date: plan.startDate,
+        end_date: plan.endDate,
+        includes: {
+          result_report: plan.includeResultReport,
+          code: plan.includeCode,
+          outcome: plan.includeOutcome,
+          others: Boolean(plan.includeOthers),
+          others_content: plan.includeOthers ? plan.includeOthers : '',
+        },
       },
       report: {
-          video_url: report.videoUrl,
-          content: report.content,
+        video_url: report.videoUrl,
+        content: report.content,
       },
-        };
+    };
     return projectDetail;
   }
 
@@ -282,12 +284,13 @@ export class ProjectsService {
 
     const projectList = new Array<ProjectItem>();
     for (const p of projects) {
-      const projectItem: ProjectItem = {};
-      projectItem.id = p.id;
-      projectItem.type = p.projectType;
-      projectItem.title = p.projectName;
-      projectItem.team_name = p.teamName;
-      projectItem.fields = [];
+      const projectItem: ProjectItem = {
+        id: p.id,
+        type: p.projectType,
+        title: p.projectName,
+        team_name: p.teamName,
+        fields: [],
+      };
 
       const fields = p.projectField;
 
