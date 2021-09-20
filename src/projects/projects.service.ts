@@ -13,10 +13,9 @@ import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { Project } from './entities/project.entity';
 import { PlansService } from 'src/shared/plans/plans.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
-import { PlanDetailDto } from './dto/response/planDetail.dto';
 import { MembersService } from 'src/shared/members/members.service';
-import { ReportDetailDto } from './dto/response/reportDetail.dto';
 import { MailService } from 'src/mail/mail.service';
+import { ProjectDetailDto } from './dto/response/projectDetail.dto';
 
 @Injectable()
 export class ProjectsService {
