@@ -19,7 +19,7 @@ async function bootstrap() {
 
   const fileSwaggerConfig = new DocumentBuilder()
     .setTitle('RMS File API document')
-    .setVersion('0.9.0')
+    .setVersion('0.10.0')
     .addBearerAuth()
     .addServer('files-api.dsm-rms.com')
     .build();
@@ -31,7 +31,7 @@ async function bootstrap() {
 
   const adminSwaggerConfig = new DocumentBuilder()
     .setTitle('RMS Admin API document')
-    .setVersion('0.9.0')
+    .setVersion('0.10.0')
     .addBearerAuth()
     .addServer('admin-api.dsm-rms.com')
     .build();
