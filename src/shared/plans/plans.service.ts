@@ -9,6 +9,12 @@ export class PlansService {
     @InjectRepository(Plan) private readonly plansRepository: Repository<Plan>,
   ) {}
 
+  async getConfirmedPlanById(id: number): Promise<Plan> {
+    return await this.plansRepository.findOne(id, {
+      relations: ['projectId', 'projectId.writerId'],
+    });
+  }
+
   async getPlanById(id: number): Promise<Plan> {
     return await this.plansRepository.findOne(id, {
       relations: ['projectId', 'projectId.writerId'],
