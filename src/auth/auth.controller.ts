@@ -17,15 +17,19 @@ import { LoginDto } from './dto/request/login.dto';
 import { Role } from '../utils/enums/role.enum';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { AccessTokenDto } from './dto/response/accessToken.dto';
 
 @Controller({ host: 'admin-api.dsm-rms.com', path: 'auth' })
-@ApiTags('인증 관련')
+@ApiTags('인증 API')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post()
   @ApiOperation({ summary: '어드민 토큰 발급 요청(로그인)' })
-  @ApiCreatedResponse({ description: '요청이 성공하여 새로운 토큰이 발급됨' })
+  @ApiCreatedResponse({
+    description: '요청이 성공하여 새로운 토큰이 발급됨',
+    type: AccessTokenDto,
+  })
   @ApiUnauthorizedResponse({
     description: '유저를 찾을 수 없음 / 비밀번호가 다름',
   })
@@ -41,7 +45,8 @@ export class AuthController {
   @ApiOperation({ summary: '어드민 비밀번호 변경' })
   @ApiBearerAuth()
   @ApiNoContentResponse({
-    description: '요청이 성공적으로 완료되었으나 응답 본문이 존재하지 않음',
+    description:
+      '요청이 성공적으로 완료되었으며, 추가적인 내용이 존재하지 않음',
   })
   @ApiUnauthorizedResponse({ description: '기존 비밀번호가 올바르지 않음' })
   @ApiConflictResponse({ description: '현재 비밀번호와 새 비밀번호가 동일함' })
