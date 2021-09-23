@@ -10,6 +10,12 @@ export class ReportsService {
     private readonly reportsRepository: Repository<Report>,
   ) {}
 
+  async getConfirmedReportById(id: number) {
+    return await this.reportsRepository.findOne(id, {
+      relations: ['projectId', 'projectId.writerId'],
+    });
+  }
+
   async getReportById(id: number) {
     return await this.reportsRepository.findOne(id, {
       relations: ['projectId', 'projectId.writerId'],
