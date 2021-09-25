@@ -6,6 +6,8 @@ import { AuthService } from './auth.service';
 import { Admin } from './entities/admin.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interfaces/jwtPayload';
+import { ChangePwDto } from './dto/request/changePw.dto';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 
 jest.mock('bcrypt');
 
@@ -13,6 +15,7 @@ const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
 
 const mockAdminRepository = () => ({
   findOne: jest.fn(),
+  update: jest.fn(),
 });
 
 const mockJwtService = () => ({
@@ -46,6 +49,10 @@ describe('AuthService', () => {
       getRepositoryToken(Admin),
     );
     jwtService = module.get<JwtService>(JwtService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -120,6 +127,59 @@ describe('AuthService', () => {
 
       expect(jwtService.sign).toHaveBeenCalled();
       expect(jwtService.sign).toHaveBeenCalledWith(payload);
+    });
+  });
+
+  describe('changePw', () => {
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+    it('should return nothing', async () => {
+      const admin: Admin = { id: 'test', password: 'test' };
+      adminsRepository.findOne.mockResolvedValue(admin);
+      mockedBcrypt.compare.mockImplementation(() => Promise.resolve(true));
+      adminsRepository.update.mockResolvedValue({
+        generatedMaps: [{ id: 'test', password: 'encrypted_password' }],
+        affected: 1,
+      });
+      const password: ChangePwDto = {
+        oldPassword: 'oldPassword',
+        newPassword: 'newPassword',
+      };
+
+      const res = await service.changePw('test', password);
+
+      expect(res).toEqual(undefined);
+
+      expect(adminsRepository.update).toHaveBeenCalled();
+      expect(adminsRepository.update).toHaveBeenCalledWith('test', {
+        password: 'hashed_password',
+      });
+    });
+    it('should throw ConflictException', async () => {
+      const admin: Admin = { id: 'test', password: 'test' };
+      adminsRepository.findOne.mockResolvedValue(admin);
+      mockedBcrypt.compare.mockImplementation(() => Promise.resolve(true));
+      try {
+        await service.changePw('test', {
+          oldPassword: 'test',
+          newPassword: 'test',
+        });
+      } catch (e) {
+        expect(e).toBeInstanceOf(ConflictException);
+      }
+    });
+    it('should throw UnauthorizedException', async () => {
+      adminsRepository.findOne.mockResolvedValue(undefined);
+      mockedBcrypt.compare.mockImplementation(() => Promise.resolve(false));
+      try {
+        await service.changePw('test', {
+          oldPassword: 'test',
+          newPassword: 'test',
+        });
+      } catch (e) {
+        expect(e).toBeInstanceOf(UnauthorizedException);
+      }
     });
   });
 });
