@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interfaces/jwtPayload';
 import { ChangePwDto } from './dto/request/changePw.dto';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { LoginDto } from './dto/request/login.dto';
 
 jest.mock('bcrypt');
 
@@ -177,6 +178,37 @@ describe('AuthService', () => {
           oldPassword: 'test',
           newPassword: 'test',
         });
+      } catch (e) {
+        expect(e).toBeInstanceOf(UnauthorizedException);
+      }
+    });
+  });
+
+  describe('login', () => {
+    it('should return jwt token', async () => {
+      const admin: Admin = { id: 'test', password: 'test' };
+      adminsRepository.findOne.mockResolvedValue(admin);
+      mockedBcrypt.compare.mockImplementation(() => Promise.resolve(true));
+
+      const payload: LoginDto = { id: 'test', password: 'test' };
+      const res = await service.login(payload);
+
+      expect(res).toEqual({ access_token: 'token' });
+
+      expect(jwtService.sign).toHaveBeenCalled();
+      expect(jwtService.sign).toHaveBeenCalledWith({
+        sub: 'test',
+        role: 'admin',
+      });
+    });
+    it('should throw UnauthorizedException', async () => {
+      adminsRepository.findOne.mockResolvedValue(undefined);
+      mockedBcrypt.compare.mockImplementation(() => Promise.resolve(false));
+
+      const payload: LoginDto = { id: 'test', password: 'test' };
+
+      try {
+        await service.login(payload);
       } catch (e) {
         expect(e).toBeInstanceOf(UnauthorizedException);
       }
