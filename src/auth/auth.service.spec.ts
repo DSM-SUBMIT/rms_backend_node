@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { AuthService } from './auth.service';
 import { Admin } from './entities/admin.entity';
 import * as bcrypt from 'bcrypt';
+import { JwtPayload } from './interfaces/jwtPayload';
 
 jest.mock('bcrypt');
 
@@ -15,7 +16,7 @@ const mockAdminRepository = () => ({
 });
 
 const mockJwtService = () => ({
-  sign: jest.fn(),
+  sign: jest.fn().mockReturnValue('token'),
 });
 
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -23,6 +24,7 @@ type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 describe('AuthService', () => {
   let service: AuthService;
   let adminsRepository: MockRepository<Admin>;
+  let jwtService: JwtService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,6 +45,7 @@ describe('AuthService', () => {
     adminsRepository = module.get<MockRepository<Admin>>(
       getRepositoryToken(Admin),
     );
+    jwtService = module.get<JwtService>(JwtService);
   });
 
   it('should be defined', () => {
@@ -95,9 +98,9 @@ describe('AuthService', () => {
   });
 
   describe('encrypt', () => {
-    mockedBcrypt.hash.mockImplementation((data, saltOrRounds) => {
-      return 'hashed_password';
-    });
+    mockedBcrypt.hash.mockImplementation(() =>
+      Promise.resolve('hashed_password'),
+    );
     it('should return hashed password', async () => {
       const res = await service.encrypt('test');
 
@@ -105,6 +108,18 @@ describe('AuthService', () => {
 
       expect(bcrypt.hash).toHaveBeenCalled();
       expect(bcrypt.hash).toHaveBeenCalledWith('test', 12);
+    });
+  });
+
+  describe('signJwt', () => {
+    it('should return signed JWT token', async () => {
+      const payload: JwtPayload = { sub: 'test', role: 'admin' };
+      const res = await service.signJwt(payload);
+
+      expect(res).toEqual({ access_token: 'token' });
+
+      expect(jwtService.sign).toHaveBeenCalled();
+      expect(jwtService.sign).toHaveBeenCalledWith(payload);
     });
   });
 });
