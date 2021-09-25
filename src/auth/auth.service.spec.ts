@@ -93,4 +93,18 @@ describe('AuthService', () => {
       expect(bcrypt.compare).toHaveBeenCalledWith('wrong password', 'test');
     });
   });
+
+  describe('encrypt', () => {
+    mockedBcrypt.hash.mockImplementation((data, saltOrRounds) => {
+      return 'hashed_password';
+    });
+    it('should return hashed password', async () => {
+      const res = await service.encrypt('test');
+
+      expect(res).toEqual('hashed_password');
+
+      expect(bcrypt.hash).toHaveBeenCalled();
+      expect(bcrypt.hash).toHaveBeenCalledWith('test', 12);
+    });
+  });
 });
