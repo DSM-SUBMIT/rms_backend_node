@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { mocked } from 'ts-jest/utils';
 import { ProjectsService } from './projects.service';
 import { MailService } from 'src/mail/mail.service';
 import { MembersService } from 'src/shared/members/members.service';
@@ -8,12 +9,17 @@ import { StatusService } from 'src/shared/status/status.service';
 import { Like, Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
+import { Status } from 'src/shared/status/entities/status.entity';
+import { ProjectsListDto } from './dto/response/projectsList.dto';
+import { ProjectItem } from './dto/response/projectItem.dto';
 
 jest.mock('src/mail/mail.service');
 jest.mock('src/shared/members/members.service');
 jest.mock('src/shared/plans/plans.service');
 jest.mock('src/shared/reports/reports.service');
 jest.mock('src/shared/status/status.service');
+
+const mockedStatusService = mocked(StatusService, true); // <jest.Mock<StatusService>>StatusService;
 
 const mockedRepository = () => ({
   findOne: jest.fn(),
@@ -121,5 +127,84 @@ describe('ProjectsService', () => {
         relations: ['projectField', 'projectField.fieldId'],
       });
     });
-});
+  });
+
+  describe('getConfirmed', () => {
+    it('should return confirmed projects', async () => {
+      const mockProject: Project = {
+        id: 1,
+        projectName: 'test',
+        teamName: 'test',
+        techStacks: 'test',
+        writerId: {
+          id: 1,
+          email: 'test@example.com',
+          name: 'test',
+          projects: undefined,
+          userId: undefined,
+        },
+        projectType: 'test',
+        githubUrl: null,
+        serviceUrl: null,
+        docsUrl: null,
+        teacher: 'test',
+        projectId: [],
+        projectField: [],
+      };
+      const mockStatus: Status = {
+        projectId: mockProject,
+        isPlanSubmitted: true,
+        isReportSubmitted: true,
+        planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+        reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+        isPlanAccepted: true,
+        isReportAccepted: true,
+      };
+      mockedStatusService.prototype.getConfirmedStatus.mockResolvedValue([
+        [mockStatus],
+        1,
+      ]);
+
+      const res = await service.getConfirmed(8, 1);
+
+      const mockProjectItem: ProjectItem = {
+        id: 1,
+        type: 'test',
+        title: 'test',
+        team_name: 'test',
+        fields: [],
+      };
+      const mockProjectsList: ProjectsListDto = {
+        total_page: 1,
+        total_amount: 1,
+        projects: [mockProjectItem],
+      };
+      expect(res).toEqual(mockProjectsList);
+
+      expect(
+        mockedStatusService.prototype.getConfirmedStatus,
+      ).toHaveBeenCalled();
+      expect(
+        mockedStatusService.prototype.getConfirmedStatus,
+      ).toHaveBeenCalledWith(8, 1);
+    });
+
+    it('should return nothing', async () => {
+      mockedStatusService.prototype.getConfirmedStatus.mockResolvedValue([
+        [],
+        0,
+      ]);
+
+      const res = await service.getConfirmed(8, 1);
+
+      expect(res).toEqual(undefined);
+
+      expect(
+        mockedStatusService.prototype.getConfirmedStatus,
+      ).toHaveBeenCalled();
+      expect(
+        mockedStatusService.prototype.getConfirmedStatus,
+      ).toHaveBeenCalledWith(8, 1);
+    });
+  });
 });
