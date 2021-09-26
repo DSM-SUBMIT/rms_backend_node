@@ -17,6 +17,7 @@ jest.mock('src/shared/status/status.service');
 
 const mockedRepository = () => ({
   findOne: jest.fn(),
+  findAndCount: jest.fn(),
 });
 
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -84,5 +85,41 @@ describe('ProjectsService', () => {
       });
     });
   });
+
+  describe('findLike', () => {
+    it('should return a project', async () => {
+      const mockProject: Project = {
+        id: 1,
+        projectName: 'test',
+        teamName: 'test',
+        techStacks: 'test',
+        writerId: {
+          id: 1,
+          email: 'test@example.com',
+          name: 'test',
+          projects: undefined,
+          userId: undefined,
+        },
+        projectType: 'test',
+        githubUrl: null,
+        serviceUrl: null,
+        docsUrl: null,
+        teacher: 'test',
+        projectId: undefined,
+        projectField: undefined,
+      };
+      projectsRepository.findAndCount.mockResolvedValue([[mockProject], 1]);
+      const res = await service.findLike('test', 8, 1);
+
+      expect(res).toEqual([[mockProject], 1]);
+
+      expect(projectsRepository.findAndCount).toHaveBeenCalled();
+      expect(projectsRepository.findAndCount).toHaveBeenCalledWith({
+        where: { projectName: Like('%test%') },
+        take: 8,
+        skip: 0,
+        relations: ['projectField', 'projectField.fieldId'],
+      });
+    });
 });
 });
