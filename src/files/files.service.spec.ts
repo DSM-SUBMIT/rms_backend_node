@@ -9,11 +9,9 @@ jest.mock('aws-sdk');
 
 const mockPlansService = () => ({
   getPlanById: jest.fn(),
-  updatePdfUrl: jest.fn(),
 });
 const mockReportsService = () => ({
   getReportById: jest.fn(),
-  updatePdfUrl: jest.fn(),
 });
 const mockUsersService = () => ({
   getUserById: jest.fn(),
