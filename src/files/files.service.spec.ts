@@ -3,6 +3,9 @@ import { PlansService } from 'src/shared/plans/plans.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
 import { UsersService } from 'src/shared/users/users.service';
 import { FilesService } from './files.service';
+import { S3 } from 'aws-sdk';
+
+jest.mock('aws-sdk');
 
 const mockPlansService = () => ({
   getPlanById: jest.fn(),
@@ -15,6 +18,8 @@ const mockReportsService = () => ({
 const mockUsersService = () => ({
   getUserById: jest.fn(),
 });
+
+const mockFiles: Express.MulterS3.File[] = [];
 
 describe('FilesService', () => {
   let service: FilesService;
@@ -43,5 +48,11 @@ describe('FilesService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  describe('getS3', () => {
+    it('should return S3 object', () => {
+      expect(service.getS3()).toBeInstanceOf(S3);
+    });
   });
 });
