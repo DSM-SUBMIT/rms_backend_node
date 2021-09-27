@@ -20,7 +20,7 @@ import {
 } from './dto/response/projectDetail.dto';
 import { Plan } from 'src/shared/plans/entities/plan.entity';
 import { Report } from 'src/shared/reports/entities/report.entity';
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ProjectField } from 'src/shared/projectField/entities/projectField.entity';
 import { Field } from 'src/shared/fields/entities/field.entity';
 
@@ -518,6 +518,187 @@ describe('ProjectsService', () => {
         skip: 8 * (1 - 1),
         relations: ['projectField', 'projectField.fieldId'],
       });
+    });
+  });
+
+  describe('getPendingProjects', () => {
+    describe('plan', () => {
+      it('should return a list of pending plans', async () => {
+        const mockField: Field = {
+          id: 1,
+          field: 'test',
+          projectField: undefined,
+        };
+        const mockFields: ProjectField[] = [
+          {
+            fieldId: mockField,
+            projectId: undefined,
+          },
+        ];
+        const mockProject: Project = {
+          id: 1,
+          projectName: 'test',
+          teamName: 'test',
+          techStacks: 'test',
+          writerId: {
+            id: 1,
+            email: 'test@example.com',
+            name: 'test',
+            projects: undefined,
+            userId: undefined,
+          },
+          projectType: 'test',
+          githubUrl: null,
+          serviceUrl: null,
+          docsUrl: null,
+          teacher: 'test',
+          projectId: undefined,
+          projectField: mockFields,
+        };
+        const mockStatus: Status = {
+          projectId: mockProject,
+          isPlanSubmitted: true,
+          isReportSubmitted: true,
+          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+          isPlanAccepted: true,
+          isReportAccepted: true,
+        };
+        mockedStatusService.prototype.getStatusDescByPlanDate.mockResolvedValue(
+          [[mockStatus], 1],
+        );
+        const res = await service.getPendingProjects('plan', 8, 1);
+
+        const mockProjectItem: ProjectItem = {
+          id: 1,
+          type: 'test',
+          title: 'test',
+          team_name: 'test',
+          fields: ['test'],
+        };
+        const mockProjectsList: ProjectsListDto = {
+          total_page: 1,
+          total_amount: 1,
+          projects: [mockProjectItem],
+        };
+
+        expect(res).toEqual(mockProjectsList);
+
+        expect(
+          mockedStatusService.prototype.getStatusDescByPlanDate,
+        ).toHaveBeenCalled();
+        expect(
+          mockedStatusService.prototype.getStatusDescByPlanDate,
+        ).toHaveBeenCalledWith(8, 1);
+      });
+      it('should return nothing', async () => {
+        mockedStatusService.prototype.getStatusDescByPlanDate.mockResolvedValue(
+          [[], 0],
+        );
+        const res = await service.getPendingProjects('plan', 8, 1);
+
+        expect(res).toEqual(undefined);
+
+        expect(
+          mockedStatusService.prototype.getStatusDescByPlanDate,
+        ).toHaveBeenCalled();
+        expect(
+          mockedStatusService.prototype.getStatusDescByPlanDate,
+        ).toHaveBeenCalledWith(8, 1);
+      });
+    });
+    describe('report', () => {
+      it('should return a list of pending reports', async () => {
+        const mockField: Field = {
+          id: 1,
+          field: 'test',
+          projectField: undefined,
+        };
+        const mockFields: ProjectField[] = [
+          {
+            fieldId: mockField,
+            projectId: undefined,
+          },
+        ];
+        const mockProject: Project = {
+          id: 1,
+          projectName: 'test',
+          teamName: 'test',
+          techStacks: 'test',
+          writerId: {
+            id: 1,
+            email: 'test@example.com',
+            name: 'test',
+            projects: undefined,
+            userId: undefined,
+          },
+          projectType: 'test',
+          githubUrl: null,
+          serviceUrl: null,
+          docsUrl: null,
+          teacher: 'test',
+          projectId: undefined,
+          projectField: mockFields,
+        };
+        const mockStatus: Status = {
+          projectId: mockProject,
+          isPlanSubmitted: true,
+          isReportSubmitted: true,
+          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+          isPlanAccepted: true,
+          isReportAccepted: true,
+        };
+        mockedStatusService.prototype.getStatusDescByReportDate.mockResolvedValue(
+          [[mockStatus], 1],
+        );
+        const res = await service.getPendingProjects('report', 8, 1);
+
+        const mockProjectItem: ProjectItem = {
+          id: 1,
+          type: 'test',
+          title: 'test',
+          team_name: 'test',
+          fields: ['test'],
+        };
+        const mockProjectsList: ProjectsListDto = {
+          total_page: 1,
+          total_amount: 1,
+          projects: [mockProjectItem],
+        };
+
+        expect(res).toEqual(mockProjectsList);
+
+        expect(
+          mockedStatusService.prototype.getStatusDescByReportDate,
+        ).toHaveBeenCalled();
+        expect(
+          mockedStatusService.prototype.getStatusDescByReportDate,
+        ).toHaveBeenCalledWith(8, 1);
+      });
+      it('should return nothing', async () => {
+        mockedStatusService.prototype.getStatusDescByReportDate.mockResolvedValue(
+          [[], 0],
+        );
+        const res = await service.getPendingProjects('report', 8, 1);
+
+        expect(res).toEqual(undefined);
+
+        expect(
+          mockedStatusService.prototype.getStatusDescByReportDate,
+        ).toHaveBeenCalled();
+        expect(
+          mockedStatusService.prototype.getStatusDescByReportDate,
+        ).toHaveBeenCalledWith(8, 1);
+      });
+    });
+
+    it('should throw BadRequestException', async () => {
+      try {
+        await service.getPendingProjects('invalid', 8, 1);
+      } catch (e) {
+        expect(e).toBeInstanceOf(BadRequestException);
+      }
     });
   });
 });
