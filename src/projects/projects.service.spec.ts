@@ -20,9 +20,14 @@ import {
 } from './dto/response/projectDetail.dto';
 import { Plan } from 'src/shared/plans/entities/plan.entity';
 import { Report } from 'src/shared/reports/entities/report.entity';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ProjectField } from 'src/shared/projectField/entities/projectField.entity';
 import { Field } from 'src/shared/fields/entities/field.entity';
+import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
 
 jest.mock('src/mail/mail.service');
 jest.mock('src/shared/members/members.service');
@@ -34,6 +39,7 @@ const mockedStatusService = mocked(StatusService, true);
 const mockedPlansService = mocked(PlansService, true);
 const mockedReportsService = mocked(ReportsService, true);
 const mockedMembersService = mocked(MembersService, true);
+const mockedMailService = mocked(MailService, true);
 
 const mockedRepository = () => ({
   findOne: jest.fn(),
@@ -696,6 +702,420 @@ describe('ProjectsService', () => {
     it('should throw BadRequestException', async () => {
       try {
         await service.getPendingProjects('invalid', 8, 1);
+      } catch (e) {
+        expect(e).toBeInstanceOf(BadRequestException);
+      }
+    });
+  });
+
+  describe('confirmProject', () => {
+    describe('plan', () => {
+      it('should approve project and return nothing', async () => {
+        const mockField: Field = {
+          id: 1,
+          field: 'test',
+          projectField: undefined,
+        };
+        const mockFields: ProjectField[] = [
+          {
+            fieldId: mockField,
+            projectId: undefined,
+          },
+        ];
+        const mockProject: Project = {
+          id: 1,
+          projectName: 'test',
+          teamName: 'test',
+          techStacks: 'test',
+          writerId: {
+            id: 1,
+            email: 'test@example.com',
+            name: 'test',
+            projects: undefined,
+            userId: undefined,
+          },
+          projectType: 'test',
+          githubUrl: null,
+          serviceUrl: null,
+          docsUrl: null,
+          teacher: 'test',
+          projectId: undefined,
+          projectField: mockFields,
+        };
+        const mockStatus: Status = {
+          projectId: mockProject,
+          isPlanSubmitted: true,
+          isReportSubmitted: true,
+          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+          isPlanAccepted: null,
+          isReportAccepted: null,
+        };
+        mockedStatusService.prototype.getStatusById.mockResolvedValue(
+          mockStatus,
+        );
+        const mockConfirmRequest: ConfirmProjectDto = {
+          type: 'approve',
+          comment: 'test',
+        };
+        const res = await service.confirmProject(1, 'plan', mockConfirmRequest);
+
+        expect(res).toEqual(undefined);
+
+        expect(mockedMailService.prototype.sendMail).toHaveBeenCalled();
+        expect(mockedMailService.prototype.sendMail).toHaveBeenCalledWith(
+          'test@example.com',
+          '[RMS] 계획서 승인 알림 메일입니다.',
+          'planApproved',
+          {
+            writerName: 'test',
+            projectName: 'test',
+            teacher: 'test',
+            comment: 'test',
+          },
+        );
+      });
+      it('should deny project and return nothing', async () => {
+        const mockField: Field = {
+          id: 1,
+          field: 'test',
+          projectField: undefined,
+        };
+        const mockFields: ProjectField[] = [
+          {
+            fieldId: mockField,
+            projectId: undefined,
+          },
+        ];
+        const mockProject: Project = {
+          id: 1,
+          projectName: 'test',
+          teamName: 'test',
+          techStacks: 'test',
+          writerId: {
+            id: 1,
+            email: 'test@example.com',
+            name: 'test',
+            projects: undefined,
+            userId: undefined,
+          },
+          projectType: 'test',
+          githubUrl: null,
+          serviceUrl: null,
+          docsUrl: null,
+          teacher: 'test',
+          projectId: undefined,
+          projectField: mockFields,
+        };
+        const mockStatus: Status = {
+          projectId: mockProject,
+          isPlanSubmitted: true,
+          isReportSubmitted: true,
+          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+          isPlanAccepted: null,
+          isReportAccepted: null,
+        };
+        mockedStatusService.prototype.getStatusById.mockResolvedValue(
+          mockStatus,
+        );
+        const mockConfirmRequest: ConfirmProjectDto = {
+          type: 'deny',
+          comment: 'test',
+        };
+        const res = await service.confirmProject(1, 'plan', mockConfirmRequest);
+
+        expect(res).toEqual(undefined);
+
+        expect(mockedMailService.prototype.sendMail).toHaveBeenCalled();
+        expect(mockedMailService.prototype.sendMail).toHaveBeenCalledWith(
+          'test@example.com',
+          '[RMS] 계획서 거절 알림 메일입니다.',
+          'planDenied',
+          {
+            writerName: 'test',
+            projectName: 'test',
+            teacher: 'test',
+            comment: 'test',
+          },
+        );
+      });
+      describe('should throw exception', () => {
+        it('NotFoundException', async () => {
+          mockedStatusService.prototype.getStatusById.mockResolvedValue(
+            undefined,
+          );
+          const mockConfirmRequest: ConfirmProjectDto = {
+            type: 'approve',
+            comment: 'test',
+          };
+          try {
+            await service.confirmProject(1, 'plan', mockConfirmRequest);
+          } catch (e) {
+            expect(e).toBeInstanceOf(NotFoundException);
+          }
+        });
+        describe('ConflictException', () => {
+          it('plan is not submitted', async () => {
+            const mockStatus: Status = {
+              projectId: undefined,
+              isPlanSubmitted: false,
+              isReportSubmitted: false,
+              planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+              reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+              isPlanAccepted: null,
+              isReportAccepted: null,
+            };
+            const mockConfirmRequest: ConfirmProjectDto = {
+              type: 'approve',
+              comment: 'test',
+            };
+            mockedStatusService.prototype.getStatusById.mockResolvedValue(
+              mockStatus,
+            );
+            try {
+              await service.confirmProject(1, 'plan', mockConfirmRequest);
+            } catch (e) {
+              expect(e).toBeInstanceOf(ConflictException);
+            }
+          });
+          it('plan is already confirmed', async () => {
+            const mockStatus: Status = {
+              projectId: undefined,
+              isPlanSubmitted: true,
+              isReportSubmitted: true,
+              planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+              reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+              isPlanAccepted: true,
+              isReportAccepted: false,
+            };
+            const mockConfirmRequest: ConfirmProjectDto = {
+              type: 'approve',
+              comment: 'test',
+            };
+            mockedStatusService.prototype.getStatusById.mockResolvedValue(
+              mockStatus,
+            );
+            try {
+              await service.confirmProject(1, 'plan', mockConfirmRequest);
+            } catch (e) {
+              expect(e).toBeInstanceOf(ConflictException);
+            }
+          });
+        });
+      });
+    });
+    describe('report', () => {
+      it('should approve project and return nothing', async () => {
+        const mockField: Field = {
+          id: 1,
+          field: 'test',
+          projectField: undefined,
+        };
+        const mockFields: ProjectField[] = [
+          {
+            fieldId: mockField,
+            projectId: undefined,
+          },
+        ];
+        const mockProject: Project = {
+          id: 1,
+          projectName: 'test',
+          teamName: 'test',
+          techStacks: 'test',
+          writerId: {
+            id: 1,
+            email: 'test@example.com',
+            name: 'test',
+            projects: undefined,
+            userId: undefined,
+          },
+          projectType: 'test',
+          githubUrl: null,
+          serviceUrl: null,
+          docsUrl: null,
+          teacher: 'test',
+          projectId: undefined,
+          projectField: mockFields,
+        };
+        const mockStatus: Status = {
+          projectId: mockProject,
+          isPlanSubmitted: true,
+          isReportSubmitted: true,
+          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+          isPlanAccepted: null,
+          isReportAccepted: null,
+        };
+        mockedStatusService.prototype.getStatusById.mockResolvedValue(
+          mockStatus,
+        );
+        const mockConfirmRequest: ConfirmProjectDto = {
+          type: 'approve',
+          comment: 'test',
+        };
+        const res = await service.confirmProject(
+          1,
+          'report',
+          mockConfirmRequest,
+        );
+
+        expect(res).toEqual(undefined);
+
+        expect(mockedMailService.prototype.sendMail).toHaveBeenCalled();
+        expect(mockedMailService.prototype.sendMail).toHaveBeenCalledWith(
+          'test@example.com',
+          '[RMS] 보고서 승인 알림 메일입니다.',
+          'reportApproved',
+          {
+            writerName: 'test',
+            projectName: 'test',
+            teacher: 'test',
+            comment: 'test',
+          },
+        );
+      });
+      it('should deny project and return nothing', async () => {
+        const mockField: Field = {
+          id: 1,
+          field: 'test',
+          projectField: undefined,
+        };
+        const mockFields: ProjectField[] = [
+          {
+            fieldId: mockField,
+            projectId: undefined,
+          },
+        ];
+        const mockProject: Project = {
+          id: 1,
+          projectName: 'test',
+          teamName: 'test',
+          techStacks: 'test',
+          writerId: {
+            id: 1,
+            email: 'test@example.com',
+            name: 'test',
+            projects: undefined,
+            userId: undefined,
+          },
+          projectType: 'test',
+          githubUrl: null,
+          serviceUrl: null,
+          docsUrl: null,
+          teacher: 'test',
+          projectId: undefined,
+          projectField: mockFields,
+        };
+        const mockStatus: Status = {
+          projectId: mockProject,
+          isPlanSubmitted: true,
+          isReportSubmitted: true,
+          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+          isPlanAccepted: null,
+          isReportAccepted: null,
+        };
+        mockedStatusService.prototype.getStatusById.mockResolvedValue(
+          mockStatus,
+        );
+        const mockConfirmRequest: ConfirmProjectDto = {
+          type: 'deny',
+          comment: 'test',
+        };
+        const res = await service.confirmProject(
+          1,
+          'report',
+          mockConfirmRequest,
+        );
+
+        expect(res).toEqual(undefined);
+
+        expect(mockedMailService.prototype.sendMail).toHaveBeenCalled();
+        expect(mockedMailService.prototype.sendMail).toHaveBeenCalledWith(
+          'test@example.com',
+          '[RMS] 보고서 거절 알림 메일입니다.',
+          'reportDenied',
+          {
+            writerName: 'test',
+            projectName: 'test',
+            teacher: 'test',
+            comment: 'test',
+          },
+        );
+      });
+      describe('should throw exception', () => {
+        it('NotFoundException', async () => {
+          mockedStatusService.prototype.getStatusById.mockResolvedValue(
+            undefined,
+          );
+          const mockConfirmRequest: ConfirmProjectDto = {
+            type: 'approve',
+            comment: 'test',
+          };
+          try {
+            await service.confirmProject(1, 'report', mockConfirmRequest);
+          } catch (e) {
+            expect(e).toBeInstanceOf(NotFoundException);
+          }
+        });
+        describe('ConflictException', () => {
+          it('report is not submitted', async () => {
+            const mockStatus: Status = {
+              projectId: undefined,
+              isPlanSubmitted: false,
+              isReportSubmitted: false,
+              planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+              reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+              isPlanAccepted: null,
+              isReportAccepted: null,
+            };
+            const mockConfirmRequest: ConfirmProjectDto = {
+              type: 'approve',
+              comment: 'test',
+            };
+            mockedStatusService.prototype.getStatusById.mockResolvedValue(
+              mockStatus,
+            );
+            try {
+              await service.confirmProject(1, 'report', mockConfirmRequest);
+            } catch (e) {
+              expect(e).toBeInstanceOf(ConflictException);
+            }
+          });
+          it('report is already confirmed', async () => {
+            const mockStatus: Status = {
+              projectId: undefined,
+              isPlanSubmitted: true,
+              isReportSubmitted: true,
+              planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+              reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+              isPlanAccepted: true,
+              isReportAccepted: false,
+            };
+            const mockConfirmRequest: ConfirmProjectDto = {
+              type: 'approve',
+              comment: 'test',
+            };
+            mockedStatusService.prototype.getStatusById.mockResolvedValue(
+              mockStatus,
+            );
+            try {
+              await service.confirmProject(1, 'report', mockConfirmRequest);
+            } catch (e) {
+              expect(e).toBeInstanceOf(ConflictException);
+            }
+          });
+        });
+      });
+    });
+    it('should throw BadRequestException', async () => {
+      const mockConfirmRequest: ConfirmProjectDto = {
+        type: 'approve',
+        comment: 'test',
+      };
+      try {
+        await service.confirmProject(1, 'error', mockConfirmRequest);
       } catch (e) {
         expect(e).toBeInstanceOf(BadRequestException);
       }
