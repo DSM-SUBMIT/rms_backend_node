@@ -33,17 +33,12 @@ export class ProjectsService {
     projectId: number,
     type: string,
     payload: ConfirmProjectDto,
-    conflictCheck = true,
   ) {
     switch (type) {
       case 'plan': {
         const status = await this.statusService.getStatusById(projectId);
         if (!status) throw new NotFoundException();
-        if (
-          !status.isPlanSubmitted ||
-          status.isPlanAccepted ||
-          (status.isPlanAccepted !== null && conflictCheck)
-        )
+        if (!status.isPlanSubmitted || status.isPlanAccepted !== null)
           throw new ConflictException();
 
         switch (payload.type) {
@@ -83,11 +78,7 @@ export class ProjectsService {
       case 'report': {
         const status = await this.statusService.getStatusById(projectId);
         if (!status) throw new NotFoundException();
-        if (
-          !status.isReportSubmitted ||
-          status.isReportAccepted ||
-          (status.isReportAccepted !== null && conflictCheck)
-        )
+        if (!status.isReportSubmitted || status.isReportAccepted !== null)
           throw new ConflictException();
 
         switch (payload.type) {
