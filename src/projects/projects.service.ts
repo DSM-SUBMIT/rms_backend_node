@@ -233,24 +233,16 @@ export class ProjectsService {
     const plan = await this.plansService.getConfirmedPlanById(projectId);
     const report = await this.reportsService.getConfirmedReportById(projectId);
     const members = await this.membersService.getUsersByProject(projectId);
-    if (!plan || !report) {
-      const projectDetail: ProjectDetailDto = {
-        project_name: project.projectName,
-        writer: project.writerId.name,
-        members: members.map((member) => {
-          return { name: member.userId.name, role: member.role };
-        }),
-      };
-      return projectDetail;
-    }
-
     const projectDetail: ProjectDetailDto = {
       project_name: project.projectName,
       writer: project.writerId.name,
       members: members.map((member) => {
         return { name: member.userId.name, role: member.role };
       }),
-      plan: {
+    };
+
+    if (plan) {
+      projectDetail.plan = {
         goal: plan.goal,
         content: plan.content,
         start_date: plan.startDate,
@@ -262,12 +254,14 @@ export class ProjectsService {
           others: Boolean(plan.includeOthers),
           others_content: plan.includeOthers ? plan.includeOthers : '',
         },
-      },
-      report: {
+      };
+    }
+    if (report) {
+      projectDetail.report = {
         video_url: report.videoUrl,
         content: report.content,
-      },
-    };
+      };
+    }
     return projectDetail;
   }
 
