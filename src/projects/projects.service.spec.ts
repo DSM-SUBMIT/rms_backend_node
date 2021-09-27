@@ -430,4 +430,70 @@ describe('ProjectsService', () => {
       }
     });
   });
+
+  describe('search', () => {
+    const mockProject: Project = {
+      id: 1,
+      projectName: 'test',
+      teamName: 'test',
+      techStacks: 'test',
+      writerId: {
+        id: 1,
+        email: 'test@example.com',
+        name: 'test',
+        projects: undefined,
+        userId: undefined,
+      },
+      projectType: 'test',
+      githubUrl: null,
+      serviceUrl: null,
+      docsUrl: null,
+      teacher: 'test',
+      projectId: undefined,
+      projectField: [],
+    };
+    it('should return a project', async () => {
+      projectsRepository.findAndCount.mockResolvedValue([[mockProject], 1]);
+
+      const mockProjectItem: ProjectItem = {
+        id: 1,
+        type: 'test',
+        title: 'test',
+        team_name: 'test',
+        fields: [],
+      };
+      const mockProjectsList: ProjectsListDto = {
+        total_page: 1,
+        total_amount: 1,
+        projects: [mockProjectItem],
+      };
+
+      const res = await service.search('test', 8, 1);
+
+      expect(res).toEqual(mockProjectsList);
+
+      expect(projectsRepository.findAndCount).toHaveBeenCalled();
+      expect(projectsRepository.findAndCount).toHaveBeenCalledWith({
+        where: { projectName: Like('%test%') },
+        take: 8,
+        skip: 8 * (1 - 1),
+        relations: ['projectField', 'projectField.fieldId'],
+      });
+    });
+    it('should return nothing', async () => {
+      projectsRepository.findAndCount.mockResolvedValue([[], 0]);
+
+      const res = await service.search('test', 8, 1);
+
+      expect(res).toEqual(undefined);
+
+      expect(projectsRepository.findAndCount).toHaveBeenCalled();
+      expect(projectsRepository.findAndCount).toHaveBeenCalledWith({
+        where: { projectName: Like('%test%') },
+        take: 8,
+        skip: 8 * (1 - 1),
+        relations: ['projectField', 'projectField.fieldId'],
+      });
+    });
+  });
 });
