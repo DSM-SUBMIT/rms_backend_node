@@ -21,6 +21,8 @@ import {
 import { Plan } from 'src/shared/plans/entities/plan.entity';
 import { Report } from 'src/shared/reports/entities/report.entity';
 import { NotFoundException } from '@nestjs/common';
+import { ProjectField } from 'src/shared/projectField/entities/projectField.entity';
+import { Field } from 'src/shared/fields/entities/field.entity';
 
 jest.mock('src/mail/mail.service');
 jest.mock('src/shared/members/members.service');
@@ -143,6 +145,17 @@ describe('ProjectsService', () => {
 
   describe('getConfirmed', () => {
     it('should return confirmed projects', async () => {
+      const mockField: Field = {
+        id: 1,
+        field: 'test',
+        projectField: undefined,
+      };
+      const mockFields: ProjectField[] = [
+        {
+          fieldId: mockField,
+          projectId: undefined,
+        },
+      ];
       const mockProject: Project = {
         id: 1,
         projectName: 'test',
@@ -161,7 +174,7 @@ describe('ProjectsService', () => {
         docsUrl: null,
         teacher: 'test',
         projectId: [],
-        projectField: [],
+        projectField: mockFields,
       };
       const mockStatus: Status = {
         projectId: mockProject,
@@ -184,7 +197,7 @@ describe('ProjectsService', () => {
         type: 'test',
         title: 'test',
         team_name: 'test',
-        fields: [],
+        fields: ['test'],
       };
       const mockProjectsList: ProjectsListDto = {
         total_page: 1,
@@ -432,6 +445,17 @@ describe('ProjectsService', () => {
   });
 
   describe('search', () => {
+    const mockField: Field = {
+      id: 1,
+      field: 'test',
+      projectField: undefined,
+    };
+    const mockFields: ProjectField[] = [
+      {
+        fieldId: mockField,
+        projectId: undefined,
+      },
+    ];
     const mockProject: Project = {
       id: 1,
       projectName: 'test',
@@ -450,7 +474,7 @@ describe('ProjectsService', () => {
       docsUrl: null,
       teacher: 'test',
       projectId: undefined,
-      projectField: [],
+      projectField: mockFields,
     };
     it('should return a project', async () => {
       projectsRepository.findAndCount.mockResolvedValue([[mockProject], 1]);
@@ -460,7 +484,7 @@ describe('ProjectsService', () => {
         type: 'test',
         title: 'test',
         team_name: 'test',
-        fields: [],
+        fields: ['test'],
       };
       const mockProjectsList: ProjectsListDto = {
         total_page: 1,
