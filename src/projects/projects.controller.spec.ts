@@ -8,7 +8,7 @@ import { ProjectsService } from './projects.service';
 
 jest.mock('./projects.service');
 
-const mockedProjectService = mocked(ProjectsService, true);
+const mockedProjectsService = mocked(ProjectsService, true);
 
 describe('ProjectsController', () => {
   let controller: ProjectsController;
@@ -37,7 +37,7 @@ describe('ProjectsController', () => {
 
   describe('confirm', () => {
     it('should return nothing', async () => {
-      mockedProjectService.prototype.confirmProject.mockResolvedValue(
+      mockedProjectsService.prototype.confirmProject.mockResolvedValue(
         undefined,
       );
 
@@ -49,9 +49,9 @@ describe('ProjectsController', () => {
 
       expect(res).toEqual(undefined);
 
-      expect(mockedProjectService.prototype.confirmProject).toHaveBeenCalled();
+      expect(mockedProjectsService.prototype.confirmProject).toHaveBeenCalled();
       expect(
-        mockedProjectService.prototype.confirmProject,
+        mockedProjectsService.prototype.confirmProject,
       ).toHaveBeenCalledWith(1, 'plan', mockedRequest);
     });
   });
