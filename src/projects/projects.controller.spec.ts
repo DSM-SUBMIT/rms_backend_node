@@ -3,6 +3,9 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { mocked } from 'ts-jest/utils';
 import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
+import { ProjectDetailDto } from './dto/response/projectDetail.dto';
+import { ProjectItem } from './dto/response/projectItem.dto';
+import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 
