@@ -6,6 +6,7 @@ import { StatusService } from './status.service';
 
 const mockStatusRepository = () => ({
   findOne: jest.fn(),
+  findAndCount: jest.fn(),
   update: jest.fn(),
 });
 
@@ -129,6 +130,42 @@ describe('StatusService', () => {
       });
 
       expect(result).toBeFalsy();
+    });
+  });
+
+  describe('getConfirmStatus', () => {
+    it('should return a status object', async () => {
+      const mockStatus = {
+        projectId: 1,
+        isPlanSubmitted: false,
+        isReportSubmitted: false,
+        planSubmittedAt: null,
+        reportSubmittedAt: null,
+        isPlanAccepted: false,
+        isReportAccepted: false,
+      };
+      statusRepository.findAndCount.mockResolvedValue([[mockStatus], 1]);
+      const res = await service.getConfirmedStatus(8, 1);
+
+      expect(res).toEqual([[mockStatus], 1]);
+
+      expect(statusRepository.findAndCount).toHaveBeenCalled();
+      expect(statusRepository.findAndCount).toHaveBeenCalledWith({
+        where: {
+          isPlanAccepted: true,
+          isReportAccepted: true,
+        },
+        order: {
+          planSubmittedAt: 'ASC',
+        },
+        take: 8,
+        skip: 8 * (1 - 1),
+        relations: [
+          'projectId',
+          'projectId.projectField',
+          'projectId.projectField.fieldId',
+        ],
+      });
     });
   });
 });
