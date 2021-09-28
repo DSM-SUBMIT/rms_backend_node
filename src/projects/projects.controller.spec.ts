@@ -1,10 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { mocked } from 'ts-jest/utils';
+import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 
 jest.mock('./projects.service');
+
+const mockedProjectService = mocked(ProjectsService, true);
 
 describe('ProjectsController', () => {
   let controller: ProjectsController;
@@ -29,5 +33,26 @@ describe('ProjectsController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('confirm', () => {
+    it('should return nothing', async () => {
+      mockedProjectService.prototype.confirmProject.mockResolvedValue(
+        undefined,
+      );
+
+      const mockedRequest: ConfirmProjectDto = {
+        type: 'approve',
+        comment: 'test',
+      };
+      const res = await controller.confirm(1, 'plan', mockedRequest);
+
+      expect(res).toEqual(undefined);
+
+      expect(mockedProjectService.prototype.confirmProject).toHaveBeenCalled();
+      expect(
+        mockedProjectService.prototype.confirmProject,
+      ).toHaveBeenCalledWith(1, 'plan', mockedRequest);
+    });
   });
 });
