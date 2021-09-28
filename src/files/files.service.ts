@@ -38,7 +38,6 @@ export class FilesService {
 
     const uploadedUrl = await this.uploadSingleFile({
       file,
-      username,
       folder: 'report',
       fileType: 'video',
       projectId,
@@ -74,7 +73,6 @@ export class FilesService {
     if (!report) throw new NotFoundException();
     const uploadedUrls = await this.uploadMultipleFiles({
       files,
-      username,
       folder: 'report',
       fileType: 'images',
       projectId,
@@ -94,11 +92,11 @@ export class FilesService {
 
     const bucketS3 = process.env.AWS_S3_BUCKET;
     const filename = uuid();
-    const location = `${options.fileType}/${options.folder}/${options.projectId}/${options.username}/${filename}${ext}`;
+    const location = `${options.projectId}/${options.folder}/${options.fileType}/${filename}${ext}`;
     try {
       await this.uploadToS3(
         options.file.buffer,
-        `${bucketS3}/${options.fileType}/${options.folder}/${options.projectId}/${options.username}`,
+        `${bucketS3}/${options.projectId}/${options.folder}/${options.fileType}`,
         filename + ext,
       );
     } catch {
@@ -125,11 +123,11 @@ export class FilesService {
       const ext = extname(file.originalname).toLowerCase();
 
       locations.push(
-        `${options.fileType}/${options.folder}/${options.projectId}/${options.username}/${filename}${ext}`,
+        `${options.projectId}/${options.folder}/${options.fileType}/${filename}${ext}`,
       );
       return this.uploadToS3(
         options.file.buffer,
-        `${bucketS3}/${options.fileType}/${options.folder}/${options.projectId}/${options.username}`,
+        `${bucketS3}/${options.projectId}/${options.folder}/${options.fileType}`,
         filename + ext,
       );
     });
