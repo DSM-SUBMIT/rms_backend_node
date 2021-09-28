@@ -33,7 +33,7 @@ import { FilesService } from './files.service';
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
-  @Post('images/:projectId')
+  @Post(':projectId/images')
   @Roles(Role.User)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
@@ -70,7 +70,7 @@ export class FilesController {
     return this.filesService.uploadImages(files, req.user.userId, projectId);
   }
 
-  @Post('video/:projectId')
+  @Post(':projectId/video')
   @Roles(Role.User)
   @UseGuards(RolesGuard)
   @UseGuards(JwtAuthGuard)
