@@ -48,15 +48,31 @@ export class FilesService {
 
     return;
   }
+
+  async deleteVideo(username: string, projectId: number) {
+    const report = await this.reportsService.getReportById(projectId);
+    if (!report) throw new NotFoundException();
+    if (!report.videoUrl) throw new NotFoundException();
+
+    const writerId = report.projectId.writerId;
+    const writer = await this.usersService.getUserById(writerId.id);
+    const email = writer?.email;
+    if (email !== username) throw new ForbiddenException();
+
       const { videoUrl } = report;
 
-      const s3Path = '/' + videoUrl.substring(0, videoUrl.lastIndexOf('/'));
+    const s3Path = videoUrl.substring(0, videoUrl.lastIndexOf('/'));
       const s3Filename = videoUrl.substring(
         videoUrl.lastIndexOf('/') + 1,
         videoUrl.length,
       );
 
-      await this.deleteFromS3(s3Filename, process.env.AWS_S3_BUCKET + s3Path);
+    await this.deleteFromS3(
+      s3Filename,
+      `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+    );
+
+    await this.reportsService.updateVideoUrl(projectId, null);
     }
 
     await this.reportsService.updateVideoUrl(projectId, uploadedUrl);
