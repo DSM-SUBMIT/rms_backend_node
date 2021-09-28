@@ -55,4 +55,36 @@ describe('ProjectsController', () => {
       ).toHaveBeenCalledWith(1, 'plan', mockedRequest);
     });
   });
+
+  describe('getPendingProjects', () => {
+    it('should return list of projects', async () => {
+      const mockProjectItem: ProjectItem = {
+        id: 1,
+        type: 'test',
+        title: 'test',
+        team_name: 'test',
+        fields: ['test'],
+      };
+      const mockProjectsList: ProjectsListDto = {
+        total_page: 1,
+        total_amount: 1,
+        projects: [mockProjectItem],
+      };
+
+      mockedProjectsService.prototype.getPendingProjects.mockResolvedValue(
+        mockProjectsList,
+      );
+
+      const res = await controller.getPendingProjects('plan', 8, 1);
+
+      expect(res).toEqual(mockProjectsList);
+
+      expect(
+        mockedProjectsService.prototype.getPendingProjects,
+      ).toHaveBeenCalled();
+      expect(
+        mockedProjectsService.prototype.getPendingProjects,
+      ).toHaveBeenCalledWith('plan', 8, 1);
+    });
+  });
 });
