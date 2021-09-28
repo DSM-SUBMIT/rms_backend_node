@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Status } from './entities/status.entity';
 import { StatusService } from './status.service';
 
@@ -154,6 +154,42 @@ describe('StatusService', () => {
         where: {
           isPlanAccepted: true,
           isReportAccepted: true,
+        },
+        order: {
+          planSubmittedAt: 'ASC',
+        },
+        take: 8,
+        skip: 8 * (1 - 1),
+        relations: [
+          'projectId',
+          'projectId.projectField',
+          'projectId.projectField.fieldId',
+        ],
+      });
+    });
+  });
+
+  describe('getStatusDescByPlanDate', () => {
+    it('should return a status object', async () => {
+      const mockStatus = {
+        projectId: 1,
+        isPlanSubmitted: false,
+        isReportSubmitted: false,
+        planSubmittedAt: null,
+        reportSubmittedAt: null,
+        isPlanAccepted: false,
+        isReportAccepted: false,
+      };
+      statusRepository.findAndCount.mockResolvedValue([[mockStatus], 1]);
+      const res = await service.getStatusDescByPlanDate(8, 1);
+
+      expect(res).toEqual([[mockStatus], 1]);
+
+      expect(statusRepository.findAndCount).toHaveBeenCalled();
+      expect(statusRepository.findAndCount).toHaveBeenCalledWith({
+        where: {
+          isPlanSubmitted: true,
+          isPlanAccepted: IsNull(),
         },
         order: {
           planSubmittedAt: 'ASC',
