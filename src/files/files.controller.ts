@@ -1,7 +1,9 @@
 import {
+  Delete,
+  Get,
   Param,
-  Put,
   Request,
+  StreamableFile,
   UploadedFile,
   UploadedFiles,
   UseInterceptors,
@@ -15,8 +17,8 @@ import {
   ApiConsumes,
   ApiCreatedResponse,
   ApiForbiddenResponse,
-  ApiNoContentResponse,
   ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
@@ -28,7 +30,7 @@ import { Roles } from '../utils/decorators/roles.decorator';
 import { Role } from '../utils/enums/role.enum';
 import { FilesService } from './files.service';
 
-@Controller({ host: 'files-api.dsm-rms.com', path: 'files' })
+@Controller('files')
 @ApiTags('파일 API')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
@@ -118,5 +120,17 @@ export class FilesController {
   @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
   deleteVideo(@Request() req, @Param('projectId') projectId: number) {
     return this.filesService.deleteVideo(req.user.userId, projectId);
+  }
+
+  @Get(':projectId/video')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '시연 영상 다운로드' })
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiBearerAuth()
+  @ApiOkResponse({})
+  @ApiUnauthorizedResponse()
+  @ApiNotFoundResponse()
+  getVideo(@Request() req, @Param('projectId') projectId: number) {
+    return this.filesService.getVideo(req, projectId);
   }
 }

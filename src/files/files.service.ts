@@ -59,13 +59,13 @@ export class FilesService {
     const email = writer?.email;
     if (email !== username) throw new ForbiddenException();
 
-      const { videoUrl } = report;
+    const { videoUrl } = report;
 
     const s3Path = videoUrl.substring(0, videoUrl.lastIndexOf('/'));
-      const s3Filename = videoUrl.substring(
-        videoUrl.lastIndexOf('/') + 1,
-        videoUrl.length,
-      );
+    const s3Filename = videoUrl.substring(
+      videoUrl.lastIndexOf('/') + 1,
+      videoUrl.length,
+    );
 
     await this.deleteFromS3(
       s3Filename,
@@ -73,11 +73,33 @@ export class FilesService {
     );
 
     await this.reportsService.updateVideoUrl(projectId, null);
-    }
+  }
 
-    await this.reportsService.updateVideoUrl(projectId, uploadedUrl);
+  async getVideo(req, projectId) {
+    const report = await this.reportsService.getReportById(projectId);
+    if (!report) throw new NotFoundException();
+    if (!report.videoUrl) throw new NotFoundException();
 
-    return;
+    const { videoUrl } = report;
+
+    const s3Path = videoUrl.substring(0, videoUrl.lastIndexOf('/'));
+    const s3Filename = videoUrl.substring(
+      videoUrl.lastIndexOf('/') + 1,
+      videoUrl.length,
+    );
+
+    const filename = `[${report.projectId.projectType}] ${
+      report.projectId.projectName
+    } - ${report.projectId.teamName}${extname(s3Filename)}`;
+    req.res.set({
+      'Content-Type': 'application/octet-stream; charset=utf-8',
+      'Content-Disposition': `'attachment; filename="${encodeURI(filename)}"`,
+    });
+
+    return await this.downloadFromS3(
+      s3Filename,
+      `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+    );
   }
 
   async uploadImages(
