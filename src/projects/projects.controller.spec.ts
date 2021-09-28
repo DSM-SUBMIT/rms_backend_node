@@ -87,4 +87,36 @@ describe('ProjectsController', () => {
       ).toHaveBeenCalledWith('plan', 8, 1);
     });
   });
+
+  describe('search', () => {
+    it('should return list of projects', async () => {
+      const mockProjectItem: ProjectItem = {
+        id: 1,
+        type: 'test',
+        title: 'test',
+        team_name: 'test',
+        fields: ['test'],
+      };
+      const mockProjectsList: ProjectsListDto = {
+        total_page: 1,
+        total_amount: 1,
+        projects: [mockProjectItem],
+      };
+
+      mockedProjectsService.prototype.search.mockResolvedValue(
+        mockProjectsList,
+      );
+
+      const res = await controller.search('test', 8, 1);
+
+      expect(res).toEqual(mockProjectsList);
+
+      expect(mockedProjectsService.prototype.search).toHaveBeenCalled();
+      expect(mockedProjectsService.prototype.search).toHaveBeenCalledWith(
+        'test',
+        8,
+        1,
+      );
+    });
+  });
 });
