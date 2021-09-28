@@ -10,12 +10,6 @@ export class StatusService {
     private readonly statusRepository: Repository<Status>,
   ) {}
 
-  async getStatusById(id: number): Promise<Status> {
-    return await this.statusRepository.findOne(id, {
-      relations: ['projectId', 'projectId.writerId'],
-    });
-  }
-
   async getStatusDescByPlanDate(
     limit: number,
     page: number,
@@ -37,6 +31,7 @@ export class StatusService {
       ],
     });
   }
+
   async getStatusDescByReportDate(
     limit: number,
     page: number,
@@ -103,5 +98,11 @@ export class StatusService {
       });
     }
     return res.affected ? true : false;
+  }
+
+  async getStatusById(id: number): Promise<Status> {
+    return await this.statusRepository.findOne(id, {
+      relations: ['projectId', 'projectId.writerId'],
+    });
   }
 }
