@@ -26,12 +26,10 @@ export class FilesService {
     file: Express.MulterS3.File,
     username: string,
     projectId: number,
-    conflictCheck = true,
   ) {
     const report = await this.reportsService.getReportById(projectId);
     if (!report) throw new NotFoundException();
-    if (report.videoUrl && conflictCheck) throw new ConflictException();
-    if (!report.videoUrl && !conflictCheck) throw new NotFoundException();
+    if (report.videoUrl) throw new ConflictException();
 
     const writerId = report.projectId.writerId;
     const writer = await this.usersService.getUserById(writerId.id);
@@ -47,7 +45,10 @@ export class FilesService {
       allowedExt: /(mp4)|(mov)|(wmv)|(avi)|(mkv)/,
     });
 
-    if (!conflictCheck) {
+    await this.reportsService.updateVideoUrl(projectId, uploadedUrl);
+
+    return;
+  }
       const { videoUrl } = report;
 
       const s3Path = '/' + videoUrl.substring(0, videoUrl.lastIndexOf('/'));
