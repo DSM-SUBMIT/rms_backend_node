@@ -29,7 +29,7 @@ import { Role } from 'src/utils/enums/role.enum';
 import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
 import { ProjectDetailDto } from './dto/response/projectDetail.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
-import { NoContentInterceptor } from './interceptors/NoContent.interceptor';
+import { NoContentInterceptor } from 'src/utils/interceptors/NoContent.interceptor';
 import { ProjectsService } from './projects.service';
 
 @Controller({ host: 'admin-api.dsm-rms.com', path: 'projects' })

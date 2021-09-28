@@ -5,6 +5,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
+import * as Sentry from '@sentry/node';
+import { SentryInterceptor } from './utils/interceptors/sentry.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -40,6 +42,16 @@ async function bootstrap() {
     include: [AuthModule, ProjectsModule],
   });
   SwaggerModule.setup('apidocs/admin', app, adminDocument);
+
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [
+      // enable HTTP calls tracing
+      new Sentry.Integrations.Http({ tracing: true }),
+    ],
+  });
+
+  app.useGlobalInterceptors(new SentryInterceptor());
 
   await app.listen(3000);
 }
