@@ -119,4 +119,26 @@ describe('ProjectsController', () => {
       );
     });
   });
+
+  describe('projectDetail', () => {
+    it('should return list of projects', async () => {
+      const mockProjectDetail: ProjectDetailDto = {
+        project_name: 'test',
+        writer: 'test',
+        members: [],
+      };
+
+      mockedProjectsService.prototype.getDetail.mockResolvedValue(
+        mockProjectDetail,
+      );
+
+      const res = await controller.projectDetail(1);
+
+      expect(res).toEqual(mockProjectDetail);
+
+      expect(mockedProjectsService.prototype.getDetail).toHaveBeenCalled();
+      expect(mockedProjectsService.prototype.getDetail).toHaveBeenCalledWith(1);
+    });
+  });
+
 });
