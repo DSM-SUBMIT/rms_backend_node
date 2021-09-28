@@ -141,4 +141,34 @@ describe('ProjectsController', () => {
     });
   });
 
+  describe('confirmedProjects', () => {
+    it('should return list of projects', async () => {
+      const mockProjectItem: ProjectItem = {
+        id: 1,
+        type: 'test',
+        title: 'test',
+        team_name: 'test',
+        fields: ['test'],
+      };
+      const mockProjectsList: ProjectsListDto = {
+        total_page: 1,
+        total_amount: 1,
+        projects: [mockProjectItem],
+      };
+
+      mockedProjectsService.prototype.getConfirmed.mockResolvedValue(
+        mockProjectsList,
+      );
+
+      const res = await controller.confirmedProjects(8, 1);
+
+      expect(res).toEqual(mockProjectsList);
+
+      expect(mockedProjectsService.prototype.getConfirmed).toHaveBeenCalled();
+      expect(mockedProjectsService.prototype.getConfirmed).toHaveBeenCalledWith(
+        8,
+        1,
+      );
+    });
+  });
 });
