@@ -33,17 +33,12 @@ export class ProjectsService {
     projectId: number,
     type: string,
     payload: ConfirmProjectDto,
-    conflictCheck = true,
   ) {
     switch (type) {
       case 'plan': {
         const status = await this.statusService.getStatusById(projectId);
         if (!status) throw new NotFoundException();
-        if (
-          !status.isPlanSubmitted ||
-          status.isPlanAccepted ||
-          (status.isPlanAccepted !== null && conflictCheck)
-        )
+        if (!status.isPlanSubmitted || status.isPlanAccepted !== null)
           throw new ConflictException();
 
         switch (payload.type) {
@@ -83,11 +78,7 @@ export class ProjectsService {
       case 'report': {
         const status = await this.statusService.getStatusById(projectId);
         if (!status) throw new NotFoundException();
-        if (
-          !status.isReportSubmitted ||
-          status.isReportAccepted ||
-          (status.isReportAccepted !== null && conflictCheck)
-        )
+        if (!status.isReportSubmitted || status.isReportAccepted !== null)
           throw new ConflictException();
 
         switch (payload.type) {
@@ -233,24 +224,16 @@ export class ProjectsService {
     const plan = await this.plansService.getConfirmedPlanById(projectId);
     const report = await this.reportsService.getConfirmedReportById(projectId);
     const members = await this.membersService.getUsersByProject(projectId);
-    if (!plan || !report) {
-      const projectDetail: ProjectDetailDto = {
-        project_name: project.projectName,
-        writer: project.writerId.name,
-        members: members.map((member) => {
-          return { name: member.userId.name, role: member.role };
-        }),
-      };
-      return projectDetail;
-    }
-
     const projectDetail: ProjectDetailDto = {
       project_name: project.projectName,
       writer: project.writerId.name,
       members: members.map((member) => {
         return { name: member.userId.name, role: member.role };
       }),
-      plan: {
+    };
+
+    if (plan) {
+      projectDetail.plan = {
         goal: plan.goal,
         content: plan.content,
         start_date: plan.startDate,
@@ -262,12 +245,14 @@ export class ProjectsService {
           others: Boolean(plan.includeOthers),
           others_content: plan.includeOthers ? plan.includeOthers : '',
         },
-      },
-      report: {
+      };
+    }
+    if (report) {
+      projectDetail.report = {
         video_url: report.videoUrl,
         content: report.content,
-      },
-    };
+      };
+    }
     return projectDetail;
   }
 

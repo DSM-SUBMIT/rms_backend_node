@@ -19,7 +19,7 @@ class Includes {
   others_content: string;
 }
 
-class PlanDetailDto {
+export class PlanDetailDto {
   @ApiProperty({ description: '프로젝트 목표' })
   goal: string;
 
@@ -36,7 +36,7 @@ class PlanDetailDto {
   includes: Includes;
 }
 
-class ReportDetailDto {
+export class ReportDetailDto {
   @ApiProperty({ description: '시연 영상 링크' })
   video_url: string;
   @ApiProperty({ description: '프로젝트 보고서 본문' })

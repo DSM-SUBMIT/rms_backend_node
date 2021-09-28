@@ -1,82 +1,177 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { MembersService } from 'src/shared/members/members.service';
-import { PlansService } from 'src/shared/plans/plans.service';
-import { ReportsService } from 'src/shared/reports/reports.service';
-import { StatusService } from 'src/shared/status/status.service';
-import { UsersService } from 'src/shared/users/users.service';
-import { Repository } from 'typeorm';
-import { Project } from './entities/project.entity';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { mocked } from 'ts-jest/utils';
+import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
+import { ProjectDetailDto } from './dto/response/projectDetail.dto';
+import { ProjectItem } from './dto/response/projectItem.dto';
+import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
-import { MailService } from 'src/mail/mail.service';
-jest.mock('src/mail/mail.service');
 
-const mockProjectsRepository = () => ({
-  findOne: jest.fn(),
-});
-const mockMembersService = () => ({
-  getUsersByProject: jest.fn(),
-});
-const mockPlansService = () => ({
-  getPlanById: jest.fn(),
-});
-const mockReportsService = () => ({
-  getReportById: jest.fn(),
-});
-const mockStatusService = () => ({
-  getStatusById: jest.fn(),
-});
-const mockUsersService = () => ({
-  getUserById: jest.fn(),
-});
+jest.mock('./projects.service');
 
-type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
+const mockedProjectsService = mocked(ProjectsService, true);
 
 describe('ProjectsController', () => {
   let controller: ProjectsController;
-  let projectsRepository: MockRepository<Project>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProjectsController],
-      providers: [
-        {
-          provide: getRepositoryToken(Project),
-          useValue: mockProjectsRepository(),
-        },
-        MailService,
-        {
-          provide: MembersService,
-          useValue: mockMembersService(),
-        },
-        {
-          provide: PlansService,
-          useValue: mockPlansService(),
-        },
-        {
-          provide: ReportsService,
-          useValue: mockReportsService(),
-        },
-        {
-          provide: StatusService,
-          useValue: mockStatusService(),
-        },
-        {
-          provide: UsersService,
-          useValue: mockUsersService(),
-        },
-        ProjectsService,
-      ],
+      providers: [ProjectsService],
     }).compile();
 
     controller = module.get<ProjectsController>(ProjectsController);
-    projectsRepository = module.get<MockRepository<Project>>(
-      getRepositoryToken(Project),
-    );
+  });
+
+  it('should ensure the guards is applied to the controller', async () => {
+    const guards = Reflect.getMetadata('__guards__', ProjectsController);
+    const jwtAuthGuard = new guards[0]();
+    const rolesGuard = new guards[1]();
+
+    expect(jwtAuthGuard).toBeInstanceOf(JwtAuthGuard);
+    expect(rolesGuard).toBeInstanceOf(RolesGuard);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('confirm', () => {
+    it('should return nothing', async () => {
+      mockedProjectsService.prototype.confirmProject.mockResolvedValue(
+        undefined,
+      );
+
+      const mockedRequest: ConfirmProjectDto = {
+        type: 'approve',
+        comment: 'test',
+      };
+      const res = await controller.confirm(1, 'plan', mockedRequest);
+
+      expect(res).toEqual(undefined);
+
+      expect(mockedProjectsService.prototype.confirmProject).toHaveBeenCalled();
+      expect(
+        mockedProjectsService.prototype.confirmProject,
+      ).toHaveBeenCalledWith(1, 'plan', mockedRequest);
+    });
+  });
+
+  describe('getPendingProjects', () => {
+    it('should return list of projects', async () => {
+      const mockProjectItem: ProjectItem = {
+        id: 1,
+        type: 'test',
+        title: 'test',
+        team_name: 'test',
+        fields: ['test'],
+      };
+      const mockProjectsList: ProjectsListDto = {
+        total_page: 1,
+        total_amount: 1,
+        projects: [mockProjectItem],
+      };
+
+      mockedProjectsService.prototype.getPendingProjects.mockResolvedValue(
+        mockProjectsList,
+      );
+
+      const res = await controller.getPendingProjects('plan', 8, 1);
+
+      expect(res).toEqual(mockProjectsList);
+
+      expect(
+        mockedProjectsService.prototype.getPendingProjects,
+      ).toHaveBeenCalled();
+      expect(
+        mockedProjectsService.prototype.getPendingProjects,
+      ).toHaveBeenCalledWith('plan', 8, 1);
+    });
+  });
+
+  describe('search', () => {
+    it('should return list of projects', async () => {
+      const mockProjectItem: ProjectItem = {
+        id: 1,
+        type: 'test',
+        title: 'test',
+        team_name: 'test',
+        fields: ['test'],
+      };
+      const mockProjectsList: ProjectsListDto = {
+        total_page: 1,
+        total_amount: 1,
+        projects: [mockProjectItem],
+      };
+
+      mockedProjectsService.prototype.search.mockResolvedValue(
+        mockProjectsList,
+      );
+
+      const res = await controller.search('test', 8, 1);
+
+      expect(res).toEqual(mockProjectsList);
+
+      expect(mockedProjectsService.prototype.search).toHaveBeenCalled();
+      expect(mockedProjectsService.prototype.search).toHaveBeenCalledWith(
+        'test',
+        8,
+        1,
+      );
+    });
+  });
+
+  describe('projectDetail', () => {
+    it('should return list of projects', async () => {
+      const mockProjectDetail: ProjectDetailDto = {
+        project_name: 'test',
+        writer: 'test',
+        members: [],
+      };
+
+      mockedProjectsService.prototype.getDetail.mockResolvedValue(
+        mockProjectDetail,
+      );
+
+      const res = await controller.projectDetail(1);
+
+      expect(res).toEqual(mockProjectDetail);
+
+      expect(mockedProjectsService.prototype.getDetail).toHaveBeenCalled();
+      expect(mockedProjectsService.prototype.getDetail).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('confirmedProjects', () => {
+    it('should return list of projects', async () => {
+      const mockProjectItem: ProjectItem = {
+        id: 1,
+        type: 'test',
+        title: 'test',
+        team_name: 'test',
+        fields: ['test'],
+      };
+      const mockProjectsList: ProjectsListDto = {
+        total_page: 1,
+        total_amount: 1,
+        projects: [mockProjectItem],
+      };
+
+      mockedProjectsService.prototype.getConfirmed.mockResolvedValue(
+        mockProjectsList,
+      );
+
+      const res = await controller.confirmedProjects(8, 1);
+
+      expect(res).toEqual(mockProjectsList);
+
+      expect(mockedProjectsService.prototype.getConfirmed).toHaveBeenCalled();
+      expect(mockedProjectsService.prototype.getConfirmed).toHaveBeenCalledWith(
+        8,
+        1,
+      );
+    });
   });
 });
