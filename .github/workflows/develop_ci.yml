@@ -22,14 +22,11 @@ jobs:
           
       - name: Install dependencies
         run: yarn --frozen-lockfile
-        
+               
       - name: Run tests
-        run: yarn test
-        
-      - name: Codecov
         run: yarn test:cov
         
-      - name: Codecov
+      - name: Upload to Codecov
         uses: codecov/codecov-action@v2.0.3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
