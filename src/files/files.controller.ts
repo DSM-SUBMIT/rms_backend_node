@@ -20,6 +20,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
+  ApiProduces,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -126,7 +127,19 @@ export class FilesController {
   @ApiOperation({ summary: '시연 영상 다운로드' })
   @ApiParam({ name: 'projectId', type: 'number' })
   @ApiBearerAuth()
-  @ApiOkResponse({})
+  @ApiProduces('multipart/form-data')
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+    schema: {
+      type: 'file',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   @ApiUnauthorizedResponse()
   @ApiNotFoundResponse()
   getVideo(@Request() req, @Param('projectId') projectId: number) {
