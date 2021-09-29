@@ -122,7 +122,9 @@ export class FilesService {
       projectId,
       allowedExt: /(jpg)|(png)|(jpeg)|(bmp)/,
     });
-    return uploadedUrls;
+    return uploadedUrls.map((url) => {
+      return `https://files-api.dsm-rms.com/files/${url}`;
+    });
   }
 
   async uploadSingleFile(options: UploadFileOptions): Promise<string> {
