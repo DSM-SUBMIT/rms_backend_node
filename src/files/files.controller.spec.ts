@@ -82,37 +82,4 @@ describe('FilesController', () => {
       expect(service.uploadVideo).toHaveBeenCalledWith(mockFiles[0], 1, 1);
     });
   });
-
-  describe('reUploadVideo', () => {
-    it('should ensure guards are applied', () => {
-      const guards = Reflect.getMetadata(
-        '__guards__',
-        FilesController.prototype.reUploadVideo,
-      );
-      const jwtAuthGuard = new guards[0]();
-      const rolesGuard = new guards[1]();
-
-      expect(jwtAuthGuard).toBeInstanceOf(JwtAuthGuard);
-      expect(rolesGuard).toBeInstanceOf(RolesGuard);
-    });
-    it('should ensure user role is applied', () => {
-      const roles = Reflect.getMetadata(
-        'roles',
-        FilesController.prototype.reUploadVideo,
-      );
-      const role = roles[0];
-
-      expect(role).toEqual('user');
-    });
-    it('should return urls', () => {
-      controller.reUploadVideo(mockFiles[0], mockRequest, 1);
-      expect(service.uploadVideo).toHaveBeenCalled();
-      expect(service.uploadVideo).toHaveBeenCalledWith(
-        mockFiles[0],
-        1,
-        1,
-        false,
-      );
-    });
-  });
 });
