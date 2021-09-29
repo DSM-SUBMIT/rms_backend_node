@@ -43,15 +43,16 @@ async function bootstrap() {
   });
   SwaggerModule.setup('apidocs/admin', app, adminDocument);
 
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    integrations: [
-      // enable HTTP calls tracing
-      new Sentry.Integrations.Http({ tracing: true }),
-    ],
-  });
-
-  app.useGlobalInterceptors(new SentryInterceptor());
+  if (process.env.NODE_ENV === 'production') {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      integrations: [
+        // enable HTTP calls tracing
+        new Sentry.Integrations.Http({ tracing: true }),
+      ],
+    });
+    app.useGlobalInterceptors(new SentryInterceptor());
+  }
 
   await app.listen(3000);
 }
