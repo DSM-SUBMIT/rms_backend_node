@@ -109,6 +109,12 @@ export class FilesService {
   ): Promise<string[]> {
     const report = await this.reportsService.getReportById(projectId);
     if (!report) throw new NotFoundException();
+
+    const writerId = report.projectId.writerId;
+    const writer = await this.usersService.getUserById(writerId.id);
+    const email = writer?.email;
+    if (email !== username) throw new ForbiddenException();
+
     const uploadedUrls = await this.uploadMultipleFiles({
       files,
       folder: 'report',
