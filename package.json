@@ -90,6 +90,7 @@
       "**/*.(t|j)s",
       "!**/*.module.(t|j)s",
       "!**/main.(t|j)s",
+      "!**/ormconfig.(t|j)s",
       "!**/*.strategy.(t|j)s",
       "!**/*.entity.(t|j)s"
     ],
