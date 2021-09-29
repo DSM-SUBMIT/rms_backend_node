@@ -196,7 +196,7 @@ export class FilesService {
         `${options.projectId}/${options.folder}/${options.fileType}/${filename}${ext}`,
       );
       return this.uploadToS3(
-        options.file.buffer,
+        file.buffer,
         `${bucketS3}/${options.projectId}/${options.folder}/${options.fileType}`,
         filename + ext,
       );
