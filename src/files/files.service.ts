@@ -13,7 +13,6 @@ import { S3 } from 'aws-sdk';
 import { extname } from 'path';
 import { ProjectsService } from 'src/projects/projects.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
-import { UsersService } from 'src/shared/users/users.service';
 import { v4 as uuid } from 'uuid';
 import { UploadFileOptions } from './interfaces/uploadFileOptions.interface';
 
@@ -22,7 +21,6 @@ export class FilesService {
   constructor(
     private readonly projectsService: ProjectsService,
     private readonly reportsService: ReportsService,
-    private readonly usersService: UsersService,
   ) {}
 
   async uploadVideo(
@@ -34,9 +32,8 @@ export class FilesService {
     if (!report) throw new NotFoundException();
     if (report.videoUrl) throw new ConflictException();
 
-    const writerId = report.projectId.writerId;
-    const writer = await this.usersService.getUserById(writerId.id);
-    const email = writer?.email;
+    const writer = report.projectId.writerId;
+    const email = writer.email;
     if (email !== username) throw new ForbiddenException();
 
     const uploadedUrl = await this.uploadSingleFile({
@@ -57,9 +54,8 @@ export class FilesService {
     if (!report) throw new NotFoundException();
     if (!report.videoUrl) throw new NotFoundException();
 
-    const writerId = report.projectId.writerId;
-    const writer = await this.usersService.getUserById(writerId.id);
-    const email = writer?.email;
+    const writer = report.projectId.writerId;
+    const email = writer.email;
     if (email !== username) throw new ForbiddenException();
 
     const { videoUrl } = report;
@@ -110,12 +106,11 @@ export class FilesService {
     username: string,
     projectId: number,
   ): Promise<string[]> {
-    const report = await this.reportsService.getReportById(projectId);
-    if (!report) throw new NotFoundException();
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
 
-    const writerId = report.projectId.writerId;
-    const writer = await this.usersService.getUserById(writerId.id);
-    const email = writer?.email;
+    const writer = project.writerId;
+    const email = writer.email;
     if (email !== username) throw new ForbiddenException();
 
     const uploadedUrls = await this.uploadMultipleFiles({
@@ -139,7 +134,7 @@ export class FilesService {
     if (!project) throw new NotFoundException();
 
     const writer = project.writerId;
-    const email = writer?.email;
+    const email = writer.email;
     if (email !== username) throw new ForbiddenException();
 
     const s3Path = `${projectId}/report/images`;
