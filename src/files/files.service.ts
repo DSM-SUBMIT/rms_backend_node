@@ -23,6 +23,70 @@ export class FilesService {
     private readonly reportsService: ReportsService,
   ) {}
 
+  async uploadImages(
+    files: Express.MulterS3.File[],
+    username: string,
+    projectId: number,
+  ): Promise<string[]> {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const writer = project.writerId;
+    const email = writer.email;
+    if (email !== username) throw new ForbiddenException();
+
+    const uploadedUrls = await this.uploadMultipleFiles({
+      files,
+      folder: 'report',
+      fileType: 'images',
+      projectId,
+      allowedExt: /(jpg)|(png)|(jpeg)|(bmp)/,
+    });
+    return uploadedUrls.map((url) => {
+      return `https://files-api.dsm-rms.com/files/${url}`;
+    });
+  }
+
+  async deleteImage(
+    username: string,
+    projectId: number,
+    filename: string,
+  ): Promise<void> {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const writer = project.writerId;
+    const email = writer.email;
+    if (email !== username) throw new ForbiddenException();
+
+    const s3Path = `${projectId}/report/images`;
+    if (
+      !(await this.isExist(filename, `${process.env.AWS_S3_BUCKET}/${s3Path}`))
+    )
+      throw new NotFoundException();
+
+    await this.deleteFromS3(filename, `${process.env.AWS_S3_BUCKET}/${s3Path}`);
+  }
+
+  async getImage(
+    req,
+    projectId: number,
+    filename: string,
+  ): Promise<StreamableFile> {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const ext = extname(filename).slice(1);
+    req.res.set({
+      'Content-Type': `image/${ext}; charset=utf-8`,
+    });
+
+    return await this.downloadFromS3(
+      filename,
+      `${process.env.AWS_S3_BUCKET}/${projectId}/report/images`,
+    );
+  }
+
   async uploadVideo(
     file: Express.MulterS3.File,
     username: string,
@@ -98,70 +162,6 @@ export class FilesService {
     return await this.downloadFromS3(
       s3Filename,
       `${process.env.AWS_S3_BUCKET}/${s3Path}`,
-    );
-  }
-
-  async uploadImages(
-    files: Express.MulterS3.File[],
-    username: string,
-    projectId: number,
-  ): Promise<string[]> {
-    const project = await this.projectsService.getProject(projectId);
-    if (!project) throw new NotFoundException();
-
-    const writer = project.writerId;
-    const email = writer.email;
-    if (email !== username) throw new ForbiddenException();
-
-    const uploadedUrls = await this.uploadMultipleFiles({
-      files,
-      folder: 'report',
-      fileType: 'images',
-      projectId,
-      allowedExt: /(jpg)|(png)|(jpeg)|(bmp)/,
-    });
-    return uploadedUrls.map((url) => {
-      return `https://files-api.dsm-rms.com/files/${url}`;
-    });
-  }
-
-  async deleteImage(
-    username: string,
-    projectId: number,
-    filename: string,
-  ): Promise<void> {
-    const project = await this.projectsService.getProject(projectId);
-    if (!project) throw new NotFoundException();
-
-    const writer = project.writerId;
-    const email = writer.email;
-    if (email !== username) throw new ForbiddenException();
-
-    const s3Path = `${projectId}/report/images`;
-    if (
-      !(await this.isExist(filename, `${process.env.AWS_S3_BUCKET}/${s3Path}`))
-    )
-      throw new NotFoundException();
-
-    await this.deleteFromS3(filename, `${process.env.AWS_S3_BUCKET}/${s3Path}`);
-  }
-
-  async getImage(
-    req,
-    projectId: number,
-    filename: string,
-  ): Promise<StreamableFile> {
-    const project = await this.projectsService.getProject(projectId);
-    if (!project) throw new NotFoundException();
-
-    const ext = extname(filename).slice(1);
-    req.res.set({
-      'Content-Type': `image/${ext}; charset=utf-8`,
-    });
-
-    return await this.downloadFromS3(
-      filename,
-      `${process.env.AWS_S3_BUCKET}/${projectId}/report/images`,
     );
   }
 
