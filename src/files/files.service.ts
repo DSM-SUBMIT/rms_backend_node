@@ -146,6 +146,25 @@ export class FilesService {
     await this.deleteFromS3(filename, `${process.env.AWS_S3_BUCKET}/${s3Path}`);
   }
 
+  async getImage(
+    req,
+    projectId: number,
+    filename: string,
+  ): Promise<StreamableFile> {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const ext = extname(filename).slice(1);
+    req.res.set({
+      'Content-Type': `image/${ext}; charset=utf-8`,
+    });
+
+    return await this.downloadFromS3(
+      filename,
+      `${process.env.AWS_S3_BUCKET}/${projectId}/report/images`,
+    );
+  }
+
   async uploadSingleFile(options: UploadFileOptions): Promise<string> {
     const ext = extname(options.file.originalname).toLowerCase();
     const regex = options.allowedExt;

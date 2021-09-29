@@ -94,6 +94,27 @@ export class FilesController {
     return this.filesService.deleteImage(req.user.userId, projectId, imageName);
   }
 
+  @Get(':projectId/image/:imageName')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '이미지 파일 확인' })
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '시연 영상 다운로드' })
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiBearerAuth()
+  @ApiProduces('image/*')
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+  })
+  @ApiUnauthorizedResponse()
+  @ApiNotFoundResponse()
+  getImage(
+    @Request() req,
+    @Param('projectId') projectId: number,
+    @Param('imageName') imageName: string,
+  ) {
+    return this.filesService.getImage(req, projectId, imageName);
+  }
+
   @Post(':projectId/video')
   @Roles(Role.User)
   @UseGuards(RolesGuard)
