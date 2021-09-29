@@ -21,6 +21,7 @@ import {
   ApiOperation,
   ApiParam,
   ApiProduces,
+  ApiServiceUnavailableResponse,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -70,6 +71,27 @@ export class FilesController {
     @Param('projectId') projectId: number,
   ) {
     return this.filesService.uploadImages(files, req.user.userId, projectId);
+  }
+
+  @Delete(':projectId/image/:imageName')
+  @Roles(Role.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '이미지 파일 삭제' })
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: '요청이 성공적으로 완료됨' })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
+  @ApiServiceUnavailableResponse({
+    description: '서비스를 이용할 수 없음(알 수 없는 오류) ',
+  })
+  deleteImage(
+    @Request() req,
+    @Param('projectId') projectId: number,
+    @Param('imageName') imageName: string,
+  ) {
+    return this.filesService.deleteImage(req.user.userId, projectId, imageName);
   }
 
   @Post(':projectId/video')

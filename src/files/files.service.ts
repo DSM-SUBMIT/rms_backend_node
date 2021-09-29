@@ -6,10 +6,12 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
   StreamableFile,
 } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 import { extname } from 'path';
+import { ProjectsService } from 'src/projects/projects.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
 import { UsersService } from 'src/shared/users/users.service';
 import { v4 as uuid } from 'uuid';
@@ -18,6 +20,7 @@ import { UploadFileOptions } from './interfaces/uploadFileOptions.interface';
 @Injectable()
 export class FilesService {
   constructor(
+    private readonly projectsService: ProjectsService,
     private readonly reportsService: ReportsService,
     private readonly usersService: UsersService,
   ) {}
@@ -127,6 +130,27 @@ export class FilesService {
     });
   }
 
+  async deleteImage(
+    username: string,
+    projectId: number,
+    filename: string,
+  ): Promise<void> {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const writer = project.writerId;
+    const email = writer?.email;
+    if (email !== username) throw new ForbiddenException();
+
+    const s3Path = `${projectId}/report/images`;
+    if (
+      !(await this.isExist(filename, `${process.env.AWS_S3_BUCKET}/${s3Path}`))
+    )
+      throw new NotFoundException();
+
+    await this.deleteFromS3(filename, `${process.env.AWS_S3_BUCKET}/${s3Path}`);
+  }
+
   async uploadSingleFile(options: UploadFileOptions): Promise<string> {
     const ext = extname(options.file.originalname).toLowerCase();
     const regex = options.allowedExt;
@@ -183,6 +207,17 @@ export class FilesService {
       throw new InternalServerErrorException('An error has occured.');
     }
     return locations;
+  }
+
+  async isExist(filename: string, bucket: string): Promise<boolean> {
+    const s3 = this.getS3();
+    try {
+      await s3.headObject({ Bucket: bucket, Key: filename }).promise();
+      return true;
+    } catch (e) {
+      if (e.code === 'NotFound') return false;
+      else throw new ServiceUnavailableException();
+    }
   }
 
   async downloadFromS3(
