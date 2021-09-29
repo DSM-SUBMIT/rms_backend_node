@@ -48,7 +48,7 @@ export class FilesController {
     schema: {
       type: 'object',
       properties: {
-        files: {
+        images: {
           type: 'array',
           items: {
             type: 'string',
