@@ -241,7 +241,7 @@ export class FilesController {
 
   @Get(':projectId/archive')
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: '결과물 압출 파일 다운로드' })
+  @ApiOperation({ summary: '결과물 압축 파일 다운로드' })
   @ApiParam({ name: 'projectId', type: 'number' })
   @ApiBearerAuth()
   @ApiProduces('multipart/form-data')
