@@ -1,6 +1,6 @@
 {
   "name": "rms_backend_node",
-  "version": "0.10.0",
+  "version": "0.0.1",
   "description": "",
   "author": "",
   "private": true,
@@ -30,6 +30,7 @@
     "@nestjs/platform-express": "^8.0.0",
     "@nestjs/swagger": "^5.0.9",
     "@nestjs/typeorm": "^8.0.2",
+    "@sentry/node": "^6.13.2",
     "aws-sdk": "^2.983.0",
     "bcrypt": "^5.0.1",
     "class-transformer": "^0.4.0",
@@ -86,7 +87,12 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.module.(t|j)s",
+      "!**/main.(t|j)s",
+      "!**/ormconfig.(t|j)s",
+      "!**/*.strategy.(t|j)s",
+      "!**/*.entity.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node",

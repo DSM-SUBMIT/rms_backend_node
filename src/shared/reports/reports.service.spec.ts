@@ -42,7 +42,7 @@ describe('ReportsService', () => {
   });
 
   describe('getReportById', () => {
-    it('should return return a report', async () => {
+    it('should return a report', async () => {
       reportsRepository.findOne.mockResolvedValue('report');
 
       expect(await service.getReportById(1)).toEqual('report');

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
@@ -13,6 +13,8 @@ import { Field } from './shared/fields/entities/field.entity';
 import { Member } from './shared/members/entities/member.entity';
 import { ProjectField } from './shared/projectField/entities/projectField.entity';
 import { ProjectsModule } from './projects/projects.module';
+import { LoggerMiddleware } from './utils/middlewares/logger.middleware';
+import { connectionOptions } from './ormconfig';
 
 @Module({
   imports: [
@@ -20,12 +22,7 @@ import { ProjectsModule } from './projects/projects.module';
       isGlobal: true,
     }),
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: process.env.DB_HOST,
-      port: +process.env.DB_PORT,
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_DATABASE,
+      ...connectionOptions[process.env.NODE_ENV],
       entities: [
         Admin,
         User,
@@ -37,8 +34,6 @@ import { ProjectsModule } from './projects/projects.module';
         Member,
         ProjectField,
       ],
-      synchronize: false,
-      logging: Boolean(process.env.DB_LOGGING),
     }),
     AuthModule,
     FilesModule,
@@ -47,4 +42,8 @@ import { ProjectsModule } from './projects/projects.module';
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}
