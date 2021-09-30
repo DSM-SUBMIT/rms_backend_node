@@ -175,7 +175,7 @@ export class FilesService {
     }
 
     const bucketS3 = process.env.AWS_S3_BUCKET;
-    const filename = uuid();
+    const filename = options.fileName ?? uuid();
     const location = `${options.projectId}/${options.folder}/${options.fileType}/${filename}${ext}`;
     try {
       await this.uploadToS3(
