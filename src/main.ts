@@ -23,7 +23,6 @@ async function bootstrap() {
     .setTitle('RMS File API document')
     .setVersion('0.10.0')
     .addBearerAuth()
-    .addServer('files-api.dsm-rms.com')
     .build();
 
   const fileDocument = SwaggerModule.createDocument(app, fileSwaggerConfig, {
@@ -35,7 +34,6 @@ async function bootstrap() {
     .setTitle('RMS Admin API document')
     .setVersion('0.10.0')
     .addBearerAuth()
-    .addServer('admin-api.dsm-rms.com')
     .build();
 
   const adminDocument = SwaggerModule.createDocument(app, adminSwaggerConfig, {
@@ -43,15 +41,16 @@ async function bootstrap() {
   });
   SwaggerModule.setup('apidocs/admin', app, adminDocument);
 
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    integrations: [
-      // enable HTTP calls tracing
-      new Sentry.Integrations.Http({ tracing: true }),
-    ],
-  });
-
-  app.useGlobalInterceptors(new SentryInterceptor());
+  if (process.env.NODE_ENV === 'production') {
+    Sentry.init({
+      dsn: process.env.SENTRY_DSN,
+      integrations: [
+        // enable HTTP calls tracing
+        new Sentry.Integrations.Http({ tracing: true }),
+      ],
+    });
+    app.useGlobalInterceptors(new SentryInterceptor());
+  }
 
   await app.listen(3000);
 }
