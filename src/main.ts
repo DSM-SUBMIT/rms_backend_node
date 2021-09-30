@@ -21,7 +21,7 @@ async function bootstrap() {
 
   const fileSwaggerConfig = new DocumentBuilder()
     .setTitle('RMS File API document')
-    .setVersion('0.10.0')
+    .setVersion('1.0.0')
     .addBearerAuth()
     .build();
 
@@ -32,7 +32,7 @@ async function bootstrap() {
 
   const adminSwaggerConfig = new DocumentBuilder()
     .setTitle('RMS Admin API document')
-    .setVersion('0.10.0')
+    .setVersion('1.0.0')
     .addBearerAuth()
     .build();
 
