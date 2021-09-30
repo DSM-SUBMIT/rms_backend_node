@@ -238,4 +238,28 @@ export class FilesController {
   deleteArchive(@Request() req, @Param('projectId') projectId: number) {
     return this.filesService.deleteArchive(req.user.userId, projectId);
   }
+
+  @Get(':projectId/archive')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '결과물 압출 파일 다운로드' })
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiBearerAuth()
+  @ApiProduces('multipart/form-data')
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+    schema: {
+      type: 'file',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse()
+  @ApiNotFoundResponse()
+  getArchive(@Request() req, @Param('projectId') projectId: number) {
+    return this.filesService.getArchive(req, projectId);
+  }
 }

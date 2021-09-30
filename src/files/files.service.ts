@@ -221,6 +221,27 @@ export class FilesService {
     return;
   }
 
+  async getArchive(req, projectId) {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const s3Path = `${projectId}/report/archive`;
+    const s3Filename = 'archive_outcomes.zip';
+
+    const filename = `[${project.projectType}] ${project.projectName} - ${
+      project.teamName
+    }${extname(s3Filename)}`;
+    req.res.set({
+      'Content-Type': 'application/octet-stream; charset=utf-8',
+      'Content-Disposition': `'attachment; filename="${encodeURI(filename)}"`,
+    });
+
+    return await this.downloadFromS3(
+      s3Filename,
+      `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+    );
+  }
+
   async uploadSingleFile(options: UploadFileOptions): Promise<string> {
     const ext = extname(options.file.originalname).toLowerCase();
     const regex = options.allowedExt;
