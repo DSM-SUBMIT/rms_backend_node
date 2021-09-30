@@ -223,4 +223,19 @@ export class FilesController {
   ) {
     return this.filesService.uploadArchive(file, req.user.userId, projectId);
   }
+
+  @Delete(':projectId/archive')
+  @Roles(Role.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: '결과물 압축 파일 삭제' })
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiBearerAuth()
+  @ApiOkResponse({ description: '요청이 정상적으로 완료됨' })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
+  deleteArchive(@Request() req, @Param('projectId') projectId: number) {
+    return this.filesService.deleteArchive(req.user.userId, projectId);
+  }
 }

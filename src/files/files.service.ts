@@ -197,6 +197,30 @@ export class FilesService {
     return;
   }
 
+  async deleteArchive(username: string, projectId: number) {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const writer = project.writerId;
+    const email = writer.email;
+    if (email !== username) throw new ForbiddenException();
+
+    if (
+      await this.isExist(
+        'archive_outcomes.zip',
+        `${process.env.AWS_S3_BUCKET}/${projectId}/report/archive`,
+      )
+    )
+      throw new ConflictException();
+
+    await this.deleteFromS3(
+      'archive_outcomes.zip',
+      `${process.env.AWS_S3_BUCKET}/${projectId}/report/archive`,
+    );
+
+    return;
+  }
+
   async uploadSingleFile(options: UploadFileOptions): Promise<string> {
     const ext = extname(options.file.originalname).toLowerCase();
     const regex = options.allowedExt;
