@@ -127,7 +127,7 @@ export class FilesController {
     schema: {
       type: 'object',
       properties: {
-        pdf: {
+        video: {
           type: 'string',
           format: 'binary',
         },
