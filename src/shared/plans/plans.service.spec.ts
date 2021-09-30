@@ -30,4 +30,30 @@ describe('PlansService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+
+  describe('getPlanById', () => {
+    it('should return a plan object', async () => {
+      const mockPlan: Plan = {
+        projectId: undefined,
+        goal: 'test',
+        content: 'test',
+        startDate: '2021.09',
+        endDate: '2021.09',
+        includeResultReport: true,
+        includeCode: true,
+        includeOutcome: true,
+        includeOthers: null,
+      };
+      plansRepository.findOne.mockResolvedValue(mockPlan);
+
+      const res = await service.getPlanById(1);
+
+      expect(res).toEqual(mockPlan);
+
+      expect(plansRepository.findOne).toHaveBeenCalled();
+      expect(plansRepository.findOne).toHaveBeenCalledWith(1, {
+        relations: ['projectId', 'projectId.writerId'],
+      });
+    });
+  });
 });

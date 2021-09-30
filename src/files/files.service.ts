@@ -6,80 +6,240 @@ import {
   InternalServerErrorException,
   Logger,
   NotFoundException,
+  ServiceUnavailableException,
   StreamableFile,
 } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
 import { extname } from 'path';
+import { ProjectsService } from 'src/projects/projects.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
-import { UsersService } from 'src/shared/users/users.service';
 import { v4 as uuid } from 'uuid';
 import { UploadFileOptions } from './interfaces/uploadFileOptions.interface';
 
 @Injectable()
 export class FilesService {
   constructor(
+    private readonly projectsService: ProjectsService,
     private readonly reportsService: ReportsService,
-    private readonly usersService: UsersService,
   ) {}
-
-  async uploadVideo(
-    file: Express.MulterS3.File,
-    username: string,
-    projectId: number,
-    conflictCheck = true,
-  ) {
-    const report = await this.reportsService.getReportById(projectId);
-    if (!report) throw new NotFoundException();
-    if (report.videoUrl && conflictCheck) throw new ConflictException();
-    if (!report.videoUrl && !conflictCheck) throw new NotFoundException();
-
-    const writerId = report.projectId.writerId;
-    const writer = await this.usersService.getUserById(writerId.id);
-    const email = writer?.email;
-    if (email !== username) throw new ForbiddenException();
-
-    const uploadedUrl = await this.uploadSingleFile({
-      file,
-      username,
-      folder: 'report',
-      fileType: 'video',
-      projectId,
-      allowedExt: /(mp4)|(mov)|(wmv)|(avi)|(mkv)/,
-    });
-
-    if (!conflictCheck) {
-      const { videoUrl } = report;
-
-      const s3Path = '/' + videoUrl.substring(0, videoUrl.lastIndexOf('/'));
-      const s3Filename = videoUrl.substring(
-        videoUrl.lastIndexOf('/') + 1,
-        videoUrl.length,
-      );
-
-      await this.deleteFromS3(s3Filename, process.env.AWS_S3_BUCKET + s3Path);
-    }
-
-    await this.reportsService.updateVideoUrl(projectId, uploadedUrl);
-
-    return;
-  }
 
   async uploadImages(
     files: Express.MulterS3.File[],
     username: string,
     projectId: number,
   ): Promise<string[]> {
-    const report = await this.reportsService.getReportById(projectId);
-    if (!report) throw new NotFoundException();
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const writer = project.writerId;
+    const email = writer.email;
+    if (email !== username) throw new ForbiddenException();
+
     const uploadedUrls = await this.uploadMultipleFiles({
       files,
-      username,
       folder: 'report',
       fileType: 'images',
       projectId,
       allowedExt: /(jpg)|(png)|(jpeg)|(bmp)/,
     });
-    return uploadedUrls;
+    return uploadedUrls.map((url) => {
+      return `https://files-api.dsm-rms.com/files/${url}`;
+    });
+  }
+
+  async deleteImage(
+    username: string,
+    projectId: number,
+    filename: string,
+  ): Promise<void> {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const writer = project.writerId;
+    const email = writer.email;
+    if (email !== username) throw new ForbiddenException();
+
+    const s3Path = `${projectId}/report/images`;
+    if (
+      !(await this.isExist(filename, `${process.env.AWS_S3_BUCKET}/${s3Path}`))
+    )
+      throw new NotFoundException();
+
+    await this.deleteFromS3(filename, `${process.env.AWS_S3_BUCKET}/${s3Path}`);
+  }
+
+  async getImage(
+    req,
+    projectId: number,
+    filename: string,
+  ): Promise<StreamableFile> {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const ext = extname(filename).slice(1);
+    req.res.set({
+      'Content-Type': `image/${ext}; charset=utf-8`,
+    });
+
+    return await this.downloadFromS3(
+      filename,
+      `${process.env.AWS_S3_BUCKET}/${projectId}/report/images`,
+    );
+  }
+
+  async uploadVideo(
+    file: Express.MulterS3.File,
+    username: string,
+    projectId: number,
+  ) {
+    const report = await this.reportsService.getReportById(projectId);
+    if (!report) throw new NotFoundException();
+    if (report.videoUrl) throw new ConflictException();
+
+    const writer = report.projectId.writerId;
+    const email = writer.email;
+    if (email !== username) throw new ForbiddenException();
+
+    const uploadedUrl = await this.uploadSingleFile({
+      file,
+      folder: 'report',
+      fileType: 'video',
+      projectId,
+      allowedExt: /(mp4)|(mov)|(wmv)|(avi)|(mkv)/,
+    });
+
+    await this.reportsService.updateVideoUrl(projectId, uploadedUrl);
+
+    return;
+  }
+
+  async deleteVideo(username: string, projectId: number) {
+    const report = await this.reportsService.getReportById(projectId);
+    if (!report) throw new NotFoundException();
+    if (!report.videoUrl) throw new NotFoundException();
+
+    const writer = report.projectId.writerId;
+    const email = writer.email;
+    if (email !== username) throw new ForbiddenException();
+
+    const { videoUrl } = report;
+
+    const s3Path = videoUrl.substring(0, videoUrl.lastIndexOf('/'));
+    const s3Filename = videoUrl.substring(
+      videoUrl.lastIndexOf('/') + 1,
+      videoUrl.length,
+    );
+
+    await this.deleteFromS3(
+      s3Filename,
+      `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+    );
+
+    await this.reportsService.updateVideoUrl(projectId, null);
+  }
+
+  async getVideo(req, projectId) {
+    const report = await this.reportsService.getReportById(projectId);
+    if (!report) throw new NotFoundException();
+    if (!report.videoUrl) throw new NotFoundException();
+
+    const { videoUrl } = report;
+
+    const s3Path = videoUrl.substring(0, videoUrl.lastIndexOf('/'));
+    const s3Filename = videoUrl.substring(
+      videoUrl.lastIndexOf('/') + 1,
+      videoUrl.length,
+    );
+
+    const filename = `[${report.projectId.projectType}] ${
+      report.projectId.projectName
+    } - ${report.projectId.teamName}${extname(s3Filename)}`;
+    req.res.set({
+      'Content-Type': 'application/octet-stream; charset=utf-8',
+      'Content-Disposition': `'attachment; filename="${encodeURI(filename)}"`,
+    });
+
+    return await this.downloadFromS3(
+      s3Filename,
+      `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+    );
+  }
+
+  async uploadArchive(
+    file: Express.MulterS3.File,
+    username: string,
+    projectId: number,
+  ) {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const writer = project.writerId;
+    const email = writer.email;
+    if (email !== username) throw new ForbiddenException();
+
+    if (
+      await this.isExist(
+        'archive_outcomes.zip',
+        `${process.env.AWS_S3_BUCKET}/${projectId}/report/archive`,
+      )
+    )
+      throw new ConflictException();
+
+    await this.uploadSingleFile({
+      file,
+      fileName: 'archive_outcomes',
+      folder: 'report',
+      fileType: 'archive',
+      projectId,
+      allowedExt: /(zip)/,
+    });
+
+    return;
+  }
+
+  async deleteArchive(username: string, projectId: number) {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const writer = project.writerId;
+    const email = writer.email;
+    if (email !== username) throw new ForbiddenException();
+
+    if (
+      await this.isExist(
+        'archive_outcomes.zip',
+        `${process.env.AWS_S3_BUCKET}/${projectId}/report/archive`,
+      )
+    )
+      throw new ConflictException();
+
+    await this.deleteFromS3(
+      'archive_outcomes.zip',
+      `${process.env.AWS_S3_BUCKET}/${projectId}/report/archive`,
+    );
+
+    return;
+  }
+
+  async getArchive(req, projectId) {
+    const project = await this.projectsService.getProject(projectId);
+    if (!project) throw new NotFoundException();
+
+    const s3Path = `${projectId}/report/archive`;
+    const s3Filename = 'archive_outcomes.zip';
+
+    const filename = `[${project.projectType}] ${project.projectName} - ${
+      project.teamName
+    }${extname(s3Filename)}`;
+    req.res.set({
+      'Content-Type': 'application/octet-stream; charset=utf-8',
+      'Content-Disposition': `'attachment; filename="${encodeURI(filename)}"`,
+    });
+
+    return await this.downloadFromS3(
+      s3Filename,
+      `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+    );
   }
 
   async uploadSingleFile(options: UploadFileOptions): Promise<string> {
@@ -92,12 +252,12 @@ export class FilesService {
     }
 
     const bucketS3 = process.env.AWS_S3_BUCKET;
-    const filename = uuid();
-    const location = `${options.fileType}/${options.folder}/${options.projectId}/${options.username}/${filename}${ext}`;
+    const filename = options.fileName ?? uuid();
+    const location = `${options.projectId}/${options.folder}/${options.fileType}/${filename}${ext}`;
     try {
       await this.uploadToS3(
         options.file.buffer,
-        `${bucketS3}/${options.fileType}/${options.folder}/${options.projectId}/${options.username}`,
+        `${bucketS3}/${options.projectId}/${options.folder}/${options.fileType}`,
         filename + ext,
       );
     } catch {
@@ -124,11 +284,11 @@ export class FilesService {
       const ext = extname(file.originalname).toLowerCase();
 
       locations.push(
-        `${options.fileType}/${options.folder}/${options.projectId}/${options.username}/${filename}${ext}`,
+        `${options.projectId}/${options.folder}/${options.fileType}/${filename}${ext}`,
       );
       return this.uploadToS3(
-        options.file.buffer,
-        `${bucketS3}/${options.fileType}/${options.folder}/${options.projectId}/${options.username}`,
+        file.buffer,
+        `${bucketS3}/${options.projectId}/${options.folder}/${options.fileType}`,
         filename + ext,
       );
     });
@@ -138,6 +298,17 @@ export class FilesService {
       throw new InternalServerErrorException('An error has occured.');
     }
     return locations;
+  }
+
+  async isExist(filename: string, bucket: string): Promise<boolean> {
+    const s3 = this.getS3();
+    try {
+      await s3.headObject({ Bucket: bucket, Key: filename }).promise();
+      return true;
+    } catch (e) {
+      if (e.code === 'NotFound') return false;
+      else throw new ServiceUnavailableException();
+    }
   }
 
   async downloadFromS3(
