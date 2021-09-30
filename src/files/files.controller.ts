@@ -188,4 +188,39 @@ export class FilesController {
   getVideo(@Request() req, @Param('projectId') projectId: number) {
     return this.filesService.getVideo(req, projectId);
   }
+
+  @Post(':projectId/archive')
+  @Roles(Role.User)
+  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('archive'))
+  @ApiOperation({ summary: '결과물 압축 파일 업로드' })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'projectId', type: 'number' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        archive: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiBearerAuth()
+  @ApiCreatedResponse({
+    description: '요청이 정상적으로 완료됨',
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
+  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
+  @ApiConflictResponse({ description: '이미 동영상 파일이 업로드되어 있음' })
+  uploadArchive(
+    @UploadedFile() file: Express.MulterS3.File,
+    @Request() req,
+    @Param('projectId') projectId: number,
+  ) {
+    return this.filesService.uploadArchive(file, req.user.userId, projectId);
+  }
 }
