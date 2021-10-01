@@ -1,6 +1,13 @@
-import { UseGuards } from '@nestjs/common';
-import { HttpCode } from '@nestjs/common';
-import { Controller, Post, Body, Patch, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Patch,
+  Post,
+  Put,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiConflictResponse,
