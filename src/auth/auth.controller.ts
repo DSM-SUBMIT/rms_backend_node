@@ -25,6 +25,7 @@ import { Role } from '../utils/enums/role.enum';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { AccessTokenDto } from './dto/response/accessToken.dto';
+import { RefreshDto } from './dto/request/refresh.dto';
 
 @Controller({ host: 'admin-api.dsm-rms.com', path: 'auth' })
 @ApiTags('인증 API')
@@ -59,5 +60,18 @@ export class AuthController {
   @ApiConflictResponse({ description: '현재 비밀번호와 새 비밀번호가 동일함' })
   changePw(@Request() req, @Body() payload: ChangePwDto) {
     return this.authService.changePw(req.user.userId, payload);
+  }
+
+  @Put('refresh')
+  @HttpCode(201)
+  @ApiOperation({ summary: '토큰 재발급' })
+  @ApiBearerAuth()
+  @ApiCreatedResponse({
+    description: '요청이 성공하여 새로운 토큰이 발급됨',
+    type: AccessTokenDto,
+  })
+  @ApiUnauthorizedResponse({ description: '유효하지 않은 토큰' })
+  refresh(@Body() payload: RefreshDto) {
+    return this.authService.refresh(payload.refresh_token);
   }
 }
