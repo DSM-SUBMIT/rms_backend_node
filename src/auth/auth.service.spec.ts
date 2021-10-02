@@ -133,12 +133,78 @@ describe('AuthService', () => {
   describe('signJwt', () => {
     it('should return signed JWT token', async () => {
       const payload: JwtPayload = { sub: 'test', role: 'admin' };
+      mockedJwtService.prototype.sign.mockReturnValue('token');
       const res = await service.signJwt(payload);
 
       expect(res).toEqual({ access_token: 'token', refresh_token: 'token' });
 
       expect(jwtService.sign).toHaveBeenCalled();
       expect(jwtService.sign).toHaveBeenCalledWith(payload);
+    });
+  });
+
+  describe('refresh', () => {
+    it('should return tokens', async () => {
+      mockedJwtService.prototype.verifyAsync.mockResolvedValue({
+        sub: 'test',
+        role: 'admin',
+        iat: 0,
+        exp: 0,
+      });
+      mockedJwtService.prototype.sign.mockReturnValue('token');
+      adminsRepository.findOne.mockResolvedValue({
+        id: 'test',
+        password: 'test',
+      });
+      const res = await service.refresh('token');
+
+      expect(res).toEqual({ access_token: 'token', refresh_token: 'token' });
+
+      expect(mockedJwtService.prototype.verifyAsync).toHaveBeenCalled();
+      expect(mockedJwtService.prototype.verifyAsync).toHaveBeenCalledWith(
+        'token',
+      );
+
+      expect(adminsRepository.findOne).toHaveBeenCalled();
+      expect(adminsRepository.findOne).toHaveBeenCalledWith('test');
+
+      expect(mockedJwtService.prototype.sign).toHaveBeenCalled();
+      expect(mockedJwtService.prototype.sign).toHaveBeenNthCalledWith(1, {
+        sub: 'test',
+        role: 'admin',
+      });
+      expect(mockedJwtService.prototype.sign).toHaveBeenNthCalledWith(
+        2,
+        { sub: 'test', role: 'admin' },
+        { expiresIn: '7d' },
+      );
+    });
+    it('should throw UnauthorizedException', async () => {
+      mockedJwtService.prototype.verifyAsync.mockResolvedValue({
+        sub: 'test',
+        role: 'admin',
+        iat: 0,
+        exp: 0,
+      });
+      try {
+        await service.refresh('not token');
+      } catch (e) {
+        expect(e).toBeInstanceOf(UnauthorizedException);
+      }
+    });
+    it('should throw UnauthorizedException', async () => {
+      mockedJwtService.prototype.verifyAsync.mockResolvedValue({
+        sub: 'test',
+        role: 'admin',
+        iat: 0,
+        exp: 0,
+      });
+      adminsRepository.findOne.mockResolvedValue(undefined);
+      try {
+        await service.refresh('token');
+      } catch (e) {
+        expect(e).toBeInstanceOf(UnauthorizedException);
+      }
     });
   });
 
