@@ -50,6 +50,7 @@ async function bootstrap() {
 
   if (process.env.NODE_ENV === 'production') {
     Sentry.init({
+      release: `${process.env.SENTRY_PROJECT_NAME}@${process.env.npm_package_version}`,
       dsn: process.env.SENTRY_DSN,
       integrations: [
         // enable HTTP calls tracing
