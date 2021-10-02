@@ -6,10 +6,17 @@ import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import * as Sentry from '@sentry/node';
+import * as helmet from 'helmet';
 import { SentryInterceptor } from './utils/interceptors/sentry.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(helmet());
+
+  app.enableCors({
+    credentials: true,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -21,7 +28,7 @@ async function bootstrap() {
 
   const fileSwaggerConfig = new DocumentBuilder()
     .setTitle('RMS File API document')
-    .setVersion('1.0.0')
+    .setVersion(process.env.npm_package_version)
     .addBearerAuth()
     .build();
 
@@ -32,7 +39,7 @@ async function bootstrap() {
 
   const adminSwaggerConfig = new DocumentBuilder()
     .setTitle('RMS Admin API document')
-    .setVersion('1.0.0')
+    .setVersion(process.env.npm_package_version)
     .addBearerAuth()
     .build();
 
@@ -43,6 +50,7 @@ async function bootstrap() {
 
   if (process.env.NODE_ENV === 'production') {
     Sentry.init({
+      release: `${process.env.SENTRY_PROJECT_NAME}@${process.env.npm_package_version}`,
       dsn: process.env.SENTRY_DSN,
       integrations: [
         // enable HTTP calls tracing
