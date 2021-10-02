@@ -64,7 +64,10 @@ export class AuthController {
 
   @Put('refresh')
   @HttpCode(201)
-  @ApiOperation({ summary: '토큰 재발급' })
+  @ApiOperation({
+    summary: '토큰 재발급',
+    description: '## (참고) 새 토큰 발급 시 기존 리프레시 토큰은 사용 불가',
+  })
   @ApiBearerAuth()
   @ApiCreatedResponse({
     description: '요청이 성공하여 새로운 토큰이 발급됨',
