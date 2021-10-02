@@ -53,6 +53,7 @@ async function bootstrap() {
     Sentry.init({
       release: `${process.env.SENTRY_PROJECT_NAME}@${process.env.npm_package_version}`,
       dsn: process.env.SENTRY_DSN,
+      environment: 'production',
       integrations: [
         // enable HTTP calls tracing
         new Sentry.Integrations.Http({ tracing: true }),
