@@ -6,10 +6,17 @@ import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
 import { ProjectsModule } from './projects/projects.module';
 import * as Sentry from '@sentry/node';
+import * as helmet from 'helmet';
 import { SentryInterceptor } from './utils/interceptors/sentry.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(helmet());
+
+  app.enableCors({
+    credentials: true,
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
