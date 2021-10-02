@@ -7,12 +7,18 @@ import { Admin } from './entities/admin.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interfaces/jwtPayload';
 import { ChangePwDto } from './dto/request/changePw.dto';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  CACHE_MANAGER,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { LoginDto } from './dto/request/login.dto';
+import { mocked } from 'ts-jest/utils';
 
 jest.mock('bcrypt');
+jest.mock('cache-manager');
 
-const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
+const mockedBcrypt = mocked(bcrypt, true);
 
 const mockAdminRepository = () => ({
   findOne: jest.fn(),
@@ -21,6 +27,11 @@ const mockAdminRepository = () => ({
 
 const mockJwtService = () => ({
   sign: jest.fn().mockReturnValue('token'),
+});
+
+const mockCache = () => ({
+  get: jest.fn(),
+  set: jest.fn(),
 });
 
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -41,6 +52,10 @@ describe('AuthService', () => {
         {
           provide: JwtService,
           useValue: mockJwtService(),
+        },
+        {
+          provide: CACHE_MANAGER,
+          useValue: mockCache(),
         },
       ],
     }).compile();
@@ -124,7 +139,7 @@ describe('AuthService', () => {
       const payload: JwtPayload = { sub: 'test', role: 'admin' };
       const res = await service.signJwt(payload);
 
-      expect(res).toEqual({ access_token: 'token' });
+      expect(res).toEqual({ access_token: 'token', refresh_token: 'token' });
 
       expect(jwtService.sign).toHaveBeenCalled();
       expect(jwtService.sign).toHaveBeenCalledWith(payload);
@@ -193,7 +208,7 @@ describe('AuthService', () => {
       const payload: LoginDto = { id: 'test', password: 'test' };
       const res = await service.login(payload);
 
-      expect(res).toEqual({ access_token: 'token' });
+      expect(res).toEqual({ access_token: 'token', refresh_token: 'token' });
 
       expect(jwtService.sign).toHaveBeenCalled();
       expect(jwtService.sign).toHaveBeenCalledWith({
