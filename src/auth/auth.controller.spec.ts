@@ -3,6 +3,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { ChangePwDto } from './dto/request/changePw.dto';
 import { LoginDto } from './dto/request/login.dto';
+import { RefreshDto } from './dto/request/refresh.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 jest.mock('./auth.service');
@@ -61,6 +62,16 @@ describe('AuthController', () => {
       expect(service.changePw).toHaveBeenCalled();
       expect(service.changePw).toHaveBeenCalledTimes(1);
       expect(service.changePw).toHaveBeenCalledWith(req.user.userId, payload);
+    });
+  });
+
+  describe('refresh', () => {
+    it('should call the service', async () => {
+      const payload: RefreshDto = { refresh_token: 'token' };
+      controller.refresh(payload);
+      expect(service.refresh).toHaveBeenCalled();
+      expect(service.refresh).toHaveBeenCalledTimes(1);
+      expect(service.refresh).toHaveBeenCalledWith('token');
     });
   });
 });
