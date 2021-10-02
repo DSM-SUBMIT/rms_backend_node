@@ -17,6 +17,9 @@ import { mocked } from 'ts-jest/utils';
 
 jest.mock('bcrypt');
 jest.mock('cache-manager');
+jest.mock('@nestjs/jwt');
+
+const mockedJwtService = mocked(JwtService, true);
 
 const mockedBcrypt = mocked(bcrypt, true);
 
@@ -25,12 +28,8 @@ const mockAdminRepository = () => ({
   update: jest.fn(),
 });
 
-const mockJwtService = () => ({
-  sign: jest.fn().mockReturnValue('token'),
-});
-
 const mockCache = () => ({
-  get: jest.fn(),
+  get: jest.fn().mockResolvedValue('token'),
   set: jest.fn(),
 });
 
@@ -49,10 +48,7 @@ describe('AuthService', () => {
           provide: getRepositoryToken(Admin),
           useValue: mockAdminRepository(),
         },
-        {
-          provide: JwtService,
-          useValue: mockJwtService(),
-        },
+        JwtService,
         {
           provide: CACHE_MANAGER,
           useValue: mockCache(),
