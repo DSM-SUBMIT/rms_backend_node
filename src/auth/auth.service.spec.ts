@@ -7,20 +7,30 @@ import { Admin } from './entities/admin.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interfaces/jwtPayload';
 import { ChangePwDto } from './dto/request/changePw.dto';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  CACHE_MANAGER,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { LoginDto } from './dto/request/login.dto';
+import { mocked } from 'ts-jest/utils';
 
 jest.mock('bcrypt');
+jest.mock('cache-manager');
+jest.mock('@nestjs/jwt');
 
-const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>;
+const mockedJwtService = mocked(JwtService, true);
+
+const mockedBcrypt = mocked(bcrypt, true);
 
 const mockAdminRepository = () => ({
   findOne: jest.fn(),
   update: jest.fn(),
 });
 
-const mockJwtService = () => ({
-  sign: jest.fn().mockReturnValue('token'),
+const mockCache = () => ({
+  get: jest.fn().mockResolvedValue('token'),
+  set: jest.fn(),
 });
 
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -38,9 +48,10 @@ describe('AuthService', () => {
           provide: getRepositoryToken(Admin),
           useValue: mockAdminRepository(),
         },
+        JwtService,
         {
-          provide: JwtService,
-          useValue: mockJwtService(),
+          provide: CACHE_MANAGER,
+          useValue: mockCache(),
         },
       ],
     }).compile();
@@ -122,12 +133,78 @@ describe('AuthService', () => {
   describe('signJwt', () => {
     it('should return signed JWT token', async () => {
       const payload: JwtPayload = { sub: 'test', role: 'admin' };
+      mockedJwtService.prototype.sign.mockReturnValue('token');
       const res = await service.signJwt(payload);
 
-      expect(res).toEqual({ access_token: 'token' });
+      expect(res).toEqual({ access_token: 'token', refresh_token: 'token' });
 
       expect(jwtService.sign).toHaveBeenCalled();
       expect(jwtService.sign).toHaveBeenCalledWith(payload);
+    });
+  });
+
+  describe('refresh', () => {
+    it('should return tokens', async () => {
+      mockedJwtService.prototype.verifyAsync.mockResolvedValue({
+        sub: 'test',
+        role: 'admin',
+        iat: 0,
+        exp: 0,
+      });
+      mockedJwtService.prototype.sign.mockReturnValue('token');
+      adminsRepository.findOne.mockResolvedValue({
+        id: 'test',
+        password: 'test',
+      });
+      const res = await service.refresh('token');
+
+      expect(res).toEqual({ access_token: 'token', refresh_token: 'token' });
+
+      expect(mockedJwtService.prototype.verifyAsync).toHaveBeenCalled();
+      expect(mockedJwtService.prototype.verifyAsync).toHaveBeenCalledWith(
+        'token',
+      );
+
+      expect(adminsRepository.findOne).toHaveBeenCalled();
+      expect(adminsRepository.findOne).toHaveBeenCalledWith('test');
+
+      expect(mockedJwtService.prototype.sign).toHaveBeenCalled();
+      expect(mockedJwtService.prototype.sign).toHaveBeenNthCalledWith(1, {
+        sub: 'test',
+        role: 'admin',
+      });
+      expect(mockedJwtService.prototype.sign).toHaveBeenNthCalledWith(
+        2,
+        { sub: 'test', role: 'admin' },
+        { expiresIn: '7d' },
+      );
+    });
+    it('should throw UnauthorizedException', async () => {
+      mockedJwtService.prototype.verifyAsync.mockResolvedValue({
+        sub: 'test',
+        role: 'admin',
+        iat: 0,
+        exp: 0,
+      });
+      try {
+        await service.refresh('not token');
+      } catch (e) {
+        expect(e).toBeInstanceOf(UnauthorizedException);
+      }
+    });
+    it('should throw UnauthorizedException', async () => {
+      mockedJwtService.prototype.verifyAsync.mockResolvedValue({
+        sub: 'test',
+        role: 'admin',
+        iat: 0,
+        exp: 0,
+      });
+      adminsRepository.findOne.mockResolvedValue(undefined);
+      try {
+        await service.refresh('token');
+      } catch (e) {
+        expect(e).toBeInstanceOf(UnauthorizedException);
+      }
     });
   });
 
@@ -193,7 +270,7 @@ describe('AuthService', () => {
       const payload: LoginDto = { id: 'test', password: 'test' };
       const res = await service.login(payload);
 
-      expect(res).toEqual({ access_token: 'token' });
+      expect(res).toEqual({ access_token: 'token', refresh_token: 'token' });
 
       expect(jwtService.sign).toHaveBeenCalled();
       expect(jwtService.sign).toHaveBeenCalledWith({
