@@ -36,6 +36,7 @@ import { NoContentInterceptor } from 'src/utils/interceptors/NoContent.intercept
 import { ProjectsService } from './projects.service';
 import { PendingProjectsDto } from './dto/request/pendingProjects.dto';
 import { SearchProjectsDto } from './dto/request/searchProjects.dto';
+import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
 
 @Controller({ host: 'admin-api.dsm-rms.com', path: 'projects' })
 @ApiTags('프로젝트 API')
@@ -135,7 +136,7 @@ export class ProjectsController {
   })
   @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
   @ApiForbiddenResponse({ description: '권한이 없음' })
-  confirmedProjects(@Query('limit') limit = 8, @Query('page') page = 1) {
-    return this.projectsService.getConfirmed(limit, page);
+  confirmedProjects(@Query() payload: ConfirmedProjectsDto) {
+    return this.projectsService.getConfirmed(payload);
   }
 }

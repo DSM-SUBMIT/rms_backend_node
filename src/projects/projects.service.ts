@@ -20,6 +20,7 @@ import { MembersService } from 'src/shared/members/members.service';
 import { MailService } from 'src/mail/mail.service';
 import { ProjectDetailDto } from './dto/response/projectDetail.dto';
 import { SearchProjectsDto } from './dto/request/searchProjects.dto';
+import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -262,7 +263,8 @@ export class ProjectsService {
     return projectDetail;
   }
 
-  async getConfirmed(limit: number, page: number) {
+  async getConfirmed(payload: ConfirmedProjectsDto) {
+    const { limit, page } = payload;
     const [status, count] = await this.statusService.getConfirmedStatus(
       limit,
       page,
