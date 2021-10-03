@@ -124,7 +124,8 @@ export class ProjectsService {
     }
   }
 
-  async getPendingProjects(type: string, limit: number, page: number) {
+  async getPendingProjects(payload) {
+    const { type, limit, page } = payload;
     const projectList = new Array<ProjectItem>();
     switch (type) {
       case 'plan': {

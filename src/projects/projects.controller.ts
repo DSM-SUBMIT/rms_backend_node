@@ -34,6 +34,7 @@ import { ProjectDetailDto } from './dto/response/projectDetail.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { NoContentInterceptor } from 'src/utils/interceptors/NoContent.interceptor';
 import { ProjectsService } from './projects.service';
+import { PendingProjectsDto } from './dto/request/pendingProjects.dto';
 
 @Controller({ host: 'admin-api.dsm-rms.com', path: 'projects' })
 @ApiTags('프로젝트 API')
@@ -79,12 +80,8 @@ export class ProjectsController {
   })
   @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
   @ApiForbiddenResponse({ description: '권한이 없음' })
-  getPendingProjects(
-    @Query('type') type: string,
-    @Query('limit') limit = 8,
-    @Query('page') page = 1,
-  ) {
-    return this.projectsService.getPendingProjects(type, limit, page);
+  getPendingProjects(@Query() payload: PendingProjectsDto) {
+    return this.projectsService.getPendingProjects(payload);
   }
 
   @Get('search')
