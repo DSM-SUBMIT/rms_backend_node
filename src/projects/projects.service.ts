@@ -19,6 +19,7 @@ import { ReportsService } from 'src/shared/reports/reports.service';
 import { MembersService } from 'src/shared/members/members.service';
 import { MailService } from 'src/mail/mail.service';
 import { ProjectDetailDto } from './dto/response/projectDetail.dto';
+import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -191,7 +192,8 @@ export class ProjectsService {
     }
   }
 
-  async search(query: string, limit: number, page: number) {
+  async search(payload: SearchProjectsDto) {
+    const { query, limit, page } = payload;
     const [projects, count] = await this.findLike(query, limit, page);
     if (!count) return;
 
