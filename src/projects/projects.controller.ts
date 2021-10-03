@@ -18,7 +18,6 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -50,8 +49,6 @@ export class ProjectsController {
   @Patch('confirm/:projectId/:type')
   @HttpCode(204)
   @ApiOperation({ summary: '계획서/보고서 승인 여부 결정' })
-  @ApiParam({ name: 'projectId', type: 'number' })
-  @ApiParam({ name: 'type', enum: ['plan', 'report'] })
   @ApiNoContentResponse({
     description:
       '요청이 성공적으로 완료되었으며, 추가적인 내용이 존재하지 않음',
@@ -70,9 +67,6 @@ export class ProjectsController {
   @Get('pending')
   @UseInterceptors(NoContentInterceptor)
   @ApiOperation({ summary: '승인 대기중인 계획서/보고서 목록' })
-  @ApiQuery({ name: 'type', enum: ['plan', 'report'] })
-  @ApiQuery({ name: 'limit', schema: { type: 'number', default: 8 } })
-  @ApiQuery({ name: 'page', schema: { type: 'number', default: 1 } })
   @ApiOkResponse({
     description: '요청이 정상적으로 완료됨',
     type: ProjectsListDto,
@@ -89,7 +83,6 @@ export class ProjectsController {
   @Get('search')
   @UseInterceptors(NoContentInterceptor)
   @ApiOperation({ summary: '프로젝트 검색' })
-  @ApiQuery({ name: 'query', type: 'string', description: '검색어' })
   @ApiOkResponse({
     description: '요청이 정상적으로 완료됨',
     type: ProjectsListDto,
@@ -125,8 +118,6 @@ export class ProjectsController {
   @Get('confirmed')
   @UseInterceptors(NoContentInterceptor)
   @ApiOperation({ summary: '모두 승인된 프로젝트 목록' })
-  @ApiQuery({ name: 'limit', schema: { type: 'number', default: 8 } })
-  @ApiQuery({ name: 'page', schema: { type: 'number', default: 1 } })
   @ApiOkResponse({
     description: '요청이 정상적으로 완료됨',
     type: ProjectsListDto,

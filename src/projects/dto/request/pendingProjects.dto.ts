@@ -12,6 +12,8 @@ export class PendingProjectsDto {
 
   @ApiProperty({
     description: '한 페이지에 담길 프로젝트 개수',
+    minimum: 1,
+    default: 8,
   })
   @IsNumber()
   @Min(1)
@@ -20,6 +22,8 @@ export class PendingProjectsDto {
 
   @ApiProperty({
     description: '페이지 번호',
+    minimum: 1,
+    default: 1,
   })
   @IsNumber()
   @Min(1)
