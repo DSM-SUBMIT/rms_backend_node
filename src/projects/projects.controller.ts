@@ -26,7 +26,10 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/utils/decorators/roles.decorator';
 import { Role } from 'src/utils/enums/role.enum';
-import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
+import {
+  ConfirmProjectBodyDto,
+  ConfirmProjectParamDto,
+} from './dto/request/confirmProject.dto';
 import { ProjectDetailDto } from './dto/response/projectDetail.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { NoContentInterceptor } from 'src/utils/interceptors/NoContent.interceptor';
@@ -55,11 +58,10 @@ export class ProjectsController {
   @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
   @ApiConflictResponse({ description: '이미 승인 여부가 결정된 프로젝트임' })
   confirm(
-    @Param('projectId') projectId: number,
-    @Param('type') type: 'plan' | 'report',
-    @Body() payload: ConfirmProjectDto,
+    @Param() paramPayload: ConfirmProjectParamDto,
+    @Body() bodyPayload: ConfirmProjectBodyDto,
   ) {
-    return this.projectsService.confirmProject(projectId, type, payload);
+    return this.projectsService.confirmProject(paramPayload, bodyPayload);
   }
 
   @Get('pending')

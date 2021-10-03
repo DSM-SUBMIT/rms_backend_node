@@ -8,7 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { StatusService } from 'src/shared/status/status.service';
 import { Like, Repository } from 'typeorm';
 import { ProjectItem } from 'src/projects/dto/response/projectItem.dto';
-import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
+import {
+  ConfirmProjectBodyDto,
+  ConfirmProjectParamDto,
+} from './dto/request/confirmProject.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { Project } from './entities/project.entity';
 import { PlansService } from 'src/shared/plans/plans.service';
@@ -30,10 +33,10 @@ export class ProjectsService {
   ) {}
 
   async confirmProject(
-    projectId: number,
-    type: string,
-    payload: ConfirmProjectDto,
+    paramPayload: ConfirmProjectParamDto,
+    bodyPayload: ConfirmProjectBodyDto,
   ) {
+    const { projectId, type } = paramPayload;
     switch (type) {
       case 'plan': {
         const status = await this.statusService.getStatusById(projectId);
@@ -41,7 +44,7 @@ export class ProjectsService {
         if (!status.isPlanSubmitted || status.isPlanAccepted !== null)
           throw new ConflictException();
 
-        switch (payload.type) {
+        switch (bodyPayload.type) {
           case 'approve': {
             await this.mailService.sendMail(
               status.projectId.writerId.email,
@@ -51,7 +54,7 @@ export class ProjectsService {
                 writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
-                comment: payload.comment,
+                comment: bodyPayload.comment,
               },
             );
             await this.statusService.updatePlanAccepted(projectId, true);
@@ -66,7 +69,7 @@ export class ProjectsService {
                 writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
-                comment: payload.comment,
+                comment: bodyPayload.comment,
               },
             );
             await this.statusService.updatePlanAccepted(projectId, false);
@@ -81,7 +84,7 @@ export class ProjectsService {
         if (!status.isReportSubmitted || status.isReportAccepted !== null)
           throw new ConflictException();
 
-        switch (payload.type) {
+        switch (bodyPayload.type) {
           case 'approve': {
             await this.mailService.sendMail(
               status.projectId.writerId.email,
@@ -91,7 +94,7 @@ export class ProjectsService {
                 writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
-                comment: payload.comment,
+                comment: bodyPayload.comment,
               },
             );
             await this.statusService.updateReportAccepted(projectId, true);
@@ -106,7 +109,7 @@ export class ProjectsService {
                 writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
-                comment: payload.comment,
+                comment: bodyPayload.comment,
               },
             );
             await this.statusService.updateReportAccepted(projectId, false);
