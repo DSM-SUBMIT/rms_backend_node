@@ -11,6 +11,9 @@ export class MembersService {
   ) {}
 
   async getUsersByProject(projectId: number): Promise<Member[]> {
-    return await this.membersRepository.find({ where: { projectId } });
+    return await this.membersRepository.find({
+      where: { projectId },
+      relations: ['userId'],
+    });
   }
 }

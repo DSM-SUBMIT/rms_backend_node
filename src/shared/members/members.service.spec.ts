@@ -49,6 +49,7 @@ describe('ReportsService', () => {
     expect(membersRepository.find).toHaveBeenCalled();
     expect(membersRepository.find).toHaveBeenCalledWith({
       where: { projectId: 1 },
+      relations: ['userId'],
     });
   });
 });
