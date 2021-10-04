@@ -27,7 +27,13 @@ import {
 } from '@nestjs/common';
 import { ProjectField } from 'src/shared/projectField/entities/projectField.entity';
 import { Field } from 'src/shared/fields/entities/field.entity';
-import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
+import {
+  ConfirmProjectBodyDto,
+  ConfirmProjectParamDto,
+} from './dto/request/confirmProject.dto';
+import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
+import { SearchProjectsDto } from './dto/request/searchProjects.dto';
+import { PendingProjectsDto } from './dto/request/pendingProjects.dto';
 
 jest.mock('src/mail/mail.service');
 jest.mock('src/shared/members/members.service');
@@ -196,7 +202,12 @@ describe('ProjectsService', () => {
         1,
       ]);
 
-      const res = await service.getConfirmed(8, 1);
+      const mockedRequest: ConfirmedProjectsDto = {
+        limit: 8,
+        page: 1,
+      };
+
+      const res = await service.getConfirmed(mockedRequest);
 
       const mockProjectItem: ProjectItem = {
         id: 1,
@@ -226,7 +237,12 @@ describe('ProjectsService', () => {
         0,
       ]);
 
-      const res = await service.getConfirmed(8, 1);
+      const mockedRequest: ConfirmedProjectsDto = {
+        limit: 8,
+        page: 1,
+      };
+
+      const res = await service.getConfirmed(mockedRequest);
 
       expect(res).toEqual(undefined);
 
@@ -498,7 +514,13 @@ describe('ProjectsService', () => {
         projects: [mockProjectItem],
       };
 
-      const res = await service.search('test', 8, 1);
+      const mockedRequest: SearchProjectsDto = {
+        query: 'test',
+        limit: 8,
+        page: 1,
+      };
+
+      const res = await service.search(mockedRequest);
 
       expect(res).toEqual(mockProjectsList);
 
@@ -513,7 +535,13 @@ describe('ProjectsService', () => {
     it('should return nothing', async () => {
       projectsRepository.findAndCount.mockResolvedValue([[], 0]);
 
-      const res = await service.search('test', 8, 1);
+      const mockedRequest: SearchProjectsDto = {
+        query: 'test',
+        limit: 8,
+        page: 1,
+      };
+
+      const res = await service.search(mockedRequest);
 
       expect(res).toEqual(undefined);
 
@@ -573,7 +601,14 @@ describe('ProjectsService', () => {
         mockedStatusService.prototype.getStatusDescByPlanDate.mockResolvedValue(
           [[mockStatus], 1],
         );
-        const res = await service.getPendingProjects('plan', 8, 1);
+
+        const mockedRequest: PendingProjectsDto = {
+          type: 'plan',
+          limit: 8,
+          page: 1,
+        };
+
+        const res = await service.getPendingProjects(mockedRequest);
 
         const mockProjectItem: ProjectItem = {
           id: 1,
@@ -601,7 +636,14 @@ describe('ProjectsService', () => {
         mockedStatusService.prototype.getStatusDescByPlanDate.mockResolvedValue(
           [[], 0],
         );
-        const res = await service.getPendingProjects('plan', 8, 1);
+
+        const mockedRequest: PendingProjectsDto = {
+          type: 'plan',
+          limit: 8,
+          page: 1,
+        };
+
+        const res = await service.getPendingProjects(mockedRequest);
 
         expect(res).toEqual(undefined);
 
@@ -658,7 +700,14 @@ describe('ProjectsService', () => {
         mockedStatusService.prototype.getStatusDescByReportDate.mockResolvedValue(
           [[mockStatus], 1],
         );
-        const res = await service.getPendingProjects('report', 8, 1);
+
+        const mockedRequest: PendingProjectsDto = {
+          type: 'report',
+          limit: 8,
+          page: 1,
+        };
+
+        const res = await service.getPendingProjects(mockedRequest);
 
         const mockProjectItem: ProjectItem = {
           id: 1,
@@ -686,7 +735,14 @@ describe('ProjectsService', () => {
         mockedStatusService.prototype.getStatusDescByReportDate.mockResolvedValue(
           [[], 0],
         );
-        const res = await service.getPendingProjects('report', 8, 1);
+
+        const mockedRequest: PendingProjectsDto = {
+          type: 'report',
+          limit: 8,
+          page: 1,
+        };
+
+        const res = await service.getPendingProjects(mockedRequest);
 
         expect(res).toEqual(undefined);
 
@@ -700,8 +756,13 @@ describe('ProjectsService', () => {
     });
 
     it('should throw BadRequestException', async () => {
+      const mockedRequest: PendingProjectsDto = {
+        type: 'invalid',
+        limit: 8,
+        page: 1,
+      };
       try {
-        await service.getPendingProjects('invalid', 8, 1);
+        await service.getPendingProjects(mockedRequest);
       } catch (e) {
         expect(e).toBeInstanceOf(BadRequestException);
       }
@@ -754,11 +815,18 @@ describe('ProjectsService', () => {
         mockedStatusService.prototype.getStatusById.mockResolvedValue(
           mockStatus,
         );
-        const mockConfirmRequest: ConfirmProjectDto = {
+        const mockConfirmRequestBody: ConfirmProjectBodyDto = {
           type: 'approve',
           comment: 'test',
         };
-        const res = await service.confirmProject(1, 'plan', mockConfirmRequest);
+        const mockConfirmRequestParam: ConfirmProjectParamDto = {
+          projectId: 1,
+          type: 'plan',
+        };
+        const res = await service.confirmProject(
+          mockConfirmRequestParam,
+          mockConfirmRequestBody,
+        );
 
         expect(res).toEqual(undefined);
 
@@ -819,11 +887,18 @@ describe('ProjectsService', () => {
         mockedStatusService.prototype.getStatusById.mockResolvedValue(
           mockStatus,
         );
-        const mockConfirmRequest: ConfirmProjectDto = {
+        const mockConfirmRequestBody: ConfirmProjectBodyDto = {
           type: 'deny',
           comment: 'test',
         };
-        const res = await service.confirmProject(1, 'plan', mockConfirmRequest);
+        const mockConfirmRequestParam: ConfirmProjectParamDto = {
+          projectId: 1,
+          type: 'plan',
+        };
+        const res = await service.confirmProject(
+          mockConfirmRequestParam,
+          mockConfirmRequestBody,
+        );
 
         expect(res).toEqual(undefined);
 
@@ -845,12 +920,19 @@ describe('ProjectsService', () => {
           mockedStatusService.prototype.getStatusById.mockResolvedValue(
             undefined,
           );
-          const mockConfirmRequest: ConfirmProjectDto = {
+          const mockConfirmRequestBody: ConfirmProjectBodyDto = {
             type: 'approve',
             comment: 'test',
           };
+          const mockConfirmRequestParam: ConfirmProjectParamDto = {
+            projectId: 1,
+            type: 'plan',
+          };
           try {
-            await service.confirmProject(1, 'plan', mockConfirmRequest);
+            await service.confirmProject(
+              mockConfirmRequestParam,
+              mockConfirmRequestBody,
+            );
           } catch (e) {
             expect(e).toBeInstanceOf(NotFoundException);
           }
@@ -866,15 +948,22 @@ describe('ProjectsService', () => {
               isPlanAccepted: null,
               isReportAccepted: null,
             };
-            const mockConfirmRequest: ConfirmProjectDto = {
+            const mockConfirmRequest: ConfirmProjectBodyDto = {
               type: 'approve',
               comment: 'test',
+            };
+            const mockConfirmRequestParam: ConfirmProjectParamDto = {
+              projectId: 1,
+              type: 'plan',
             };
             mockedStatusService.prototype.getStatusById.mockResolvedValue(
               mockStatus,
             );
             try {
-              await service.confirmProject(1, 'plan', mockConfirmRequest);
+              await service.confirmProject(
+                mockConfirmRequestParam,
+                mockConfirmRequest,
+              );
             } catch (e) {
               expect(e).toBeInstanceOf(ConflictException);
             }
@@ -889,15 +978,22 @@ describe('ProjectsService', () => {
               isPlanAccepted: true,
               isReportAccepted: false,
             };
-            const mockConfirmRequest: ConfirmProjectDto = {
+            const mockConfirmRequestBody: ConfirmProjectBodyDto = {
               type: 'approve',
               comment: 'test',
+            };
+            const mockConfirmRequestParam: ConfirmProjectParamDto = {
+              projectId: 1,
+              type: 'plan',
             };
             mockedStatusService.prototype.getStatusById.mockResolvedValue(
               mockStatus,
             );
             try {
-              await service.confirmProject(1, 'plan', mockConfirmRequest);
+              await service.confirmProject(
+                mockConfirmRequestParam,
+                mockConfirmRequestBody,
+              );
             } catch (e) {
               expect(e).toBeInstanceOf(ConflictException);
             }
@@ -950,14 +1046,17 @@ describe('ProjectsService', () => {
         mockedStatusService.prototype.getStatusById.mockResolvedValue(
           mockStatus,
         );
-        const mockConfirmRequest: ConfirmProjectDto = {
+        const mockConfirmRequestBody: ConfirmProjectBodyDto = {
           type: 'approve',
           comment: 'test',
         };
+        const mockConfirmRequestParam: ConfirmProjectParamDto = {
+          projectId: 1,
+          type: 'report',
+        };
         const res = await service.confirmProject(
-          1,
-          'report',
-          mockConfirmRequest,
+          mockConfirmRequestParam,
+          mockConfirmRequestBody,
         );
 
         expect(res).toEqual(undefined);
@@ -1019,14 +1118,17 @@ describe('ProjectsService', () => {
         mockedStatusService.prototype.getStatusById.mockResolvedValue(
           mockStatus,
         );
-        const mockConfirmRequest: ConfirmProjectDto = {
+        const mockConfirmRequestBody: ConfirmProjectBodyDto = {
           type: 'deny',
           comment: 'test',
         };
+        const mockConfirmRequestParam: ConfirmProjectParamDto = {
+          projectId: 1,
+          type: 'report',
+        };
         const res = await service.confirmProject(
-          1,
-          'report',
-          mockConfirmRequest,
+          mockConfirmRequestParam,
+          mockConfirmRequestBody,
         );
 
         expect(res).toEqual(undefined);
@@ -1049,12 +1151,19 @@ describe('ProjectsService', () => {
           mockedStatusService.prototype.getStatusById.mockResolvedValue(
             undefined,
           );
-          const mockConfirmRequest: ConfirmProjectDto = {
+          const mockConfirmRequestBody: ConfirmProjectBodyDto = {
             type: 'approve',
             comment: 'test',
           };
+          const mockConfirmRequestParam: ConfirmProjectParamDto = {
+            projectId: 1,
+            type: 'report',
+          };
           try {
-            await service.confirmProject(1, 'report', mockConfirmRequest);
+            await service.confirmProject(
+              mockConfirmRequestParam,
+              mockConfirmRequestBody,
+            );
           } catch (e) {
             expect(e).toBeInstanceOf(NotFoundException);
           }
@@ -1070,15 +1179,22 @@ describe('ProjectsService', () => {
               isPlanAccepted: null,
               isReportAccepted: null,
             };
-            const mockConfirmRequest: ConfirmProjectDto = {
+            const mockConfirmRequestBody: ConfirmProjectBodyDto = {
               type: 'approve',
               comment: 'test',
+            };
+            const mockConfirmRequestParam: ConfirmProjectParamDto = {
+              projectId: 1,
+              type: 'report',
             };
             mockedStatusService.prototype.getStatusById.mockResolvedValue(
               mockStatus,
             );
             try {
-              await service.confirmProject(1, 'report', mockConfirmRequest);
+              await service.confirmProject(
+                mockConfirmRequestParam,
+                mockConfirmRequestBody,
+              );
             } catch (e) {
               expect(e).toBeInstanceOf(ConflictException);
             }
@@ -1093,15 +1209,22 @@ describe('ProjectsService', () => {
               isPlanAccepted: true,
               isReportAccepted: false,
             };
-            const mockConfirmRequest: ConfirmProjectDto = {
+            const mockConfirmRequestBody: ConfirmProjectBodyDto = {
               type: 'approve',
               comment: 'test',
+            };
+            const mockConfirmRequestParam: ConfirmProjectParamDto = {
+              projectId: 1,
+              type: 'report',
             };
             mockedStatusService.prototype.getStatusById.mockResolvedValue(
               mockStatus,
             );
             try {
-              await service.confirmProject(1, 'report', mockConfirmRequest);
+              await service.confirmProject(
+                mockConfirmRequestParam,
+                mockConfirmRequestBody,
+              );
             } catch (e) {
               expect(e).toBeInstanceOf(ConflictException);
             }
@@ -1110,12 +1233,19 @@ describe('ProjectsService', () => {
       });
     });
     it('should throw BadRequestException', async () => {
-      const mockConfirmRequest: ConfirmProjectDto = {
+      const mockConfirmRequestBody: ConfirmProjectBodyDto = {
         type: 'approve',
         comment: 'test',
       };
+      const mockConfirmRequestParam: ConfirmProjectParamDto = {
+        projectId: 1,
+        type: 'error',
+      };
       try {
-        await service.confirmProject(1, 'error', mockConfirmRequest);
+        await service.confirmProject(
+          mockConfirmRequestParam,
+          mockConfirmRequestBody,
+        );
       } catch (e) {
         expect(e).toBeInstanceOf(BadRequestException);
       }

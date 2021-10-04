@@ -8,7 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { StatusService } from 'src/shared/status/status.service';
 import { Like, Repository } from 'typeorm';
 import { ProjectItem } from 'src/projects/dto/response/projectItem.dto';
-import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
+import {
+  ConfirmProjectBodyDto,
+  ConfirmProjectParamDto,
+} from './dto/request/confirmProject.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { Project } from './entities/project.entity';
 import { PlansService } from 'src/shared/plans/plans.service';
@@ -16,6 +19,8 @@ import { ReportsService } from 'src/shared/reports/reports.service';
 import { MembersService } from 'src/shared/members/members.service';
 import { MailService } from 'src/mail/mail.service';
 import { ProjectDetailDto } from './dto/response/projectDetail.dto';
+import { SearchProjectsDto } from './dto/request/searchProjects.dto';
+import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -30,10 +35,10 @@ export class ProjectsService {
   ) {}
 
   async confirmProject(
-    projectId: number,
-    type: string,
-    payload: ConfirmProjectDto,
+    paramPayload: ConfirmProjectParamDto,
+    bodyPayload: ConfirmProjectBodyDto,
   ) {
+    const { projectId, type } = paramPayload;
     switch (type) {
       case 'plan': {
         const status = await this.statusService.getStatusById(projectId);
@@ -41,7 +46,7 @@ export class ProjectsService {
         if (!status.isPlanSubmitted || status.isPlanAccepted !== null)
           throw new ConflictException();
 
-        switch (payload.type) {
+        switch (bodyPayload.type) {
           case 'approve': {
             await this.mailService.sendMail(
               status.projectId.writerId.email,
@@ -51,7 +56,7 @@ export class ProjectsService {
                 writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
-                comment: payload.comment,
+                comment: bodyPayload.comment,
               },
             );
             await this.statusService.updatePlanAccepted(projectId, true);
@@ -66,7 +71,7 @@ export class ProjectsService {
                 writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
-                comment: payload.comment,
+                comment: bodyPayload.comment,
               },
             );
             await this.statusService.updatePlanAccepted(projectId, false);
@@ -81,7 +86,7 @@ export class ProjectsService {
         if (!status.isReportSubmitted || status.isReportAccepted !== null)
           throw new ConflictException();
 
-        switch (payload.type) {
+        switch (bodyPayload.type) {
           case 'approve': {
             await this.mailService.sendMail(
               status.projectId.writerId.email,
@@ -91,7 +96,7 @@ export class ProjectsService {
                 writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
-                comment: payload.comment,
+                comment: bodyPayload.comment,
               },
             );
             await this.statusService.updateReportAccepted(projectId, true);
@@ -106,7 +111,7 @@ export class ProjectsService {
                 writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
                 teacher: status.projectId.teacher,
-                comment: payload.comment,
+                comment: bodyPayload.comment,
               },
             );
             await this.statusService.updateReportAccepted(projectId, false);
@@ -121,7 +126,8 @@ export class ProjectsService {
     }
   }
 
-  async getPendingProjects(type: string, limit: number, page: number) {
+  async getPendingProjects(payload) {
+    const { type, limit, page } = payload;
     const projectList = new Array<ProjectItem>();
     switch (type) {
       case 'plan': {
@@ -187,7 +193,8 @@ export class ProjectsService {
     }
   }
 
-  async search(query: string, limit: number, page: number) {
+  async search(payload: SearchProjectsDto) {
+    const { query, limit, page } = payload;
     const [projects, count] = await this.findLike(query, limit, page);
     if (!count) return;
 
@@ -256,7 +263,8 @@ export class ProjectsService {
     return projectDetail;
   }
 
-  async getConfirmed(limit: number, page: number) {
+  async getConfirmed(payload: ConfirmedProjectsDto) {
+    const { limit, page } = payload;
     const [status, count] = await this.statusService.getConfirmedStatus(
       limit,
       page,

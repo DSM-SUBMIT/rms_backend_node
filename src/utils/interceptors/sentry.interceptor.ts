@@ -4,7 +4,7 @@ import {
   NestInterceptor,
   CallHandler,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import * as Sentry from '@sentry/minimal';
 
@@ -14,7 +14,7 @@ export class SentryInterceptor implements NestInterceptor {
     return next.handle().pipe(
       catchError((error) => {
         Sentry.captureException(error);
-        return null;
+        return throwError(() => error);
       }),
     );
   }
