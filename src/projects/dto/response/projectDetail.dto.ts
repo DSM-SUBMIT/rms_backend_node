@@ -56,7 +56,7 @@ export class ProjectDetailDto {
   project_name: string;
   @ApiProperty({ description: '작성자명' })
   writer: string;
-  @ApiProperty({ description: '프로젝트 인원 목록', type: Members })
+  @ApiProperty({ description: '프로젝트 인원 목록', type: [Members] })
   members: Members[];
 
   @ApiPropertyOptional({
