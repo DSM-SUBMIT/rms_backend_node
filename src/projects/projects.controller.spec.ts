@@ -2,7 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { mocked } from 'ts-jest/utils';
-import { ConfirmProjectDto } from './dto/request/confirmProject.dto';
+import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
+import {
+  ConfirmProjectBodyDto,
+  ConfirmProjectParamDto,
+} from './dto/request/confirmProject.dto';
+import { PendingProjectsDto } from './dto/request/pendingProjects.dto';
+import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { ProjectDetailDto } from './dto/response/projectDetail.dto';
 import { ProjectItem } from './dto/response/projectItem.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
@@ -44,18 +50,26 @@ describe('ProjectsController', () => {
         undefined,
       );
 
-      const mockedRequest: ConfirmProjectDto = {
+      const mockedRequestBody: ConfirmProjectBodyDto = {
         type: 'approve',
         comment: 'test',
       };
-      const res = await controller.confirm(1, 'plan', mockedRequest);
+
+      const mockedRequestParam: ConfirmProjectParamDto = {
+        projectId: 1,
+        type: 'plan',
+      };
+      const res = await controller.confirm(
+        mockedRequestParam,
+        mockedRequestBody,
+      );
 
       expect(res).toEqual(undefined);
 
       expect(mockedProjectsService.prototype.confirmProject).toHaveBeenCalled();
       expect(
         mockedProjectsService.prototype.confirmProject,
-      ).toHaveBeenCalledWith(1, 'plan', mockedRequest);
+      ).toHaveBeenCalledWith(mockedRequestParam, mockedRequestBody);
     });
   });
 
@@ -78,7 +92,13 @@ describe('ProjectsController', () => {
         mockProjectsList,
       );
 
-      const res = await controller.getPendingProjects('plan', 8, 1);
+      const mockedRequest: PendingProjectsDto = {
+        type: 'plan',
+        limit: 8,
+        page: 1,
+      };
+
+      const res = await controller.getPendingProjects(mockedRequest);
 
       expect(res).toEqual(mockProjectsList);
 
@@ -87,7 +107,7 @@ describe('ProjectsController', () => {
       ).toHaveBeenCalled();
       expect(
         mockedProjectsService.prototype.getPendingProjects,
-      ).toHaveBeenCalledWith('plan', 8, 1);
+      ).toHaveBeenCalledWith(mockedRequest);
     });
   });
 
@@ -110,15 +130,19 @@ describe('ProjectsController', () => {
         mockProjectsList,
       );
 
-      const res = await controller.search('test', 8, 1);
+      const mockedRequest: SearchProjectsDto = {
+        query: 'test',
+        limit: 8,
+        page: 1,
+      };
+
+      const res = await controller.search(mockedRequest);
 
       expect(res).toEqual(mockProjectsList);
 
       expect(mockedProjectsService.prototype.search).toHaveBeenCalled();
       expect(mockedProjectsService.prototype.search).toHaveBeenCalledWith(
-        'test',
-        8,
-        1,
+        mockedRequest,
       );
     });
   });
@@ -163,14 +187,18 @@ describe('ProjectsController', () => {
         mockProjectsList,
       );
 
-      const res = await controller.confirmedProjects(8, 1);
+      const mockedRequest: ConfirmedProjectsDto = {
+        limit: 8,
+        page: 1,
+      };
+
+      const res = await controller.confirmedProjects(mockedRequest);
 
       expect(res).toEqual(mockProjectsList);
 
       expect(mockedProjectsService.prototype.getConfirmed).toHaveBeenCalled();
       expect(mockedProjectsService.prototype.getConfirmed).toHaveBeenCalledWith(
-        8,
-        1,
+        mockedRequest,
       );
     });
   });
