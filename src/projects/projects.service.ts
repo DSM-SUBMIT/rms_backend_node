@@ -18,7 +18,6 @@ import { PlansService } from 'src/shared/plans/plans.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
 import { MembersService } from 'src/shared/members/members.service';
 import { MailService } from 'src/mail/mail.service';
-import { ProjectDetailDto } from './dto/response/projectDetail.dto';
 import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
 
@@ -223,44 +222,6 @@ export class ProjectsService {
     };
 
     return response;
-  }
-
-  async getDetail(projectId: number) {
-    const project = await this.getProject(projectId);
-    if (!project) throw new NotFoundException();
-    const plan = await this.plansService.getConfirmedPlanById(projectId);
-    const report = await this.reportsService.getConfirmedReportById(projectId);
-    const members = await this.membersService.getUsersByProject(projectId);
-    const projectDetail: ProjectDetailDto = {
-      project_name: project.projectName,
-      writer: project.writerId.name,
-      members: members.map((member) => {
-        return { name: member.userId.name, role: member.role };
-      }),
-    };
-
-    if (plan) {
-      projectDetail.plan = {
-        goal: plan.goal,
-        content: plan.content,
-        start_date: plan.startDate,
-        end_date: plan.endDate,
-        includes: {
-          result_report: plan.includeResultReport,
-          code: plan.includeCode,
-          outcome: plan.includeOutcome,
-          others: Boolean(plan.includeOthers),
-          others_content: plan.includeOthers ? plan.includeOthers : '',
-        },
-      };
-    }
-    if (report) {
-      projectDetail.report = {
-        video_url: report.videoUrl,
-        content: report.content,
-      };
-    }
-    return projectDetail;
   }
 
   async getConfirmed(payload: ConfirmedProjectsDto) {

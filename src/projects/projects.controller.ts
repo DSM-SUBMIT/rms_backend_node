@@ -29,7 +29,6 @@ import {
   ConfirmProjectBodyDto,
   ConfirmProjectParamDto,
 } from './dto/request/confirmProject.dto';
-import { ProjectDetailDto } from './dto/response/projectDetail.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { NoContentInterceptor } from 'src/utils/interceptors/NoContent.interceptor';
 import { ProjectsService } from './projects.service';
@@ -94,25 +93,6 @@ export class ProjectsController {
   @ApiForbiddenResponse({ description: '권한이 없음' })
   search(@Query() payload: SearchProjectsDto) {
     return this.projectsService.search(payload);
-  }
-
-  @Get(':projectId')
-  @UseInterceptors(NoContentInterceptor)
-  @ApiOperation({ summary: '프로젝트 상세 보기' })
-  @ApiParam({ name: 'projectId', type: 'number' })
-  @ApiOkResponse({
-    description: '요청이 정상적으로 완료됨',
-    type: ProjectDetailDto,
-  })
-  @ApiNoContentResponse({
-    description:
-      '요청은 정상적이나, 계획서와 보고서가 존재하지 않는 프로젝트임.',
-  })
-  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
-  @ApiForbiddenResponse({ description: '권한이 없음' })
-  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
-  projectDetail(@Param('projectId') projectId: number) {
-    return this.projectsService.getDetail(projectId);
   }
 
   @Get('confirmed')
