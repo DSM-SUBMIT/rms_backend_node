@@ -22,6 +22,7 @@ import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
 import { PlanDetailDto } from './dto/response/planDetail.dto';
 import { ReportDetailDto } from './dto/response/reportDetail.dto';
+import { ProjectFieldService } from 'src/shared/projectField/projectField.service';
 
 @Injectable()
 export class ProjectsService {
@@ -31,6 +32,7 @@ export class ProjectsService {
     private readonly mailService: MailService,
     private readonly membersService: MembersService,
     private readonly plansService: PlansService,
+    private readonly projectFieldService: ProjectFieldService,
     private readonly reportsService: ReportsService,
     private readonly statusService: StatusService,
   ) {}
@@ -231,6 +233,7 @@ export class ProjectsService {
     if (!status && status.isPlanSubmitted) throw new NotFoundException();
     const plan = await this.plansService.getPlanById(projectId);
     const members = await this.membersService.getUsersByProject(projectId);
+    const fields = await this.projectFieldService.getFieldsByProject(projectId);
     return {
       project_name: status.projectId.projectName,
       writer: status.projectId.writerId.name,
@@ -238,6 +241,7 @@ export class ProjectsService {
         name: member.userId.name,
         role: member.role,
       })),
+      fields: fields.map((field) => field.fieldId.field),
       plan: {
         goal: plan.goal,
         content: plan.content,
@@ -259,6 +263,7 @@ export class ProjectsService {
     if (!status && status.isReportSubmitted) throw new NotFoundException();
     const report = await this.reportsService.getReportById(projectId);
     const members = await this.membersService.getUsersByProject(projectId);
+    const fields = await this.projectFieldService.getFieldsByProject(projectId);
     return {
       project_name: status.projectId.projectName,
       writer: status.projectId.writerId.name,
@@ -266,6 +271,7 @@ export class ProjectsService {
         name: member.userId.name,
         role: member.role,
       })),
+      fields: fields.map((field) => field.fieldId.field),
       report: {
         content: report.content,
       },

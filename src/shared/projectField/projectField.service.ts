@@ -13,6 +13,7 @@ export class ProjectFieldService {
   async getFieldsByProject(projectId: number): Promise<ProjectField[]> {
     return await this.projectFieldRepository.find({
       where: { projectId },
+      relations: ['fieldId'],
     });
   }
 }

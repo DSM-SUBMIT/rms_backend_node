@@ -51,6 +51,8 @@ export class PlanDetailDto {
   writer: string;
   @ApiProperty({ description: '프로젝트 인원 목록', type: [Members] })
   members: Members[];
+  @ApiProperty({ description: '분야' })
+  fields: string[];
 
   @ApiProperty({ description: '계획서 상세', type: PlanDetail })
   plan: PlanDetail;
