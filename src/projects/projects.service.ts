@@ -20,6 +20,7 @@ import { MembersService } from 'src/shared/members/members.service';
 import { MailService } from 'src/mail/mail.service';
 import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
+import { PlanDetailDto } from './dto/response/planDetail.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -222,6 +223,34 @@ export class ProjectsService {
     };
 
     return response;
+  }
+
+  async getPlanDetail(projectId: number): Promise<PlanDetailDto> {
+    const status = await this.statusService.getStatusById(projectId);
+    if (!status && status.isPlanSubmitted) throw new NotFoundException();
+    const plan = await this.plansService.getPlanById(projectId);
+    const members = await this.membersService.getUsersByProject(projectId);
+    return {
+      project_name: status.projectId.projectName,
+      writer: status.projectId.writerId.name,
+      members: members.map((member) => ({
+        name: member.userId.name,
+        role: member.role,
+      })),
+      plan: {
+        goal: plan.goal,
+        content: plan.content,
+        start_date: plan.startDate,
+        end_date: plan.endDate,
+        includes: {
+          result_report: plan.includeResultReport,
+          code: plan.includeCode,
+          outcome: plan.includeOutcome,
+          others: Boolean(plan.includeOthers),
+          others_content: plan.includeOthers ? plan.includeOthers : '',
+        },
+      },
+    };
   }
 
   async getConfirmed(payload: ConfirmedProjectsDto) {
