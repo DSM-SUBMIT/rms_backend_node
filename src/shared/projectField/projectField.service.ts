@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { ProjectField } from './entities/projectField.entity';
 
 @Injectable()
-export class ProjectFieldsService {
+export class ProjectFieldService {
   constructor(
     @InjectRepository(ProjectField)
     private readonly projectFieldRepository: Repository<ProjectField>,
