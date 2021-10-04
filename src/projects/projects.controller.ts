@@ -37,6 +37,7 @@ import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
 import { ProjectDetailDto } from './dto/request/projectDetail.dto';
 import { PlanDetailDto } from './dto/response/planDetail.dto';
+import { ReportDetailDto } from './dto/response/reportDetail.dto';
 
 @Controller({ host: 'admin-api.dsm-rms.com', path: 'projects' })
 @ApiTags('프로젝트 API')
@@ -110,6 +111,21 @@ export class ProjectsController {
   })
   planDetail(@Param() payload: ProjectDetailDto) {
     return this.projectsService.getPlanDetail(payload.projectId);
+  }
+
+  @Get(':projectId/report')
+  @ApiOperation({ summary: '보고서 상세 보기' })
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+    type: ReportDetailDto,
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 없음' })
+  @ApiNotFoundResponse({
+    description: '프로젝트를 찾을 수 없거나 보고서가 제출되지 않았음',
+  })
+  reportDetail(@Param() payload: ProjectDetailDto) {
+    return this.projectsService.getReportDetail(payload.projectId);
   }
 
   @Get('confirmed')

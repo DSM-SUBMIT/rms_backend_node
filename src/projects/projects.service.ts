@@ -21,6 +21,7 @@ import { MailService } from 'src/mail/mail.service';
 import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
 import { PlanDetailDto } from './dto/response/planDetail.dto';
+import { ReportDetailDto } from './dto/response/reportDetail.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -249,6 +250,24 @@ export class ProjectsService {
           others: Boolean(plan.includeOthers),
           others_content: plan.includeOthers ? plan.includeOthers : '',
         },
+      },
+    };
+  }
+
+  async getReportDetail(projectId: number): Promise<ReportDetailDto> {
+    const status = await this.statusService.getStatusById(projectId);
+    if (!status && status.isReportSubmitted) throw new NotFoundException();
+    const report = await this.reportsService.getReportById(projectId);
+    const members = await this.membersService.getUsersByProject(projectId);
+    return {
+      project_name: status.projectId.projectName,
+      writer: status.projectId.writerId.name,
+      members: members.map((member) => ({
+        name: member.userId.name,
+        role: member.role,
+      })),
+      report: {
+        content: report.content,
       },
     };
   }
