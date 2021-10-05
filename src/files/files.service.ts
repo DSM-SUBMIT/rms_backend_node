@@ -13,6 +13,7 @@ import { S3 } from 'aws-sdk';
 import { extname } from 'path';
 import { ProjectsService } from 'src/projects/projects.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
+import { StatusService } from 'src/shared/status/status.service';
 import { v4 as uuid } from 'uuid';
 import { UploadFileOptions } from './interfaces/uploadFileOptions.interface';
 
@@ -21,6 +22,7 @@ export class FilesService {
   constructor(
     private readonly projectsService: ProjectsService,
     private readonly reportsService: ReportsService,
+    private readonly statusService: StatusService,
   ) {}
 
   async uploadImages(
@@ -155,6 +157,9 @@ export class FilesService {
     const report = await this.reportsService.getReportById(projectId);
     if (!report) throw new NotFoundException();
 
+    const status = await this.statusService.getStatusById(projectId);
+    if (!status.isReportSubmitted) throw new NotFoundException();
+
     const s3Path = `${projectId}/report/images`;
     if (
       !(await this.isExist(
@@ -235,6 +240,9 @@ export class FilesService {
   async getArchive(req, projectId) {
     const project = await this.projectsService.getProject(projectId);
     if (!project) throw new NotFoundException();
+
+    const status = await this.statusService.getStatusById(projectId);
+    if (!status.isReportSubmitted) throw new NotFoundException();
 
     const s3Path = `${projectId}/report/archive`;
     const s3Filename = 'archive_outcomes.zip';
