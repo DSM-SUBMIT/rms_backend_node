@@ -76,6 +76,12 @@ export class FilesService {
     const project = await this.projectsService.getProject(projectId);
     if (!project) throw new NotFoundException();
 
+    const s3Path = `${projectId}/report/images`;
+    if (
+      !(await this.isExist(filename, `${process.env.AWS_S3_BUCKET}/${s3Path}`))
+    )
+      throw new NotFoundException();
+
     const ext = extname(filename).slice(1);
     req.res.set({
       'Content-Type': `image/${ext}; charset=utf-8`,
@@ -227,6 +233,14 @@ export class FilesService {
 
     const s3Path = `${projectId}/report/archive`;
     const s3Filename = 'archive_outcomes.zip';
+
+    if (
+      !(await this.isExist(
+        s3Filename,
+        `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+      ))
+    )
+      throw new NotFoundException();
 
     const filename = `[${project.projectType}] ${project.projectName} - ${
       project.teamName
