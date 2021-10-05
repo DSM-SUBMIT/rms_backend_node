@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ProjectField } from './entities/projectField.entity';
-import { ProjectFieldsService } from './projectField.service';
+import { ProjectFieldService } from './projectField.service';
 
 const mockProjectFieldRepository = () => ({
   find: jest.fn(),
@@ -11,13 +11,13 @@ const mockProjectFieldRepository = () => ({
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 
 describe('ReportsService', () => {
-  let service: ProjectFieldsService;
+  let service: ProjectFieldService;
   let projectFieldRepository: MockRepository<ProjectField>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ProjectFieldsService,
+        ProjectFieldService,
         {
           provide: getRepositoryToken(ProjectField),
           useValue: mockProjectFieldRepository(),
@@ -25,7 +25,7 @@ describe('ReportsService', () => {
       ],
     }).compile();
 
-    service = module.get<ProjectFieldsService>(ProjectFieldsService);
+    service = module.get<ProjectFieldService>(ProjectFieldService);
     projectFieldRepository = module.get<MockRepository<ProjectField>>(
       getRepositoryToken(ProjectField),
     );
