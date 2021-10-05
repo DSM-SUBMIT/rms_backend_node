@@ -97,7 +97,7 @@ export class ProjectsController {
     return this.projectsService.search(payload);
   }
 
-  @Get('detail/:projectId/plan')
+  @Get(':projectId/plan')
   @ApiOperation({ summary: '계획서 상세 보기' })
   @ApiOkResponse({
     description: '요청이 정상적으로 완료됨',
@@ -112,7 +112,7 @@ export class ProjectsController {
     return this.projectsService.getPlanDetail(payload.projectId);
   }
 
-  @Get('detail/:projectId/report')
+  @Get(':projectId/report')
   @ApiOperation({ summary: '보고서 상세 보기' })
   @ApiOkResponse({
     description: '요청이 정상적으로 완료됨',
