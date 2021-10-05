@@ -100,21 +100,28 @@ export class FilesService {
   ) {
     const report = await this.reportsService.getReportById(projectId);
     if (!report) throw new NotFoundException();
-    if (report.videoUrl) throw new ConflictException();
+
+    const s3Path = `${projectId}/report/images`;
+    if (
+      await this.isExist(
+        'demo_video.mp4',
+        `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+      )
+    )
+      throw new ConflictException();
 
     const writer = report.projectId.writerId;
     const email = writer.email;
     if (email !== username) throw new ForbiddenException();
 
-    const uploadedUrl = await this.uploadSingleFile({
+    await this.uploadSingleFile({
       file,
+      fileName: 'demo_video',
       folder: 'report',
       fileType: 'video',
       projectId,
       allowedExt: /(mp4)|(mov)|(wmv)|(avi)|(mkv)/,
     });
-
-    await this.reportsService.updateVideoUrl(projectId, uploadedUrl);
 
     return;
   }
@@ -122,22 +129,22 @@ export class FilesService {
   async deleteVideo(username: string, projectId: number) {
     const report = await this.reportsService.getReportById(projectId);
     if (!report) throw new NotFoundException();
-    if (!report.videoUrl) throw new NotFoundException();
 
     const writer = report.projectId.writerId;
     const email = writer.email;
     if (email !== username) throw new ForbiddenException();
 
-    const { videoUrl } = report;
-
-    const s3Path = videoUrl.substring(0, videoUrl.lastIndexOf('/'));
-    const s3Filename = videoUrl.substring(
-      videoUrl.lastIndexOf('/') + 1,
-      videoUrl.length,
-    );
+    const s3Path = `${projectId}/report/images`;
+    if (
+      !(await this.isExist(
+        'demo_video.mp4',
+        `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+      ))
+    )
+      throw new NotFoundException();
 
     await this.deleteFromS3(
-      s3Filename,
+      'demo_video.mp4',
       `${process.env.AWS_S3_BUCKET}/${s3Path}`,
     );
 
@@ -147,26 +154,24 @@ export class FilesService {
   async getVideo(req, projectId) {
     const report = await this.reportsService.getReportById(projectId);
     if (!report) throw new NotFoundException();
-    if (!report.videoUrl) throw new NotFoundException();
 
-    const { videoUrl } = report;
+    const s3Path = `${projectId}/report/images`;
+    if (
+      !(await this.isExist(
+        'demo_video.mp4',
+        `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+      ))
+    )
+      throw new NotFoundException();
 
-    const s3Path = videoUrl.substring(0, videoUrl.lastIndexOf('/'));
-    const s3Filename = videoUrl.substring(
-      videoUrl.lastIndexOf('/') + 1,
-      videoUrl.length,
-    );
-
-    const filename = `[${report.projectId.projectType}] ${
-      report.projectId.projectName
-    } - ${report.projectId.teamName}${extname(s3Filename)}`;
+    const filename = `[${report.projectId.projectType}] ${report.projectId.projectName} - ${report.projectId.teamName}.mp4`;
     req.res.set({
       'Content-Type': 'application/octet-stream; charset=utf-8',
       'Content-Disposition': `'attachment; filename="${encodeURI(filename)}"`,
     });
 
     return await this.downloadFromS3(
-      s3Filename,
+      'demo_video.mp4',
       `${process.env.AWS_S3_BUCKET}/${s3Path}`,
     );
   }
