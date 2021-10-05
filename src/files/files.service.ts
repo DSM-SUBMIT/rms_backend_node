@@ -10,6 +10,7 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 import { S3 } from 'aws-sdk';
+import { HeadObjectOutput } from 'aws-sdk/clients/s3';
 import { extname } from 'path';
 import { ProjectsService } from 'src/projects/projects.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
@@ -161,18 +162,20 @@ export class FilesService {
     if (!status.isReportSubmitted) throw new NotFoundException();
 
     const s3Path = `${projectId}/report/images`;
-    if (
-      !(await this.isExist(
-        'demo_video.mp4',
-        `${process.env.AWS_S3_BUCKET}/${s3Path}`,
-      ))
-    )
-      throw new NotFoundException();
+    const s3Filename = 'demo_video.mp4';
+
+    const fileInfo = await this.isExist(
+      s3Filename,
+      `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+    );
+
+    if (!fileInfo) throw new NotFoundException();
 
     const filename = `[${report.projectId.projectType}] ${report.projectId.projectName} - ${report.projectId.teamName}.mp4`;
     req.res.set({
       'Content-Type': 'application/octet-stream; charset=utf-8',
       'Content-Disposition': `'attachment; filename="${encodeURI(filename)}"`,
+      'Content-Length': fileInfo.ContentLength,
     });
 
     return await this.downloadFromS3(
@@ -247,13 +250,12 @@ export class FilesService {
     const s3Path = `${projectId}/report/archive`;
     const s3Filename = 'archive_outcomes.zip';
 
-    if (
-      !(await this.isExist(
-        s3Filename,
-        `${process.env.AWS_S3_BUCKET}/${s3Path}`,
-      ))
-    )
-      throw new NotFoundException();
+    const fileInfo = await this.isExist(
+      s3Filename,
+      `${process.env.AWS_S3_BUCKET}/${s3Path}`,
+    );
+
+    if (!fileInfo) throw new NotFoundException();
 
     const filename = `[${project.projectType}] ${project.projectName} - ${
       project.teamName
@@ -261,6 +263,7 @@ export class FilesService {
     req.res.set({
       'Content-Type': 'application/octet-stream; charset=utf-8',
       'Content-Disposition': `'attachment; filename="${encodeURI(filename)}"`,
+      'Content-Length': fileInfo.ContentLength,
     });
 
     return await this.downloadFromS3(
@@ -327,13 +330,12 @@ export class FilesService {
     return locations;
   }
 
-  async isExist(filename: string, bucket: string): Promise<boolean> {
+  async isExist(filename: string, bucket: string): Promise<HeadObjectOutput> {
     const s3 = this.getS3();
     try {
-      await s3.headObject({ Bucket: bucket, Key: filename }).promise();
-      return true;
+      return await s3.headObject({ Bucket: bucket, Key: filename }).promise();
     } catch (e) {
-      if (e.code === 'NotFound') return false;
+      if (e.code === 'NotFound') return null;
       else throw new ServiceUnavailableException();
     }
   }
