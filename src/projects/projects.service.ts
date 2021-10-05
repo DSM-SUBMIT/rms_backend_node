@@ -230,7 +230,7 @@ export class ProjectsService {
 
   async getPlanDetail(projectId: number): Promise<PlanDetailDto> {
     const status = await this.statusService.getStatusById(projectId);
-    if (!status && status.isPlanSubmitted) throw new NotFoundException();
+    if (!status || !status.isPlanSubmitted) throw new NotFoundException();
     const plan = await this.plansService.getPlanById(projectId);
     const members = await this.membersService.getUsersByProject(projectId);
     const fields = await this.projectFieldService.getFieldsByProject(projectId);
@@ -260,7 +260,7 @@ export class ProjectsService {
 
   async getReportDetail(projectId: number): Promise<ReportDetailDto> {
     const status = await this.statusService.getStatusById(projectId);
-    if (!status && status.isReportSubmitted) throw new NotFoundException();
+    if (!status || !status.isReportSubmitted) throw new NotFoundException();
     const report = await this.reportsService.getReportById(projectId);
     const members = await this.membersService.getUsersByProject(projectId);
     const fields = await this.projectFieldService.getFieldsByProject(projectId);
