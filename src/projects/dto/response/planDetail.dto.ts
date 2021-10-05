@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 class Members {
   @ApiProperty({ description: '이름' })
@@ -18,13 +18,12 @@ class Includes {
   @ApiProperty({ description: '결과물 - 실행물(영상, 사진 등) 포함 여부' })
   outcome: boolean;
 
-  @ApiProperty({ description: '결과물 - 기타 포함 여부' })
-  others: boolean;
-
-  @ApiPropertyOptional({
-    description: '결과물 - 기타 내용(others 항목이 false일 경우 제공되지 않음)',
+  @ApiProperty({
+    description:
+      '결과물 - 기타(내용이 있을 경우 string, 없을 경우 false로 응답)',
+    oneOf: [{ type: 'string' }, { type: 'boolean' }],
   })
-  others_content: string;
+  others: string | boolean;
 }
 
 class PlanDetail {

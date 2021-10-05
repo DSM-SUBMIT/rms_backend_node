@@ -251,8 +251,7 @@ export class ProjectsService {
           result_report: plan.includeResultReport,
           code: plan.includeCode,
           outcome: plan.includeOutcome,
-          others: Boolean(plan.includeOthers),
-          others_content: plan.includeOthers ? plan.includeOthers : '',
+          others: Boolean(plan.includeOthers) ? plan.includeOthers : false,
         },
       },
     };
