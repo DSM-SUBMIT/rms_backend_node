@@ -235,6 +235,7 @@ export class ProjectsService {
     const members = await this.membersService.getUsersByProject(projectId);
     const fields = await this.projectFieldService.getFieldsByProject(projectId);
     return {
+      project_id: status.projectId.id,
       project_name: status.projectId.projectName,
       writer: status.projectId.writerId.name,
       members: members.map((member) => ({
@@ -264,6 +265,7 @@ export class ProjectsService {
     const members = await this.membersService.getUsersByProject(projectId);
     const fields = await this.projectFieldService.getFieldsByProject(projectId);
     return {
+      project_id: status.projectId.id,
       project_name: status.projectId.projectName,
       writer: status.projectId.writerId.name,
       members: members.map((member) => ({
