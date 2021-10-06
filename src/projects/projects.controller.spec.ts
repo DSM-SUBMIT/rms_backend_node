@@ -151,6 +151,7 @@ describe('ProjectsController', () => {
   describe('planDetail', () => {
     it('should return list of projects', async () => {
       const mockPlanDetail: PlanDetailDto = {
+        project_id: 1,
         project_name: 'test',
         writer: 'test',
         members: [],
@@ -187,6 +188,7 @@ describe('ProjectsController', () => {
   describe('reportDetail', () => {
     it('should return list of projects', async () => {
       const mockReportDetail: ReportDetailDto = {
+        project_id: 1,
         project_name: 'test',
         writer: 'test',
         members: [],

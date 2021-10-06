@@ -339,6 +339,7 @@ describe('ProjectsService', () => {
       const res = await service.getPlanDetail(1);
 
       const mockPlanResult: PlanDetailDto = {
+        project_id: 1,
         project_name: 'test',
         writer: 'test',
         members: [{ name: 'test', role: 'test' }],
@@ -389,6 +390,7 @@ describe('ProjectsService', () => {
       const res = await service.getReportDetail(1);
 
       const mockReportResult: ReportDetailDto = {
+        project_id: 1,
         project_name: 'test',
         writer: 'test',
         members: [{ name: 'test', role: 'test' }],
