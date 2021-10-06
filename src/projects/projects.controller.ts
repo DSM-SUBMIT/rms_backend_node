@@ -38,7 +38,7 @@ import { ProjectDetailDto } from './dto/request/projectDetail.dto';
 import { PlanDetailDto } from './dto/response/planDetail.dto';
 import { ReportDetailDto } from './dto/response/reportDetail.dto';
 
-@Controller({ host: 'admin-api.dsm-rms.com', path: 'projects' })
+@Controller({ host: process.env.ADMIN_API_BASE_URL, path: 'projects' })
 @ApiTags('프로젝트 API')
 @Roles(Role.Admin)
 @UseGuards(RolesGuard)
