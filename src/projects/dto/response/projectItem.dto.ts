@@ -5,7 +5,7 @@ export class ProjectItem {
   id: number;
 
   @ApiProperty({ description: '프로젝트 종류' })
-  type: string;
+  project_type: string;
 
   @ApiProperty({ description: '프로젝트 제목' })
   title: string;
