@@ -9,9 +9,10 @@ import {
 } from './dto/request/confirmProject.dto';
 import { PendingProjectsDto } from './dto/request/pendingProjects.dto';
 import { SearchProjectsDto } from './dto/request/searchProjects.dto';
-import { ProjectDetailDto } from './dto/response/projectDetail.dto';
+import { PlanDetailDto } from './dto/response/planDetail.dto';
 import { ProjectItem } from './dto/response/projectItem.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
+import { ReportDetailDto } from './dto/response/reportDetail.dto';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 
@@ -77,7 +78,8 @@ describe('ProjectsController', () => {
     it('should return list of projects', async () => {
       const mockProjectItem: ProjectItem = {
         id: 1,
-        type: 'test',
+        project_type: 'test',
+        is_individual: true,
         title: 'test',
         team_name: 'test',
         fields: ['test'],
@@ -115,7 +117,8 @@ describe('ProjectsController', () => {
     it('should return list of projects', async () => {
       const mockProjectItem: ProjectItem = {
         id: 1,
-        type: 'test',
+        project_type: 'test',
+        is_individual: true,
         title: 'test',
         team_name: 'test',
         fields: ['test'],
@@ -147,24 +150,73 @@ describe('ProjectsController', () => {
     });
   });
 
-  describe('projectDetail', () => {
+  describe('planDetail', () => {
     it('should return list of projects', async () => {
-      const mockProjectDetail: ProjectDetailDto = {
+      const mockPlanDetail: PlanDetailDto = {
+        project_id: 1,
         project_name: 'test',
+        project_type: 'test',
+        is_individual: true,
         writer: 'test',
         members: [],
+        fields: [],
+        plan: {
+          goal: 'test',
+          content: 'test',
+          start_date: '2021.09',
+          end_date: '2021.09',
+          includes: {
+            result_report: true,
+            code: true,
+            outcome: true,
+            others: false,
+          },
+        },
       };
 
-      mockedProjectsService.prototype.getDetail.mockResolvedValue(
-        mockProjectDetail,
+      mockedProjectsService.prototype.getPlanDetail.mockResolvedValue(
+        mockPlanDetail,
       );
 
-      const res = await controller.projectDetail(1);
+      const res = await controller.planDetail({ projectId: 1 });
 
-      expect(res).toEqual(mockProjectDetail);
+      expect(res).toEqual(mockPlanDetail);
 
-      expect(mockedProjectsService.prototype.getDetail).toHaveBeenCalled();
-      expect(mockedProjectsService.prototype.getDetail).toHaveBeenCalledWith(1);
+      expect(mockedProjectsService.prototype.getPlanDetail).toHaveBeenCalled();
+      expect(
+        mockedProjectsService.prototype.getPlanDetail,
+      ).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('reportDetail', () => {
+    it('should return list of projects', async () => {
+      const mockReportDetail: ReportDetailDto = {
+        project_id: 1,
+        project_name: 'test',
+        project_type: 'test',
+        is_individual: true,
+        writer: 'test',
+        members: [],
+        fields: [],
+        report: {
+          content: 'test',
+        },
+      };
+      mockedProjectsService.prototype.getReportDetail.mockResolvedValue(
+        mockReportDetail,
+      );
+
+      const res = await controller.reportDetail({ projectId: 1 });
+
+      expect(res).toEqual(mockReportDetail);
+
+      expect(
+        mockedProjectsService.prototype.getReportDetail,
+      ).toHaveBeenCalled();
+      expect(
+        mockedProjectsService.prototype.getReportDetail,
+      ).toHaveBeenCalledWith(1);
     });
   });
 
@@ -172,7 +224,8 @@ describe('ProjectsController', () => {
     it('should return list of projects', async () => {
       const mockProjectItem: ProjectItem = {
         id: 1,
-        type: 'test',
+        project_type: 'test',
+        is_individual: true,
         title: 'test',
         team_name: 'test',
         fields: ['test'],

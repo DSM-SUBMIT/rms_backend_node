@@ -17,7 +17,7 @@ export class MailService {
       | 'planDenied'
       | 'reportApproved'
       | 'reportDenied',
-    context: any = {},
+    context: { [key: string]: string },
   ) {
     const template = {
       planApproved: 'plan-approved',

@@ -1,10 +1,10 @@
 {
   "name": "rms_backend_node",
-  "version": "1.1.4",
-  "description": "",
-  "author": "",
+  "version": "2.0.0",
+  "description": "Nest.js backend of Report Management System",
+  "author": "https://github.com/pjp0704",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
