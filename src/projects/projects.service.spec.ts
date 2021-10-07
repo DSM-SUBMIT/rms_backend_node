@@ -4,6 +4,7 @@ import { ProjectsService } from './projects.service';
 import { MailService } from 'src/mail/mail.service';
 import { MembersService } from 'src/shared/members/members.service';
 import { PlansService } from 'src/shared/plans/plans.service';
+import { ProjectFieldService } from 'src/shared/projectField/projectField.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
 import { StatusService } from 'src/shared/status/status.service';
 import { Like, Repository } from 'typeorm';
@@ -13,11 +14,6 @@ import { Status } from 'src/shared/status/entities/status.entity';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { ProjectItem } from './dto/response/projectItem.dto';
 import { Member } from 'src/shared/members/entities/member.entity';
-import {
-  PlanDetailDto,
-  ProjectDetailDto,
-  ReportDetailDto,
-} from './dto/response/projectDetail.dto';
 import { Plan } from 'src/shared/plans/entities/plan.entity';
 import { Report } from 'src/shared/reports/entities/report.entity';
 import {
@@ -34,15 +30,19 @@ import {
 import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
 import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { PendingProjectsDto } from './dto/request/pendingProjects.dto';
+import { PlanDetailDto } from './dto/response/planDetail.dto';
+import { ReportDetailDto } from './dto/response/reportDetail.dto';
 
 jest.mock('src/mail/mail.service');
 jest.mock('src/shared/members/members.service');
 jest.mock('src/shared/plans/plans.service');
+jest.mock('src/shared/projectField/projectField.service');
 jest.mock('src/shared/reports/reports.service');
 jest.mock('src/shared/status/status.service');
 
 const mockedStatusService = mocked(StatusService, true);
 const mockedPlansService = mocked(PlansService, true);
+const mockedProjectFieldService = mocked(ProjectFieldService, true);
 const mockedReportsService = mocked(ReportsService, true);
 const mockedMembersService = mocked(MembersService, true);
 const mockedMailService = mocked(MailService, true);
@@ -69,6 +69,7 @@ describe('ProjectsService', () => {
         MailService,
         MembersService,
         PlansService,
+        ProjectFieldService,
         ReportsService,
         StatusService,
       ],
@@ -211,7 +212,8 @@ describe('ProjectsService', () => {
 
       const mockProjectItem: ProjectItem = {
         id: 1,
-        type: 'test',
+        project_type: 'test',
+        is_individual: false,
         title: 'test',
         team_name: 'test',
         fields: ['test'],
@@ -291,48 +293,36 @@ describe('ProjectsService', () => {
       },
     ];
 
-    it('should return a project w/o plan and report', async () => {
-      projectsRepository.findOne.mockResolvedValue(mockProject);
-      mockedPlansService.prototype.getConfirmedPlanById.mockResolvedValue(
-        undefined,
-      );
-      mockedReportsService.prototype.getConfirmedReportById.mockResolvedValue(
-        undefined,
-      );
-      mockedMembersService.prototype.getUsersByProject.mockResolvedValue(
-        mockMembers,
-      );
+    const mockProjectField: ProjectField[] = [
+      {
+        fieldId: {
+          id: 1,
+          field: 'test',
+          projectField: undefined,
+        },
+        projectId: mockProject,
+      },
+    ];
 
-      const res = await service.getDetail(1);
+    const mockStatus: Status = {
+      projectId: mockProject,
+      isPlanSubmitted: true,
+      isReportSubmitted: true,
+      planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+      reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+      isPlanAccepted: true,
+      isReportAccepted: true,
+    };
 
-      const mockResult: ProjectDetailDto = {
-        project_name: 'test',
-        writer: 'test',
-        members: [{ name: 'test', role: 'test' }],
-      };
-      expect(res).toEqual(mockResult);
+    mockedStatusService.prototype.getStatusById.mockResolvedValue(mockStatus);
 
-      expect(
-        mockedPlansService.prototype.getConfirmedPlanById,
-      ).toHaveBeenCalled();
-      expect(
-        mockedPlansService.prototype.getConfirmedPlanById,
-      ).toHaveBeenCalledWith(1);
+    mockedMembersService.prototype.getUsersByProject.mockResolvedValue(
+      mockMembers,
+    );
+    mockedProjectFieldService.prototype.getFieldsByProject.mockResolvedValue(
+      mockProjectField,
+    );
 
-      expect(
-        mockedReportsService.prototype.getConfirmedReportById,
-      ).toHaveBeenCalled();
-      expect(
-        mockedReportsService.prototype.getConfirmedReportById,
-      ).toHaveBeenCalledWith(1);
-
-      expect(
-        mockedMembersService.prototype.getUsersByProject,
-      ).toHaveBeenCalled();
-      expect(
-        mockedMembersService.prototype.getUsersByProject,
-      ).toHaveBeenCalledWith(1);
-    });
     it('should return a project w/ plan', async () => {
       const mockPlan: Plan = {
         projectId: mockProject,
@@ -345,60 +335,48 @@ describe('ProjectsService', () => {
         includeOutcome: true,
         includeOthers: null,
       };
-      projectsRepository.findOne.mockResolvedValue(mockProject);
-      mockedPlansService.prototype.getConfirmedPlanById.mockResolvedValue(
-        mockPlan,
-      );
-      mockedReportsService.prototype.getConfirmedReportById.mockResolvedValue(
-        undefined,
-      );
-      mockedMembersService.prototype.getUsersByProject.mockResolvedValue(
-        mockMembers,
-      );
+      mockedPlansService.prototype.getPlanById.mockResolvedValue(mockPlan);
 
-      const res = await service.getDetail(1);
+      const res = await service.getPlanDetail(1);
 
       const mockPlanResult: PlanDetailDto = {
-        goal: 'test',
-        content: 'test',
-        start_date: '2021.09',
-        end_date: '2021.09',
-        includes: {
-          result_report: true,
-          code: true,
-          outcome: true,
-          others: false,
-          others_content: '',
-        },
-      };
-
-      const mockResult: ProjectDetailDto = {
+        project_id: 1,
         project_name: 'test',
+        project_type: 'test',
+        is_individual: false,
         writer: 'test',
         members: [{ name: 'test', role: 'test' }],
-        plan: mockPlanResult,
+        fields: ['test'],
+        plan: {
+          goal: 'test',
+          content: 'test',
+          start_date: '2021.09',
+          end_date: '2021.09',
+          includes: {
+            result_report: true,
+            code: true,
+            outcome: true,
+            others: false,
+          },
+        },
       };
-      expect(res).toEqual(mockResult);
+      expect(res).toEqual(mockPlanResult);
 
-      expect(
-        mockedPlansService.prototype.getConfirmedPlanById,
-      ).toHaveBeenCalled();
-      expect(
-        mockedPlansService.prototype.getConfirmedPlanById,
-      ).toHaveBeenCalledWith(1);
-
-      expect(
-        mockedReportsService.prototype.getConfirmedReportById,
-      ).toHaveBeenCalled();
-      expect(
-        mockedReportsService.prototype.getConfirmedReportById,
-      ).toHaveBeenCalledWith(1);
+      expect(mockedPlansService.prototype.getPlanById).toHaveBeenCalled();
+      expect(mockedPlansService.prototype.getPlanById).toHaveBeenCalledWith(1);
 
       expect(
         mockedMembersService.prototype.getUsersByProject,
       ).toHaveBeenCalled();
       expect(
         mockedMembersService.prototype.getUsersByProject,
+      ).toHaveBeenCalledWith(1);
+
+      expect(
+        mockedProjectFieldService.prototype.getFieldsByProject,
+      ).toHaveBeenCalled();
+      expect(
+        mockedProjectFieldService.prototype.getFieldsByProject,
       ).toHaveBeenCalledWith(1);
     });
 
@@ -408,58 +386,85 @@ describe('ProjectsService', () => {
         videoUrl: 'http://example.com',
         content: 'test',
       };
-      projectsRepository.findOne.mockResolvedValue(mockProject);
-      mockedPlansService.prototype.getConfirmedPlanById.mockResolvedValue(
-        undefined,
-      );
-      mockedReportsService.prototype.getConfirmedReportById.mockResolvedValue(
+      mockedReportsService.prototype.getReportById.mockResolvedValue(
         mockReport,
       );
-      mockedMembersService.prototype.getUsersByProject.mockResolvedValue(
-        mockMembers,
-      );
 
-      const res = await service.getDetail(1);
+      const res = await service.getReportDetail(1);
 
       const mockReportResult: ReportDetailDto = {
-        video_url: 'http://example.com',
-        content: 'test',
-      };
-
-      const mockResult: ProjectDetailDto = {
+        project_id: 1,
         project_name: 'test',
+        project_type: 'test',
+        is_individual: false,
         writer: 'test',
         members: [{ name: 'test', role: 'test' }],
-        report: mockReportResult,
+        fields: ['test'],
+        report: {
+          content: 'test',
+        },
       };
-      expect(res).toEqual(mockResult);
 
-      expect(
-        mockedPlansService.prototype.getConfirmedPlanById,
-      ).toHaveBeenCalled();
-      expect(
-        mockedPlansService.prototype.getConfirmedPlanById,
-      ).toHaveBeenCalledWith(1);
+      expect(res).toEqual(mockReportResult);
 
-      expect(
-        mockedReportsService.prototype.getConfirmedReportById,
-      ).toHaveBeenCalled();
-      expect(
-        mockedReportsService.prototype.getConfirmedReportById,
-      ).toHaveBeenCalledWith(1);
+      expect(mockedReportsService.prototype.getReportById).toHaveBeenCalled();
+      expect(mockedReportsService.prototype.getReportById).toHaveBeenCalledWith(
+        1,
+      );
 
       expect(
         mockedMembersService.prototype.getUsersByProject,
       ).toHaveBeenCalled();
       expect(
         mockedMembersService.prototype.getUsersByProject,
+      ).toHaveBeenCalledWith(1);
+
+      expect(
+        mockedProjectFieldService.prototype.getFieldsByProject,
+      ).toHaveBeenCalled();
+      expect(
+        mockedProjectFieldService.prototype.getFieldsByProject,
       ).toHaveBeenCalledWith(1);
     });
 
-    it('should throw NotFoundException', async () => {
-      projectsRepository.findOne.mockResolvedValue(undefined);
+    it('should throw NotFoundException(project is not exsist)', async () => {
+      mockedStatusService.prototype.getStatusById.mockResolvedValue(undefined);
       try {
-        await service.getDetail(1);
+        await service.getPlanDetail(1);
+      } catch (e) {
+        expect(e).toBeInstanceOf(NotFoundException);
+      }
+    });
+    it('should throw NotFoundException(plan is not submitted)', async () => {
+      const mockStatus: Status = {
+        projectId: mockProject,
+        isPlanSubmitted: false,
+        isReportSubmitted: false,
+        planSubmittedAt: null,
+        reportSubmittedAt: null,
+        isPlanAccepted: null,
+        isReportAccepted: null,
+      };
+      mockedStatusService.prototype.getStatusById.mockResolvedValue(mockStatus);
+      try {
+        await service.getPlanDetail(1);
+      } catch (e) {
+        expect(e).toBeInstanceOf(NotFoundException);
+      }
+    });
+    it('should throw NotFoundException(report is not submitted)', async () => {
+      const mockStatus: Status = {
+        projectId: mockProject,
+        isPlanSubmitted: false,
+        isReportSubmitted: false,
+        planSubmittedAt: null,
+        reportSubmittedAt: null,
+        isPlanAccepted: null,
+        isReportAccepted: null,
+      };
+      mockedStatusService.prototype.getStatusById.mockResolvedValue(mockStatus);
+      try {
+        await service.getReportDetail(1);
       } catch (e) {
         expect(e).toBeInstanceOf(NotFoundException);
       }
@@ -503,7 +508,8 @@ describe('ProjectsService', () => {
 
       const mockProjectItem: ProjectItem = {
         id: 1,
-        type: 'test',
+        project_type: 'test',
+        is_individual: false,
         title: 'test',
         team_name: 'test',
         fields: ['test'],
@@ -612,7 +618,8 @@ describe('ProjectsService', () => {
 
         const mockProjectItem: ProjectItem = {
           id: 1,
-          type: 'test',
+          project_type: 'test',
+          is_individual: false,
           title: 'test',
           team_name: 'test',
           fields: ['test'],
@@ -711,7 +718,8 @@ describe('ProjectsService', () => {
 
         const mockProjectItem: ProjectItem = {
           id: 1,
-          type: 'test',
+          project_type: 'test',
+          is_individual: false,
           title: 'test',
           team_name: 'test',
           fields: ['test'],
@@ -836,9 +844,7 @@ describe('ProjectsService', () => {
           '[RMS] 계획서 승인 알림 메일입니다.',
           'planApproved',
           {
-            writerName: 'test',
             projectName: 'test',
-            teacher: 'test',
             comment: 'test',
           },
         );
@@ -908,9 +914,7 @@ describe('ProjectsService', () => {
           '[RMS] 계획서 거절 알림 메일입니다.',
           'planDenied',
           {
-            writerName: 'test',
             projectName: 'test',
-            teacher: 'test',
             comment: 'test',
           },
         );
@@ -1067,9 +1071,7 @@ describe('ProjectsService', () => {
           '[RMS] 보고서 승인 알림 메일입니다.',
           'reportApproved',
           {
-            writerName: 'test',
             projectName: 'test',
-            teacher: 'test',
             comment: 'test',
           },
         );
@@ -1139,9 +1141,7 @@ describe('ProjectsService', () => {
           '[RMS] 보고서 거절 알림 메일입니다.',
           'reportDenied',
           {
-            writerName: 'test',
             projectName: 'test',
-            teacher: 'test',
             comment: 'test',
           },
         );

@@ -17,7 +17,6 @@ import {
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
-  ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -29,15 +28,17 @@ import {
   ConfirmProjectBodyDto,
   ConfirmProjectParamDto,
 } from './dto/request/confirmProject.dto';
-import { ProjectDetailDto } from './dto/response/projectDetail.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { NoContentInterceptor } from 'src/utils/interceptors/NoContent.interceptor';
 import { ProjectsService } from './projects.service';
 import { PendingProjectsDto } from './dto/request/pendingProjects.dto';
 import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
+import { ProjectDetailDto } from './dto/request/projectDetail.dto';
+import { PlanDetailDto } from './dto/response/planDetail.dto';
+import { ReportDetailDto } from './dto/response/reportDetail.dto';
 
-@Controller({ host: 'admin-api.dsm-rms.com', path: 'projects' })
+@Controller({ host: process.env.ADMIN_API_BASE_URL, path: 'projects' })
 @ApiTags('프로젝트 API')
 @Roles(Role.Admin)
 @UseGuards(RolesGuard)
@@ -96,23 +97,34 @@ export class ProjectsController {
     return this.projectsService.search(payload);
   }
 
-  @Get(':projectId')
-  @UseInterceptors(NoContentInterceptor)
-  @ApiOperation({ summary: '프로젝트 상세 보기' })
-  @ApiParam({ name: 'projectId', type: 'number' })
+  @Get(':projectId/plan')
+  @ApiOperation({ summary: '계획서 상세 보기' })
   @ApiOkResponse({
     description: '요청이 정상적으로 완료됨',
-    type: ProjectDetailDto,
-  })
-  @ApiNoContentResponse({
-    description:
-      '요청은 정상적이나, 계획서와 보고서가 존재하지 않는 프로젝트임.',
+    type: PlanDetailDto,
   })
   @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
   @ApiForbiddenResponse({ description: '권한이 없음' })
-  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
-  projectDetail(@Param('projectId') projectId: number) {
-    return this.projectsService.getDetail(projectId);
+  @ApiNotFoundResponse({
+    description: '프로젝트를 찾을 수 없거나 계획서가 제출되지 않았음',
+  })
+  planDetail(@Param() payload: ProjectDetailDto) {
+    return this.projectsService.getPlanDetail(payload.projectId);
+  }
+
+  @Get(':projectId/report')
+  @ApiOperation({ summary: '보고서 상세 보기' })
+  @ApiOkResponse({
+    description: '요청이 정상적으로 완료됨',
+    type: ReportDetailDto,
+  })
+  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
+  @ApiForbiddenResponse({ description: '권한이 없음' })
+  @ApiNotFoundResponse({
+    description: '프로젝트를 찾을 수 없거나 보고서가 제출되지 않았음',
+  })
+  reportDetail(@Param() payload: ProjectDetailDto) {
+    return this.projectsService.getReportDetail(payload.projectId);
   }
 
   @Get('confirmed')

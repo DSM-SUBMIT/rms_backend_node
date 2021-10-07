@@ -31,7 +31,7 @@ import { Roles } from '../utils/decorators/roles.decorator';
 import { Role } from '../utils/enums/role.enum';
 import { FilesService } from './files.service';
 
-@Controller({ host: 'files-api.dsm-rms.com', path: 'files' })
+@Controller({ host: process.env.FILE_API_BASE_URL, path: 'files' })
 @ApiTags('파일 API')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
@@ -113,80 +113,6 @@ export class FilesController {
     @Param('imageName') imageName: string,
   ) {
     return this.filesService.getImage(req, projectId, imageName);
-  }
-
-  @Post(':projectId/video')
-  @Roles(Role.User)
-  @UseGuards(RolesGuard)
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('video'))
-  @ApiOperation({ summary: '시연 영상 업로드' })
-  @ApiConsumes('multipart/form-data')
-  @ApiParam({ name: 'projectId', type: 'number' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        video: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
-  })
-  @ApiBearerAuth()
-  @ApiCreatedResponse({
-    description: '요청이 정상적으로 완료됨',
-  })
-  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
-  @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
-  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
-  @ApiConflictResponse({ description: '이미 동영상 파일이 업로드되어 있음' })
-  uploadVideo(
-    @UploadedFile() file: Express.MulterS3.File,
-    @Request() req,
-    @Param('projectId') projectId: number,
-  ) {
-    return this.filesService.uploadVideo(file, req.user.userId, projectId);
-  }
-
-  @Delete(':projectId/video')
-  @Roles(Role.User)
-  @UseGuards(RolesGuard)
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: '시연 영상 삭제' })
-  @ApiParam({ name: 'projectId', type: 'number' })
-  @ApiBearerAuth()
-  @ApiOkResponse({ description: '요청이 정상적으로 완료됨' })
-  @ApiUnauthorizedResponse({ description: '토큰이 올바르지 않음' })
-  @ApiForbiddenResponse({ description: '권한이 존재하지 않음' })
-  @ApiNotFoundResponse({ description: '프로젝트를 찾을 수 없음' })
-  deleteVideo(@Request() req, @Param('projectId') projectId: number) {
-    return this.filesService.deleteVideo(req.user.userId, projectId);
-  }
-
-  @Get(':projectId/video')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: '시연 영상 다운로드' })
-  @ApiParam({ name: 'projectId', type: 'number' })
-  @ApiBearerAuth()
-  @ApiProduces('multipart/form-data')
-  @ApiOkResponse({
-    description: '요청이 정상적으로 완료됨',
-    schema: {
-      type: 'file',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
-  })
-  @ApiUnauthorizedResponse()
-  @ApiNotFoundResponse()
-  getVideo(@Request() req, @Param('projectId') projectId: number) {
-    return this.filesService.getVideo(req, projectId);
   }
 
   @Post(':projectId/archive')

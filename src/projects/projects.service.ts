@@ -18,9 +18,11 @@ import { PlansService } from 'src/shared/plans/plans.service';
 import { ReportsService } from 'src/shared/reports/reports.service';
 import { MembersService } from 'src/shared/members/members.service';
 import { MailService } from 'src/mail/mail.service';
-import { ProjectDetailDto } from './dto/response/projectDetail.dto';
 import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
+import { PlanDetailDto } from './dto/response/planDetail.dto';
+import { ReportDetailDto } from './dto/response/reportDetail.dto';
+import { ProjectFieldService } from 'src/shared/projectField/projectField.service';
 
 @Injectable()
 export class ProjectsService {
@@ -30,6 +32,7 @@ export class ProjectsService {
     private readonly mailService: MailService,
     private readonly membersService: MembersService,
     private readonly plansService: PlansService,
+    private readonly projectFieldService: ProjectFieldService,
     private readonly reportsService: ReportsService,
     private readonly statusService: StatusService,
   ) {}
@@ -53,9 +56,7 @@ export class ProjectsService {
               '[RMS] 계획서 승인 알림 메일입니다.',
               'planApproved',
               {
-                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
-                teacher: status.projectId.teacher,
                 comment: bodyPayload.comment,
               },
             );
@@ -68,9 +69,7 @@ export class ProjectsService {
               '[RMS] 계획서 거절 알림 메일입니다.',
               'planDenied',
               {
-                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
-                teacher: status.projectId.teacher,
                 comment: bodyPayload.comment,
               },
             );
@@ -93,9 +92,7 @@ export class ProjectsService {
               '[RMS] 보고서 승인 알림 메일입니다.',
               'reportApproved',
               {
-                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
-                teacher: status.projectId.teacher,
                 comment: bodyPayload.comment,
               },
             );
@@ -108,9 +105,7 @@ export class ProjectsService {
               '[RMS] 보고서 거절 알림 메일입니다.',
               'reportDenied',
               {
-                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
-                teacher: status.projectId.teacher,
                 comment: bodyPayload.comment,
               },
             );
@@ -138,7 +133,8 @@ export class ProjectsService {
           const project = s.projectId;
           const projectItem: ProjectItem = {
             id: project.id,
-            type: project.projectType,
+            project_type: project.projectType,
+            is_individual: project.projectType === 'PERS',
             title: project.projectName,
             team_name: project.teamName,
             fields: [],
@@ -167,7 +163,8 @@ export class ProjectsService {
           const project = s.projectId;
           const projectItem: ProjectItem = {
             id: project.id,
-            type: project.projectType,
+            project_type: project.projectType,
+            is_individual: project.projectType === 'PERS',
             title: project.projectName,
             team_name: project.teamName,
             fields: [],
@@ -202,7 +199,8 @@ export class ProjectsService {
     for (const p of projects) {
       const projectItem: ProjectItem = {
         id: p.id,
-        type: p.projectType,
+        project_type: p.projectType,
+        is_individual: p.projectType === 'PERS',
         title: p.projectName,
         team_name: p.teamName,
         fields: [],
@@ -225,22 +223,24 @@ export class ProjectsService {
     return response;
   }
 
-  async getDetail(projectId: number) {
-    const project = await this.getProject(projectId);
-    if (!project) throw new NotFoundException();
-    const plan = await this.plansService.getConfirmedPlanById(projectId);
-    const report = await this.reportsService.getConfirmedReportById(projectId);
+  async getPlanDetail(projectId: number): Promise<PlanDetailDto> {
+    const status = await this.statusService.getStatusById(projectId);
+    if (!status || !status.isPlanSubmitted) throw new NotFoundException();
+    const plan = await this.plansService.getPlanById(projectId);
     const members = await this.membersService.getUsersByProject(projectId);
-    const projectDetail: ProjectDetailDto = {
-      project_name: project.projectName,
-      writer: project.writerId.name,
-      members: members.map((member) => {
-        return { name: member.userId.name, role: member.role };
-      }),
-    };
-
-    if (plan) {
-      projectDetail.plan = {
+    const fields = await this.projectFieldService.getFieldsByProject(projectId);
+    return {
+      project_id: status.projectId.id,
+      project_name: status.projectId.projectName,
+      project_type: status.projectId.projectType,
+      is_individual: status.projectId.projectType === 'PERS',
+      writer: status.projectId.writerId.name,
+      members: members.map((member) => ({
+        name: member.userId.name,
+        role: member.role,
+      })),
+      fields: fields.map((field) => field.fieldId.field),
+      plan: {
         goal: plan.goal,
         content: plan.content,
         start_date: plan.startDate,
@@ -249,18 +249,33 @@ export class ProjectsService {
           result_report: plan.includeResultReport,
           code: plan.includeCode,
           outcome: plan.includeOutcome,
-          others: Boolean(plan.includeOthers),
-          others_content: plan.includeOthers ? plan.includeOthers : '',
+          others: Boolean(plan.includeOthers) ? plan.includeOthers : false,
         },
-      };
-    }
-    if (report) {
-      projectDetail.report = {
-        video_url: report.videoUrl,
+      },
+    };
+  }
+
+  async getReportDetail(projectId: number): Promise<ReportDetailDto> {
+    const status = await this.statusService.getStatusById(projectId);
+    if (!status || !status.isReportSubmitted) throw new NotFoundException();
+    const report = await this.reportsService.getReportById(projectId);
+    const members = await this.membersService.getUsersByProject(projectId);
+    const fields = await this.projectFieldService.getFieldsByProject(projectId);
+    return {
+      project_id: status.projectId.id,
+      project_name: status.projectId.projectName,
+      project_type: status.projectId.projectType,
+      is_individual: status.projectId.projectType === 'PERS',
+      writer: status.projectId.writerId.name,
+      members: members.map((member) => ({
+        name: member.userId.name,
+        role: member.role,
+      })),
+      fields: fields.map((field) => field.fieldId.field),
+      report: {
         content: report.content,
-      };
-    }
-    return projectDetail;
+      },
+    };
   }
 
   async getConfirmed(payload: ConfirmedProjectsDto) {
@@ -279,7 +294,8 @@ export class ProjectsService {
     for (const p of projects) {
       const projectItem: ProjectItem = {
         id: p.id,
-        type: p.projectType,
+        project_type: p.projectType,
+        is_individual: p.projectType === 'PERS',
         title: p.projectName,
         team_name: p.teamName,
         fields: [],
