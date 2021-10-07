@@ -212,7 +212,8 @@ describe('ProjectsService', () => {
 
       const mockProjectItem: ProjectItem = {
         id: 1,
-        type: 'test',
+        project_type: 'test',
+        is_individual: false,
         title: 'test',
         team_name: 'test',
         fields: ['test'],
@@ -339,7 +340,10 @@ describe('ProjectsService', () => {
       const res = await service.getPlanDetail(1);
 
       const mockPlanResult: PlanDetailDto = {
+        project_id: 1,
         project_name: 'test',
+        project_type: 'test',
+        is_individual: false,
         writer: 'test',
         members: [{ name: 'test', role: 'test' }],
         fields: ['test'],
@@ -389,7 +393,10 @@ describe('ProjectsService', () => {
       const res = await service.getReportDetail(1);
 
       const mockReportResult: ReportDetailDto = {
+        project_id: 1,
         project_name: 'test',
+        project_type: 'test',
+        is_individual: false,
         writer: 'test',
         members: [{ name: 'test', role: 'test' }],
         fields: ['test'],
@@ -501,7 +508,8 @@ describe('ProjectsService', () => {
 
       const mockProjectItem: ProjectItem = {
         id: 1,
-        type: 'test',
+        project_type: 'test',
+        is_individual: false,
         title: 'test',
         team_name: 'test',
         fields: ['test'],
@@ -610,7 +618,8 @@ describe('ProjectsService', () => {
 
         const mockProjectItem: ProjectItem = {
           id: 1,
-          type: 'test',
+          project_type: 'test',
+          is_individual: false,
           title: 'test',
           team_name: 'test',
           fields: ['test'],
@@ -709,7 +718,8 @@ describe('ProjectsService', () => {
 
         const mockProjectItem: ProjectItem = {
           id: 1,
-          type: 'test',
+          project_type: 'test',
+          is_individual: false,
           title: 'test',
           team_name: 'test',
           fields: ['test'],
@@ -834,9 +844,7 @@ describe('ProjectsService', () => {
           '[RMS] 계획서 승인 알림 메일입니다.',
           'planApproved',
           {
-            writerName: 'test',
             projectName: 'test',
-            teacher: 'test',
             comment: 'test',
           },
         );
@@ -906,9 +914,7 @@ describe('ProjectsService', () => {
           '[RMS] 계획서 거절 알림 메일입니다.',
           'planDenied',
           {
-            writerName: 'test',
             projectName: 'test',
-            teacher: 'test',
             comment: 'test',
           },
         );
@@ -1065,9 +1071,7 @@ describe('ProjectsService', () => {
           '[RMS] 보고서 승인 알림 메일입니다.',
           'reportApproved',
           {
-            writerName: 'test',
             projectName: 'test',
-            teacher: 'test',
             comment: 'test',
           },
         );
@@ -1137,9 +1141,7 @@ describe('ProjectsService', () => {
           '[RMS] 보고서 거절 알림 메일입니다.',
           'reportDenied',
           {
-            writerName: 'test',
             projectName: 'test',
-            teacher: 'test',
             comment: 'test',
           },
         );

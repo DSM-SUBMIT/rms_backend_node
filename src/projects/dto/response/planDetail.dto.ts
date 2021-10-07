@@ -44,8 +44,14 @@ class PlanDetail {
 }
 
 export class PlanDetailDto {
+  @ApiProperty({ description: '프로젝트 ID' })
+  project_id: number;
   @ApiProperty({ description: '프로젝트명' })
   project_name: string;
+  @ApiProperty({ description: '프로젝트 종류' })
+  project_type: string;
+  @ApiProperty({ description: '개인 프로젝트 여부' })
+  is_individual: boolean;
   @ApiProperty({ description: '작성자명' })
   writer: string;
   @ApiProperty({ description: '프로젝트 인원 목록', type: [Members] })

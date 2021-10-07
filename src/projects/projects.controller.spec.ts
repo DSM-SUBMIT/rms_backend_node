@@ -78,7 +78,8 @@ describe('ProjectsController', () => {
     it('should return list of projects', async () => {
       const mockProjectItem: ProjectItem = {
         id: 1,
-        type: 'test',
+        project_type: 'test',
+        is_individual: true,
         title: 'test',
         team_name: 'test',
         fields: ['test'],
@@ -116,7 +117,8 @@ describe('ProjectsController', () => {
     it('should return list of projects', async () => {
       const mockProjectItem: ProjectItem = {
         id: 1,
-        type: 'test',
+        project_type: 'test',
+        is_individual: true,
         title: 'test',
         team_name: 'test',
         fields: ['test'],
@@ -151,7 +153,10 @@ describe('ProjectsController', () => {
   describe('planDetail', () => {
     it('should return list of projects', async () => {
       const mockPlanDetail: PlanDetailDto = {
+        project_id: 1,
         project_name: 'test',
+        project_type: 'test',
+        is_individual: true,
         writer: 'test',
         members: [],
         fields: [],
@@ -187,7 +192,10 @@ describe('ProjectsController', () => {
   describe('reportDetail', () => {
     it('should return list of projects', async () => {
       const mockReportDetail: ReportDetailDto = {
+        project_id: 1,
         project_name: 'test',
+        project_type: 'test',
+        is_individual: true,
         writer: 'test',
         members: [],
         fields: [],
@@ -216,7 +224,8 @@ describe('ProjectsController', () => {
     it('should return list of projects', async () => {
       const mockProjectItem: ProjectItem = {
         id: 1,
-        type: 'test',
+        project_type: 'test',
+        is_individual: true,
         title: 'test',
         team_name: 'test',
         fields: ['test'],
