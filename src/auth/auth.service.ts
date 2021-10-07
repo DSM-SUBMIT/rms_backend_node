@@ -56,7 +56,13 @@ export class AuthService {
       role: string;
       iat: number;
       exp: number;
-    } = await this.jwtService.verifyAsync(token);
+    } = await (async () => {
+      try {
+        return await this.jwtService.verifyAsync(token);
+      } catch (e) {
+        throw new UnauthorizedException();
+      }
+    })();
     const cache = await this.cacheManager.get<string>(payload.sub);
     if (cache !== token) throw new UnauthorizedException();
     const isValid = Boolean(await this.adminsRepository.findOne(payload.sub));

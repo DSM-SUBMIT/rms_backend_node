@@ -27,7 +27,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { AccessTokenDto } from './dto/response/accessToken.dto';
 import { RefreshDto } from './dto/request/refresh.dto';
 
-@Controller({ host: 'admin-api.dsm-rms.com', path: 'auth' })
+@Controller({ host: process.env.ADMIN_API_BASE_URL, path: 'auth' })
 @ApiTags('인증 API')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
