@@ -51,12 +51,13 @@ export class AuthService {
   }
 
   async refresh(token: string): Promise<AccessTokenDto> {
-    const payload: {
+    interface Payload {
       sub: string;
       role: string;
       iat: number;
       exp: number;
-    } = await (async () => {
+    }
+    const payload: Payload = await (async (): Promise<Payload> => {
       try {
         return await this.jwtService.verifyAsync(token);
       } catch (e) {
