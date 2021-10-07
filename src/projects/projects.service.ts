@@ -56,9 +56,7 @@ export class ProjectsService {
               '[RMS] 계획서 승인 알림 메일입니다.',
               'planApproved',
               {
-                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
-                teacher: status.projectId.teacher,
                 comment: bodyPayload.comment,
               },
             );
@@ -71,9 +69,7 @@ export class ProjectsService {
               '[RMS] 계획서 거절 알림 메일입니다.',
               'planDenied',
               {
-                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
-                teacher: status.projectId.teacher,
                 comment: bodyPayload.comment,
               },
             );
@@ -96,9 +92,7 @@ export class ProjectsService {
               '[RMS] 보고서 승인 알림 메일입니다.',
               'reportApproved',
               {
-                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
-                teacher: status.projectId.teacher,
                 comment: bodyPayload.comment,
               },
             );
@@ -111,9 +105,7 @@ export class ProjectsService {
               '[RMS] 보고서 거절 알림 메일입니다.',
               'reportDenied',
               {
-                writerName: status.projectId.writerId.name,
                 projectName: status.projectId.projectName,
-                teacher: status.projectId.teacher,
                 comment: bodyPayload.comment,
               },
             );
@@ -141,7 +133,8 @@ export class ProjectsService {
           const project = s.projectId;
           const projectItem: ProjectItem = {
             id: project.id,
-            type: project.projectType,
+            project_type: project.projectType,
+            is_individual: project.projectType === 'PERS',
             title: project.projectName,
             team_name: project.teamName,
             fields: [],
@@ -170,7 +163,8 @@ export class ProjectsService {
           const project = s.projectId;
           const projectItem: ProjectItem = {
             id: project.id,
-            type: project.projectType,
+            project_type: project.projectType,
+            is_individual: project.projectType === 'PERS',
             title: project.projectName,
             team_name: project.teamName,
             fields: [],
@@ -205,7 +199,8 @@ export class ProjectsService {
     for (const p of projects) {
       const projectItem: ProjectItem = {
         id: p.id,
-        type: p.projectType,
+        project_type: p.projectType,
+        is_individual: p.projectType === 'PERS',
         title: p.projectName,
         team_name: p.teamName,
         fields: [],
@@ -237,6 +232,8 @@ export class ProjectsService {
     return {
       project_id: status.projectId.id,
       project_name: status.projectId.projectName,
+      project_type: status.projectId.projectType,
+      is_individual: status.projectId.projectType === 'PERS',
       writer: status.projectId.writerId.name,
       members: members.map((member) => ({
         name: member.userId.name,
@@ -267,6 +264,8 @@ export class ProjectsService {
     return {
       project_id: status.projectId.id,
       project_name: status.projectId.projectName,
+      project_type: status.projectId.projectType,
+      is_individual: status.projectId.projectType === 'PERS',
       writer: status.projectId.writerId.name,
       members: members.map((member) => ({
         name: member.userId.name,
@@ -295,7 +294,8 @@ export class ProjectsService {
     for (const p of projects) {
       const projectItem: ProjectItem = {
         id: p.id,
-        type: p.projectType,
+        project_type: p.projectType,
+        is_individual: p.projectType === 'PERS',
         title: p.projectName,
         team_name: p.teamName,
         fields: [],
