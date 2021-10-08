@@ -19,18 +19,16 @@ export class Project {
     name: 'project_name',
     type: 'varchar',
     length: 45,
-    nullable: false,
   })
   projectName: string;
 
-  @Column({ name: 'team_name', type: 'varchar', length: 30, nullable: false })
+  @Column({ name: 'team_name', type: 'varchar', length: 30 })
   teamName: string;
 
   @Column({
     name: 'tech_stacks',
     type: 'varchar',
     length: 100,
-    nullable: false,
   })
   techStacks: string;
 
@@ -43,7 +41,6 @@ export class Project {
     name: 'project_type',
     type: 'varchar',
     length: 45,
-    nullable: false,
   })
   projectType: string;
 
