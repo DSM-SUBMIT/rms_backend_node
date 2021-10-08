@@ -13,6 +13,9 @@ export class User {
   @Column({ type: 'varchar', length: 6, unique: true })
   name: string;
 
+  @Column({ name: 'student_number', type: 'int', nullable: true })
+  studentNumber: number;
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @OneToMany((type) => Project, (project) => project.id)
   projects: Project[];
