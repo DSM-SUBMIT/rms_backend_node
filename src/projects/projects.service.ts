@@ -235,6 +235,7 @@ export class ProjectsService {
       project_type: status.projectId.projectType,
       is_individual: status.projectId.projectType === 'PERS',
       writer: status.projectId.writerId.name,
+      writer_number: status.projectId.writerId.studentNumber,
       members: members.map((member) => ({
         name: member.userId.name,
         role: member.role,
@@ -267,6 +268,7 @@ export class ProjectsService {
       project_type: status.projectId.projectType,
       is_individual: status.projectId.projectType === 'PERS',
       writer: status.projectId.writerId.name,
+      writer_number: status.projectId.writerId.studentNumber,
       members: members.map((member) => ({
         name: member.userId.name,
         role: member.role,
