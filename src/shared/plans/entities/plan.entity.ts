@@ -10,33 +10,33 @@ export class Plan {
   })
   projectId: Project;
 
-  @Column({ type: 'varchar', length: 4000, nullable: false })
+  @Column({ type: 'varchar', length: 4000, nullable: true })
   goal: string;
 
-  @Column({ type: 'varchar', length: 10000, nullable: false })
+  @Column({ type: 'varchar', length: 10000, nullable: true })
   content: string;
 
-  @Column({ name: 'start_date', type: 'char', length: 7, nullable: false })
+  @Column({ name: 'start_date', type: 'char', length: 7, nullable: true })
   startDate: string;
 
-  @Column({ name: 'end_date', type: 'char', length: 7 })
+  @Column({ name: 'end_date', type: 'char', length: 7, nullable: true })
   endDate: string;
 
   @Column({
     name: 'include_result_report',
-    nullable: false,
+    nullable: true,
   })
   includeResultReport: boolean;
 
   @Column({
     name: 'include_code',
-    nullable: false,
+    nullable: true,
   })
   includeCode: boolean;
 
   @Column({
     name: 'include_outcome',
-    nullable: false,
+    nullable: true,
   })
   includeOutcome: boolean;
 
@@ -46,5 +46,5 @@ export class Plan {
     length: 30,
     nullable: true,
   })
-  includeOthers!: string;
+  includeOthers: string;
 }
