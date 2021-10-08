@@ -158,6 +158,7 @@ describe('ProjectsController', () => {
         project_type: 'test',
         is_individual: true,
         writer: 'test',
+        writer_number: 2400,
         members: [],
         fields: [],
         plan: {
@@ -197,6 +198,7 @@ describe('ProjectsController', () => {
         project_type: 'test',
         is_individual: true,
         writer: 'test',
+        writer_number: 2400,
         members: [],
         fields: [],
         report: {

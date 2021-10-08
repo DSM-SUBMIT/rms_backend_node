@@ -350,6 +350,7 @@ describe('ProjectsService', () => {
         project_type: 'test',
         is_individual: false,
         writer: 'test',
+        writer_number: 2400,
         members: [{ name: 'test', role: 'test' }],
         fields: ['test'],
         plan: {
@@ -403,6 +404,7 @@ describe('ProjectsService', () => {
         project_type: 'test',
         is_individual: false,
         writer: 'test',
+        writer_number: 2400,
         members: [{ name: 'test', role: 'test' }],
         fields: ['test'],
         report: {
