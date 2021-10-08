@@ -12,13 +12,11 @@ export class Status {
 
   @Column({
     name: 'is_plan_submitted',
-    nullable: false,
   })
   isPlanSubmitted: boolean;
 
   @Column({
     name: 'is_report_submitted',
-    nullable: false,
   })
   isReportSubmitted: boolean;
 

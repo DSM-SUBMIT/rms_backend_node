@@ -7,10 +7,10 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 30, unique: true, nullable: false })
+  @Column({ type: 'varchar', length: 30, unique: true })
   email: string;
 
-  @Column({ type: 'varchar', length: 6, unique: true, nullable: false })
+  @Column({ type: 'varchar', length: 6, unique: true })
   name: string;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
