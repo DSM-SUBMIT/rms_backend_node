@@ -35,4 +35,4 @@
 **/!.vscode/extensions.json
 
 # Environment
-.env
+**/*.env
