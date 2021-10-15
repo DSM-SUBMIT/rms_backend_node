@@ -8,6 +8,7 @@ import { ProjectsModule } from './projects/projects.module';
 import * as Sentry from '@sentry/node';
 import * as helmet from 'helmet';
 import { SentryInterceptor } from './utils/interceptors/sentry.interceptor';
+import { CacheControlInterceptor } from './utils/interceptors/CacheControl.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -26,6 +27,8 @@ async function bootstrap() {
       disableErrorMessages: true,
     }),
   );
+
+  app.useGlobalInterceptors(new CacheControlInterceptor());
 
   const fileSwaggerConfig = new DocumentBuilder()
     .setTitle('RMS File API document')

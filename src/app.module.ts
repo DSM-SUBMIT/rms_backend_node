@@ -15,6 +15,7 @@ import { ProjectField } from './shared/projectField/entities/projectField.entity
 import { ProjectsModule } from './projects/projects.module';
 import { LoggerMiddleware } from './utils/middlewares/logger.middleware';
 import { connectionOptions } from './ormconfig';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { connectionOptions } from './ormconfig';
     AuthModule,
     FilesModule,
     ProjectsModule,
+    HealthModule,
   ],
   controllers: [],
   providers: [],
