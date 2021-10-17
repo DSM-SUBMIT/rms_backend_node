@@ -129,7 +129,7 @@ export class ProjectsService {
         const [status, count] =
           await this.statusService.getStatusDescByPlanDate(limit, page);
         if (!count) return;
-        for await (const s of status) {
+        for (const s of status) {
           const project = s.projectId;
           const projectItem: ProjectItem = {
             id: project.id,
@@ -159,7 +159,7 @@ export class ProjectsService {
         const [status, count] =
           await this.statusService.getStatusDescByReportDate(limit, page);
         if (!count) return;
-        for await (const s of status) {
+        for (const s of status) {
           const project = s.projectId;
           const projectItem: ProjectItem = {
             id: project.id,
@@ -226,9 +226,17 @@ export class ProjectsService {
   async getPlanDetail(projectId: number): Promise<PlanDetailDto> {
     const status = await this.statusService.getStatusById(projectId);
     if (!status || !status.isPlanSubmitted) throw new NotFoundException();
-    const plan = await this.plansService.getPlanById(projectId);
-    const members = await this.membersService.getUsersByProject(projectId);
-    const fields = await this.projectFieldService.getFieldsByProject(projectId);
+
+    const res = await Promise.all([
+      this.plansService.getPlanById(projectId),
+      this.membersService.getUsersByProject(projectId),
+      this.projectFieldService.getFieldsByProject(projectId),
+    ]);
+
+    const plan = res[0];
+    const members = res[1];
+    const fields = res[2];
+
     return {
       project_id: status.projectId.id,
       project_name: status.projectId.projectName,
@@ -259,9 +267,17 @@ export class ProjectsService {
   async getReportDetail(projectId: number): Promise<ReportDetailDto> {
     const status = await this.statusService.getStatusById(projectId);
     if (!status || !status.isReportSubmitted) throw new NotFoundException();
-    const report = await this.reportsService.getReportById(projectId);
-    const members = await this.membersService.getUsersByProject(projectId);
-    const fields = await this.projectFieldService.getFieldsByProject(projectId);
+
+    const res = await Promise.all([
+      this.reportsService.getReportById(projectId),
+      this.membersService.getUsersByProject(projectId),
+      this.projectFieldService.getFieldsByProject(projectId),
+    ]);
+
+    const report = res[0];
+    const members = res[1];
+    const fields = res[2];
+
     return {
       project_id: status.projectId.id,
       project_name: status.projectId.projectName,
@@ -320,7 +336,7 @@ export class ProjectsService {
   }
 
   async findLike(query: string, limit: number, page: number) {
-    return await this.projectsRepository.findAndCount({
+    return this.projectsRepository.findAndCount({
       where: { projectName: Like(`%${query}%`) },
       take: limit,
       skip: limit * (page - 1),
@@ -329,7 +345,7 @@ export class ProjectsService {
   }
 
   async getProject(id: number): Promise<Project> {
-    return await this.projectsRepository.findOne(id, {
+    return this.projectsRepository.findOne(id, {
       relations: ['writerId'],
     });
   }
