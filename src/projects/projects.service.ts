@@ -226,9 +226,17 @@ export class ProjectsService {
   async getPlanDetail(projectId: number): Promise<PlanDetailDto> {
     const status = await this.statusService.getStatusById(projectId);
     if (!status || !status.isPlanSubmitted) throw new NotFoundException();
-    const plan = await this.plansService.getPlanById(projectId);
-    const members = await this.membersService.getUsersByProject(projectId);
-    const fields = await this.projectFieldService.getFieldsByProject(projectId);
+
+    const res = await Promise.all([
+      this.plansService.getPlanById(projectId),
+      this.membersService.getUsersByProject(projectId),
+      this.projectFieldService.getFieldsByProject(projectId),
+    ]);
+
+    const plan = res[0];
+    const members = res[1];
+    const fields = res[2];
+
     return {
       project_id: status.projectId.id,
       project_name: status.projectId.projectName,
@@ -259,9 +267,17 @@ export class ProjectsService {
   async getReportDetail(projectId: number): Promise<ReportDetailDto> {
     const status = await this.statusService.getStatusById(projectId);
     if (!status || !status.isReportSubmitted) throw new NotFoundException();
-    const report = await this.reportsService.getReportById(projectId);
-    const members = await this.membersService.getUsersByProject(projectId);
-    const fields = await this.projectFieldService.getFieldsByProject(projectId);
+
+    const res = await Promise.all([
+      this.reportsService.getReportById(projectId),
+      this.membersService.getUsersByProject(projectId),
+      this.projectFieldService.getFieldsByProject(projectId),
+    ]);
+
+    const report = res[0];
+    const members = res[1];
+    const fields = res[2];
+
     return {
       project_id: status.projectId.id,
       project_name: status.projectId.projectName,
