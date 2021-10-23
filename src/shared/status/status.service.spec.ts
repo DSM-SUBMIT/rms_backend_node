@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Status } from './entities/status.entity';
 import { StatusService } from './status.service';
 
@@ -177,7 +177,7 @@ describe('StatusService', () => {
         isReportAccepted: true,
       };
       statusRepository.findAndCount.mockResolvedValue([[mockStatus], 1]);
-      const res = await service.getConfirmedStatus(8, 1);
+      const res = await service.getConfirmedStatus(8, 1, undefined);
 
       expect(res).toEqual([[mockStatus], 1]);
 
@@ -186,6 +186,7 @@ describe('StatusService', () => {
         where: {
           isPlanAccepted: true,
           isReportAccepted: true,
+          projectId: Not(IsNull()),
         },
         order: {
           planSubmittedAt: 'ASC',
