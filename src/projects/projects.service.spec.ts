@@ -32,7 +32,9 @@ import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { PendingProjectsDto } from './dto/request/pendingProjects.dto';
 import { PlanDetailDto } from './dto/response/planDetail.dto';
 import { ReportDetailDto } from './dto/response/reportDetail.dto';
+import { FieldsService } from 'src/shared/fields/fields.service';
 
+jest.mock('src/shared/fields/fields.service');
 jest.mock('src/mail/mail.service');
 jest.mock('src/shared/members/members.service');
 jest.mock('src/shared/plans/plans.service');
@@ -40,6 +42,7 @@ jest.mock('src/shared/projectField/projectField.service');
 jest.mock('src/shared/reports/reports.service');
 jest.mock('src/shared/status/status.service');
 
+const mockedFieldsService = mocked(FieldsService, true);
 const mockedStatusService = mocked(StatusService, true);
 const mockedPlansService = mocked(PlansService, true);
 const mockedProjectFieldService = mocked(ProjectFieldService, true);
@@ -66,6 +69,7 @@ describe('ProjectsService', () => {
           provide: getRepositoryToken(Project),
           useValue: mockedRepository(),
         },
+        FieldsService,
         MailService,
         MembersService,
         PlansService,
@@ -233,7 +237,7 @@ describe('ProjectsService', () => {
       ).toHaveBeenCalled();
       expect(
         mockedStatusService.prototype.getConfirmedStatus,
-      ).toHaveBeenCalledWith(8, 1);
+      ).toHaveBeenCalledWith(8, 1, undefined);
     });
 
     it('should return nothing', async () => {
@@ -256,7 +260,7 @@ describe('ProjectsService', () => {
       ).toHaveBeenCalled();
       expect(
         mockedStatusService.prototype.getConfirmedStatus,
-      ).toHaveBeenCalledWith(8, 1);
+      ).toHaveBeenCalledWith(8, 1, undefined);
     });
   });
 
