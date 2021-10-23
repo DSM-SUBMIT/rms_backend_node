@@ -25,6 +25,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       disableErrorMessages: true,
+      transform: true,
     }),
   );
 
