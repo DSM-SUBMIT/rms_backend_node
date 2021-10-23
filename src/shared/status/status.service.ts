@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { In, IsNull, Not, Repository } from 'typeorm';
 import { Status } from './entities/status.entity';
 
 @Injectable()
@@ -57,11 +57,13 @@ export class StatusService {
   async getConfirmedStatus(
     limit: number,
     page: number,
+    projectId: number[],
   ): Promise<[Status[], number]> {
     return await this.statusRepository.findAndCount({
       where: {
         isPlanAccepted: true,
         isReportAccepted: true,
+        projectId: projectId ? In(projectId) : Not(IsNull()),
       },
       order: {
         planSubmittedAt: 'ASC',
