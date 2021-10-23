@@ -23,12 +23,14 @@ import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
 import { PlanDetailDto } from './dto/response/planDetail.dto';
 import { ReportDetailDto } from './dto/response/reportDetail.dto';
 import { ProjectFieldService } from 'src/shared/projectField/projectField.service';
+import { FieldsService } from 'src/shared/fields/fields.service';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(Project)
     private readonly projectsRepository: Repository<Project>,
+    private readonly fieldsService: FieldsService,
     private readonly mailService: MailService,
     private readonly membersService: MembersService,
     private readonly plansService: PlansService,
@@ -297,10 +299,23 @@ export class ProjectsService {
   }
 
   async getConfirmed(payload: ConfirmedProjectsDto) {
-    const { limit, page } = payload;
+    console.log(typeof payload.field);
+    console.log(payload.field);
+    const { limit, page, field } = payload;
+    const matchedProject = field
+      ? await this.projectFieldService.getProjectsByField(
+          await this.fieldsService.getIdsByField(field),
+          limit,
+          page,
+        )
+      : undefined;
+
+    console.log(matchedProject);
+
     const [status, count] = await this.statusService.getConfirmedStatus(
       limit,
       page,
+      matchedProject,
     );
     if (!count) return;
 
