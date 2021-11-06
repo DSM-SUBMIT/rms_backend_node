@@ -51,12 +51,19 @@ export class AuthService {
   }
 
   async refresh(token: string): Promise<AccessTokenDto> {
-    const payload: {
+    interface Payload {
       sub: string;
       role: string;
       iat: number;
       exp: number;
-    } = await this.jwtService.verifyAsync(token);
+    }
+    const payload: Payload = await (async (): Promise<Payload> => {
+      try {
+        return await this.jwtService.verifyAsync(token);
+      } catch (e) {
+        throw new UnauthorizedException();
+      }
+    })();
     const cache = await this.cacheManager.get<string>(payload.sub);
     if (cache !== token) throw new UnauthorizedException();
     const isValid = Boolean(await this.adminsRepository.findOne(payload.sub));

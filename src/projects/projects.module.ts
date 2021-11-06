@@ -10,10 +10,12 @@ import { ReportsModule } from 'src/shared/reports/reports.module';
 import { MembersModule } from 'src/shared/members/members.module';
 import { MailModule } from 'src/mail/mail.module';
 import { ProjectFieldModule } from 'src/shared/projectField/projectField.module';
+import { FieldsModule } from 'src/shared/fields/fields.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Project]),
+    FieldsModule,
     MailModule,
     MembersModule,
     PlansModule,

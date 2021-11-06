@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Field } from './entities/field.entity';
 
 @Injectable()
@@ -12,5 +12,13 @@ export class FieldsService {
 
   async getFieldById(id: number): Promise<Field> {
     return await this.fieldsRepository.findOne(id);
+  }
+
+  async getIdsByField(field: string[]): Promise<number[]> {
+    return (
+      await this.fieldsRepository.find({ where: { field: In(field) } })
+    )?.map((field) => {
+      return field.id;
+    });
   }
 }

@@ -7,7 +7,6 @@ export class ProjectField {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @ManyToOne((type) => Field, (field) => field.id, {
     primary: true,
-    nullable: false,
   })
   @JoinColumn({ name: 'field_id' })
   fieldId: Field;
@@ -15,7 +14,6 @@ export class ProjectField {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @ManyToOne((type) => Project, (project) => project.id, {
     primary: true,
-    nullable: false,
   })
   @JoinColumn({ name: 'project_id' })
   projectId: Project;

@@ -54,6 +54,8 @@ export class PlanDetailDto {
   is_individual: boolean;
   @ApiProperty({ description: '작성자명' })
   writer: string;
+  @ApiProperty({ description: '작성자 학번' })
+  writer_number: number;
   @ApiProperty({ description: '프로젝트 인원 목록', type: [Members] })
   members: Members[];
   @ApiProperty({ description: '분야' })
