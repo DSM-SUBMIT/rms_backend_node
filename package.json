@@ -1,6 +1,6 @@
 {
   "name": "rms_backend_node",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "description": "Nest.js backend of Report Management System",
   "author": "https://github.com/pjp0704",
   "private": true,
