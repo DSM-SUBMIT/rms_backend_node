@@ -139,6 +139,9 @@ export class ProjectsService {
             is_individual: project.projectType === 'PERS',
             title: project.projectName,
             team_name: project.teamName,
+            github_url: project.githubUrl,
+            service_url: project.serviceUrl,
+            docs_url: project.docsUrl,
             fields: [],
           };
 
@@ -169,6 +172,9 @@ export class ProjectsService {
             is_individual: project.projectType === 'PERS',
             title: project.projectName,
             team_name: project.teamName,
+            github_url: project.githubUrl,
+            service_url: project.serviceUrl,
+            docs_url: project.docsUrl,
             fields: [],
           };
 
@@ -205,6 +211,9 @@ export class ProjectsService {
         is_individual: p.projectType === 'PERS',
         title: p.projectName,
         team_name: p.teamName,
+        github_url: p.githubUrl,
+        service_url: p.serviceUrl,
+        docs_url: p.docsUrl,
         fields: [],
       };
 
@@ -327,6 +336,9 @@ export class ProjectsService {
         is_individual: p.projectType === 'PERS',
         title: p.projectName,
         team_name: p.teamName,
+        github_url: p.githubUrl,
+        service_url: p.serviceUrl,
+        docs_url: p.docsUrl,
         fields: [],
       };
 
