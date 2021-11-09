@@ -16,6 +16,15 @@ export class ProjectItem {
   @ApiProperty({ description: '팀명' })
   team_name: string;
 
+  @ApiProperty({ description: 'Github URL' })
+  github_url: string;
+
+  @ApiProperty({ description: '서비스 URL' })
+  service_url: string;
+
+  @ApiProperty({ description: '문서 URL' })
+  docs_url: string;
+
   @ApiProperty({ description: '프로젝트 분야' })
   fields: string[];
 }
