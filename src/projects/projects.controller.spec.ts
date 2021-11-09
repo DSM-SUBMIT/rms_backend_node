@@ -82,6 +82,9 @@ describe('ProjectsController', () => {
         is_individual: true,
         title: 'test',
         team_name: 'test',
+        github_url: null,
+        service_url: null,
+        docs_url: null,
         fields: ['test'],
       };
       const mockProjectsList: ProjectsListDto = {
@@ -121,6 +124,9 @@ describe('ProjectsController', () => {
         is_individual: true,
         title: 'test',
         team_name: 'test',
+        github_url: null,
+        service_url: null,
+        docs_url: null,
         fields: ['test'],
       };
       const mockProjectsList: ProjectsListDto = {
@@ -230,6 +236,9 @@ describe('ProjectsController', () => {
         is_individual: true,
         title: 'test',
         team_name: 'test',
+        github_url: null,
+        service_url: null,
+        docs_url: null,
         fields: ['test'],
       };
       const mockProjectsList: ProjectsListDto = {
