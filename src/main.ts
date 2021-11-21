@@ -16,7 +16,7 @@ async function bootstrap() {
   app.use(helmet());
 
   app.enableCors({
-    origin: true,
+    origin: ['https://admin.dsm-rms.com', 'http://localhost:3000'],
     credentials: true,
   });
 
