@@ -1,13 +1,32 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { IsNull, Not, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Status } from './entities/status.entity';
 import { StatusService } from './status.service';
+
+const mockStatus: Status = {
+  projectId: undefined,
+  isPlanSubmitted: true,
+  isReportSubmitted: true,
+  planSubmittedAt: new Date('2021.09.28T00:00:00Z'),
+  reportSubmittedAt: new Date('2021.09.28T00:00:00Z'),
+  isPlanAccepted: true,
+  isReportAccepted: true,
+};
 
 const mockStatusRepository = () => ({
   findOne: jest.fn(),
   findAndCount: jest.fn(),
   update: jest.fn(),
+  createQueryBuilder: jest.fn(() => ({
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    take: jest.fn().mockReturnThis(),
+    skip: jest.fn().mockReturnThis(),
+    getManyAndCount: jest.fn().mockResolvedValue([[mockStatus], 1]),
+  })),
 });
 
 type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
@@ -167,38 +186,9 @@ describe('StatusService', () => {
 
   describe('getConfirmStatus', () => {
     it('should return a status object', async () => {
-      const mockStatus: Status = {
-        projectId: undefined,
-        isPlanSubmitted: true,
-        isReportSubmitted: true,
-        planSubmittedAt: new Date('2021.09.28T00:00:00Z'),
-        reportSubmittedAt: new Date('2021.09.28T00:00:00Z'),
-        isPlanAccepted: true,
-        isReportAccepted: true,
-      };
-      statusRepository.findAndCount.mockResolvedValue([[mockStatus], 1]);
-      const res = await service.getConfirmedStatus(8, 1, undefined);
+      const res = await service.getConfirmedStatus(8, 1, [1, 2]);
 
       expect(res).toEqual([[mockStatus], 1]);
-
-      expect(statusRepository.findAndCount).toHaveBeenCalled();
-      expect(statusRepository.findAndCount).toHaveBeenCalledWith({
-        where: {
-          isPlanAccepted: true,
-          isReportAccepted: true,
-          projectId: Not(IsNull()),
-        },
-        order: {
-          planSubmittedAt: 'ASC',
-        },
-        take: 8,
-        skip: 8 * (1 - 1),
-        relations: [
-          'projectId',
-          'projectId.projectField',
-          'projectId.projectField.fieldId',
-        ],
-      });
     });
   });
 
