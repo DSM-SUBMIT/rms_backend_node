@@ -309,18 +309,11 @@ export class ProjectsService {
 
   async getConfirmed(payload: ConfirmedProjectsDto) {
     const { limit, page, field } = payload;
-    const matchedProject = field
-      ? await this.projectFieldService.getProjectsByField(
-          await this.fieldsService.getIdsByField(field),
-          limit,
-          page,
-        )
-      : undefined;
 
     const [status, count] = await this.statusService.getConfirmedStatus(
       limit,
       page,
-      matchedProject,
+      await this.fieldsService.getIdsByField(field),
     );
     if (!count) return;
 
