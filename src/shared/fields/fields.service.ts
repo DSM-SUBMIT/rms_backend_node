@@ -15,10 +15,12 @@ export class FieldsService {
   }
 
   async getIdsByField(field: string[]): Promise<number[]> {
-    return (
-      await this.fieldsRepository.find({ where: { field: In(field) } })
-    )?.map((field) => {
-      return field.id;
-    });
+    return field !== undefined
+      ? (await this.fieldsRepository.find({ where: { field: In(field) } })).map(
+          (field) => {
+            return field.id;
+          },
+        )
+      : undefined;
   }
 }

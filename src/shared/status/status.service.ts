@@ -66,7 +66,12 @@ export class StatusService {
       .leftJoinAndSelect('projectField.fieldId', 'fieldId')
       .where('status.isPlanAccepted = 1')
       .andWhere('status.isReportAccepted = 1')
-      .andWhere('projectField.fieldId IN (:fieldId)', { fieldId })
+      .andWhere(
+        fieldId !== undefined
+          ? 'projectField.fieldId IN (:fieldId)'
+          : 'NULL IS NULL',
+        { fieldId },
+      )
       .orderBy('status.reportSubmittedAt', 'ASC')
       .take(limit)
       .skip(limit * (page - 1))
