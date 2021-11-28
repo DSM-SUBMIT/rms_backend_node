@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { Brackets, IsNull, Repository } from 'typeorm';
 import { Status } from './entities/status.entity';
 
 @Injectable()
@@ -66,7 +66,16 @@ export class StatusService {
       .leftJoinAndSelect('projectField.fieldId', 'fieldId')
       .where('status.isPlanAccepted = 1')
       .andWhere('status.isReportAccepted = 1')
-      .andWhere('projectField.fieldId IN (:fieldId)', { fieldId })
+      .andWhere(
+        new Brackets((qb) => {
+          qb.where(
+            '(CASE WHEN :fieldId IS NOT NULL THEN :fieldId ELSE NULL END) IS NULL',
+          );
+          qb.orWhere('projectField.fieldId IN (:fieldId)', {
+            fieldId,
+          });
+        }),
+      )
       .orderBy('status.reportSubmittedAt', 'ASC')
       .take(limit)
       .skip(limit * (page - 1))
