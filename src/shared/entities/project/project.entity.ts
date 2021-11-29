@@ -53,4 +53,8 @@ export class Project {
 
   @Column({ type: 'varchar', length: 10 })
   teacher: string;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @OneToMany((type) => Member, (member) => member.projectId)
+  members: Member[];
 }

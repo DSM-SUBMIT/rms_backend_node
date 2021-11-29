@@ -1,4 +1,5 @@
 import { Project } from 'src/shared/entities/project/project.entity';
+import { Member } from 'src/shared/entities/member/member.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -18,4 +19,8 @@ export class User {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @OneToMany((type) => Project, (project) => project.writerId)
   projects: Project[];
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @OneToMany((type) => Member, (member) => member.userId)
+  members: Member[];
 }
