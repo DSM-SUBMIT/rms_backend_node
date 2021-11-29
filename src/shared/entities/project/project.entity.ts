@@ -1,11 +1,13 @@
 import { User } from 'src/shared/entities/user/user.entity';
 import { Member } from 'src/shared/entities/member/member.entity';
+import { Plan } from 'src/shared/entities/plan/plan.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -58,4 +60,8 @@ export class Project {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @OneToMany((type) => Member, (member) => member.projectId)
   members: Member[];
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @OneToOne((type) => Plan, (plan) => plan.projectId)
+  plan: Plan;
 }
