@@ -1,3 +1,5 @@
+import { User } from 'src/shared/entities/user/user.entity';
+import { Member } from 'src/shared/entities/member/member.entity';
 import {
   Column,
   Entity,
@@ -6,7 +8,6 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from 'src/shared/entities/user/user.entity';
 
 @Entity()
 export class Project {
