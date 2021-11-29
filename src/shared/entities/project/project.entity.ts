@@ -1,6 +1,7 @@
 import { User } from 'src/shared/entities/user/user.entity';
 import { Member } from 'src/shared/entities/member/member.entity';
 import { Plan } from 'src/shared/entities/plan/plan.entity';
+import { Report } from 'src/shared/entities/report/report.entity';
 import {
   Column,
   Entity,
@@ -64,4 +65,8 @@ export class Project {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @OneToOne((type) => Plan, (plan) => plan.projectId)
   plan: Plan;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @OneToOne((type) => Report, (report) => report.projectId)
+  report: Report;
 }
