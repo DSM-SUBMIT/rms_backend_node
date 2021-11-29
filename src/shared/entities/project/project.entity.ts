@@ -6,6 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { User } from 'src/shared/entities/user/user.entity';
 
 @Entity()
 export class Project {
@@ -28,6 +29,11 @@ export class Project {
     length: 100,
   })
   techStacks: string;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @ManyToOne((type) => User, (user) => user.projects, { nullable: false })
+  @JoinColumn({ name: 'writer_id' })
+  writerId: User;
 
   @Column({
     name: 'project_type',
