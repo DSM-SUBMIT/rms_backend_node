@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { FilesModule } from './files/files.module';
-import { Admin } from './auth/entities/admin.entity';
+import { Admin } from './shared/entities/admin/admin.entity';
 import { User } from './shared/users/entities/user.entity';
 import { Project } from './projects/entities/project.entity';
 import { Plan } from './shared/plans/entities/plan.entity';
