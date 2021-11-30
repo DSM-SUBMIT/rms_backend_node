@@ -3,6 +3,7 @@ import { Member } from 'src/shared/entities/member/member.entity';
 import { Plan } from 'src/shared/entities/plan/plan.entity';
 import { Report } from 'src/shared/entities/report/report.entity';
 import { Status } from 'src/shared/entities/status/status.entity';
+import { ProjectField } from 'src/shared/entities/projectField/projectField.entity';
 import {
   Column,
   Entity,
@@ -74,4 +75,8 @@ export class Project {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @OneToOne((type) => Status, (status) => status.projectId)
   status: Status;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @OneToMany((type) => ProjectField, (projectField) => projectField.projectId)
+  projectField: ProjectField[];
 }

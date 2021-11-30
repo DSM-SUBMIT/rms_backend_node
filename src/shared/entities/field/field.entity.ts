@@ -8,4 +8,8 @@ export class Field {
 
   @Column({ type: 'varchar', length: 10 })
   field: string;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  @OneToMany((type) => ProjectField, (projectField) => projectField.fieldId)
+  projectField: ProjectField[];
 }
