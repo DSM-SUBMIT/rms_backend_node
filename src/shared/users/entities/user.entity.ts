@@ -22,5 +22,5 @@ export class User {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @OneToMany((type) => Member, (member) => member.userId)
-  userId: Member[];
+  members: Member[];
 }
