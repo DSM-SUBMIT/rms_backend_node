@@ -12,29 +12,26 @@ import {
 import { S3 } from 'aws-sdk';
 import { HeadObjectOutput } from 'aws-sdk/clients/s3';
 import { extname } from 'path';
-import { ProjectsService } from 'src/projects/projects.service';
-import { ReportsService } from 'src/shared/reports/reports.service';
-import { StatusService } from 'src/shared/status/status.service';
 import { v4 as uuid } from 'uuid';
 import { UploadFileOptions } from './interfaces/uploadFileOptions.interface';
+import { ProjectRepository } from 'src/shared/entities/project/project.repository';
 
 @Injectable()
 export class FilesService {
-  constructor(
-    private readonly projectsService: ProjectsService,
-    private readonly reportsService: ReportsService,
-    private readonly statusService: StatusService,
-  ) {}
+  constructor(private readonly projectRepository: ProjectRepository) {}
 
   async uploadImages(
     files: Express.MulterS3.File[],
     username: string,
     projectId: number,
   ): Promise<string[]> {
-    const project = await this.projectsService.getProject(projectId);
+    const project = await this.projectRepository.findOne(
+      { id: projectId },
+      { writer: true },
+    );
     if (!project) throw new NotFoundException();
 
-    const writer = project.writerId;
+    const writer = project.writer;
     const email = writer.email;
     if (email !== username) throw new ForbiddenException();
 
@@ -55,10 +52,13 @@ export class FilesService {
     projectId: number,
     filename: string,
   ): Promise<void> {
-    const project = await this.projectsService.getProject(projectId);
+    const project = await this.projectRepository.findOne(
+      { id: projectId },
+      { writer: true },
+    );
     if (!project) throw new NotFoundException();
 
-    const writer = project.writerId;
+    const writer = project.writer;
     const email = writer.email;
     if (email !== username) throw new ForbiddenException();
 
@@ -76,7 +76,7 @@ export class FilesService {
     projectId: number,
     filename: string,
   ): Promise<StreamableFile> {
-    const project = await this.projectsService.getProject(projectId);
+    const project = await this.projectRepository.findOne({ id: projectId }, {});
     if (!project) throw new NotFoundException();
 
     const s3Path = `${projectId}/report/images`;
@@ -101,10 +101,13 @@ export class FilesService {
     username: string,
     projectId: number,
   ) {
-    const project = await this.projectsService.getProject(projectId);
+    const project = await this.projectRepository.findOne(
+      { id: projectId },
+      { writer: true },
+    );
     if (!project) throw new NotFoundException();
 
-    const writer = project.writerId;
+    const writer = project.writer;
     const email = writer.email;
     if (email !== username) throw new ForbiddenException();
 
@@ -129,10 +132,13 @@ export class FilesService {
   }
 
   async deleteArchive(username: string, projectId: number) {
-    const project = await this.projectsService.getProject(projectId);
+    const project = await this.projectRepository.findOne(
+      { id: projectId },
+      { writer: true },
+    );
     if (!project) throw new NotFoundException();
 
-    const writer = project.writerId;
+    const writer = project.writer;
     const email = writer.email;
     if (email !== username) throw new ForbiddenException();
 
@@ -153,11 +159,12 @@ export class FilesService {
   }
 
   async getArchive(req, projectId) {
-    const project = await this.projectsService.getProject(projectId);
+    const project = await this.projectRepository.findOne(
+      { id: projectId },
+      { status: true },
+    );
     if (!project) throw new NotFoundException();
-
-    const status = await this.statusService.getStatusById(projectId);
-    if (!status.isReportSubmitted) throw new NotFoundException();
+    if (!project.status.isReportSubmitted) throw new NotFoundException();
 
     const s3Path = `${projectId}/report/archive`;
     const s3Filename = 'archive_outcomes.zip';
