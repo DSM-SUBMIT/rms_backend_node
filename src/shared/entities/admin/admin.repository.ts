@@ -23,7 +23,7 @@ export class AdminRepository extends AbstractRepository<Admin> {
 
     if (includePassword) qb.addSelect(['admin.password']);
 
-    return await qb.getOne();
+    return qb.getOne();
   }
 
   public async changePassword({
