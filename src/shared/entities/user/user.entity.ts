@@ -17,7 +17,7 @@ export class User {
   studentNumber: number;
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  @OneToMany((type) => Project, (project) => project.writerId)
+  @OneToMany((type) => Project, (project) => project.writer)
   projects: Project[];
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

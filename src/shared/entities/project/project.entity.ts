@@ -39,7 +39,7 @@ export class Project {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   @ManyToOne((type) => User, (user) => user.projects, { nullable: false })
   @JoinColumn({ name: 'writer_id' })
-  writerId: User;
+  writer: User;
 
   @Column({
     name: 'project_type',
