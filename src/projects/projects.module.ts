@@ -2,27 +2,14 @@ import { Module } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { ProjectsController } from './projects.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Project } from './entities/project.entity';
-import { StatusModule } from 'src/shared/status/status.module';
-import { UsersModule } from 'src/shared/users/users.module';
-import { PlansModule } from 'src/shared/plans/plans.module';
-import { ReportsModule } from 'src/shared/reports/reports.module';
-import { MembersModule } from 'src/shared/members/members.module';
 import { MailModule } from 'src/mail/mail.module';
-import { ProjectFieldModule } from 'src/shared/projectField/projectField.module';
-import { FieldsModule } from 'src/shared/fields/fields.module';
+import { ProjectRepository } from 'src/shared/entities/project/project.repository';
+import { FieldRepository } from '../shared/entities/field/field.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Project]),
-    FieldsModule,
+    TypeOrmModule.forFeature([ProjectRepository, FieldRepository]),
     MailModule,
-    MembersModule,
-    PlansModule,
-    ProjectFieldModule,
-    ReportsModule,
-    StatusModule,
-    UsersModule,
   ],
   controllers: [ProjectsController],
   providers: [ProjectsService],
