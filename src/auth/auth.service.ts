@@ -3,26 +3,23 @@ import {
   ConflictException,
   Inject,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Cache } from 'cache-manager';
 import { JwtService } from '@nestjs/jwt';
-import { Admin } from './entities/admin.entity';
 import { JwtPayload } from './interfaces/jwtPayload';
-import { UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from './dto/request/login.dto';
 import { ChangePwDto } from './dto/request/changePw.dto';
 import { AccessTokenDto } from './dto/response/accessToken.dto';
+import { AdminRepository } from 'src/shared/entities/admin/admin.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject(CACHE_MANAGER)
     private readonly cacheManager: Cache,
-    @InjectRepository(Admin)
-    private readonly adminsRepository: Repository<Admin>,
+    private readonly adminRepository: AdminRepository,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -40,8 +37,9 @@ export class AuthService {
     const res = await this.validateUser(id, oldPassword);
     if (res) {
       if (res && oldPassword !== newPassword) {
-        await this.adminsRepository.update(id, {
-          password: await this.encrypt(newPassword),
+        await this.adminRepository.changePassword({
+          id,
+          encrypted: await this.encrypt(newPassword),
         });
         return;
       }
@@ -57,6 +55,7 @@ export class AuthService {
       iat: number;
       exp: number;
     }
+
     const payload: Payload = await (async (): Promise<Payload> => {
       try {
         return await this.jwtService.verifyAsync(token);
@@ -66,7 +65,9 @@ export class AuthService {
     })();
     const cache = await this.cacheManager.get<string>(payload.sub);
     if (cache !== token) throw new UnauthorizedException();
-    const isValid = Boolean(await this.adminsRepository.findOne(payload.sub));
+    const isValid = Boolean(
+      await this.adminRepository.findOne({ id: payload.sub }),
+    );
     if (isValid) {
       const tokens = this.signJwt({ sub: payload.sub, role: 'admin' });
       await this.cacheManager.set(payload.sub, tokens.refresh_token);
@@ -87,7 +88,10 @@ export class AuthService {
   }
 
   async validateUser(id: string, password: string): Promise<boolean> {
-    const res = await this.adminsRepository.findOne(id);
+    const res = await this.adminRepository.findOne({
+      id,
+      includePassword: true,
+    });
     if (!res) return false;
     return await bcrypt.compare(password, res.password);
   }

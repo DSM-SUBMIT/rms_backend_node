@@ -1,9 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { AuthService } from './auth.service';
-import { Admin } from './entities/admin.entity';
+import { Admin } from 'src/shared/entities/admin/admin.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interfaces/jwtPayload';
 import { ChangePwDto } from './dto/request/changePw.dto';
@@ -14,40 +12,32 @@ import {
 } from '@nestjs/common';
 import { LoginDto } from './dto/request/login.dto';
 import { mocked } from 'ts-jest/utils';
+import { AdminRepository } from '../shared/entities/admin/admin.repository';
 
 jest.mock('bcrypt');
 jest.mock('cache-manager');
 jest.mock('@nestjs/jwt');
+jest.mock('src/shared/entities/admin/admin.repository');
 
 const mockedJwtService = mocked(JwtService, true);
-
+const mockedAdminRepository = mocked(AdminRepository, true);
 const mockedBcrypt = mocked(bcrypt, true);
-
-const mockAdminRepository = () => ({
-  findOne: jest.fn(),
-  update: jest.fn(),
-});
 
 const mockCache = () => ({
   get: jest.fn().mockResolvedValue('token'),
   set: jest.fn(),
 });
 
-type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
-
 describe('AuthService', () => {
   let service: AuthService;
-  let adminsRepository: MockRepository<Admin>;
+  let adminRepository: AdminRepository;
   let jwtService: JwtService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        {
-          provide: getRepositoryToken(Admin),
-          useValue: mockAdminRepository(),
-        },
+        AdminRepository,
         JwtService,
         {
           provide: CACHE_MANAGER,
@@ -57,9 +47,7 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    adminsRepository = module.get<MockRepository<Admin>>(
-      getRepositoryToken(Admin),
-    );
+    adminRepository = module.get<AdminRepository>(AdminRepository);
     jwtService = module.get<JwtService>(JwtService);
   });
 
@@ -80,36 +68,45 @@ describe('AuthService', () => {
     });
     const admin: Admin = { id: 'test', password: 'test' };
     it('should return true', async () => {
-      adminsRepository.findOne.mockResolvedValue(admin);
+      mockedAdminRepository.prototype.findOne.mockResolvedValue(admin);
       const res = await service.validateUser('test', 'test');
 
       expect(res).toEqual(true);
 
-      expect(adminsRepository.findOne).toHaveBeenCalled();
-      expect(adminsRepository.findOne).toHaveBeenCalledWith('test');
+      expect(mockedAdminRepository.prototype.findOne).toHaveBeenCalled();
+      expect(mockedAdminRepository.prototype.findOne).toHaveBeenCalledWith({
+        id: 'test',
+        includePassword: true,
+      });
 
       expect(bcrypt.compare).toHaveBeenCalled();
       expect(bcrypt.compare).toHaveBeenCalledWith('test', 'test');
     });
     it('should return false - user not found', async () => {
-      adminsRepository.findOne.mockResolvedValue(undefined);
+      mockedAdminRepository.prototype.findOne.mockResolvedValue(undefined);
       const res = await service.validateUser('test', 'test');
 
       expect(res).toEqual(false);
 
-      expect(adminsRepository.findOne).toHaveBeenCalled();
-      expect(adminsRepository.findOne).toHaveBeenCalledWith('test');
+      expect(mockedAdminRepository.prototype.findOne).toHaveBeenCalled();
+      expect(mockedAdminRepository.prototype.findOne).toHaveBeenCalledWith({
+        id: 'test',
+        includePassword: true,
+      });
 
       expect(bcrypt.compare).toHaveBeenCalledTimes(0);
     });
     it('should return false - invalid password', async () => {
-      adminsRepository.findOne.mockResolvedValue(admin);
+      mockedAdminRepository.prototype.findOne.mockResolvedValue(admin);
       const res = await service.validateUser('test', 'wrong password');
 
       expect(res).toEqual(false);
 
-      expect(adminsRepository.findOne).toHaveBeenCalled();
-      expect(adminsRepository.findOne).toHaveBeenCalledWith('test');
+      expect(mockedAdminRepository.prototype.findOne).toHaveBeenCalled();
+      expect(mockedAdminRepository.prototype.findOne).toHaveBeenCalledWith({
+        id: 'test',
+        includePassword: true,
+      });
 
       expect(bcrypt.compare).toHaveBeenCalled();
       expect(bcrypt.compare).toHaveBeenCalledWith('wrong password', 'test');
@@ -152,9 +149,8 @@ describe('AuthService', () => {
         exp: 0,
       });
       mockedJwtService.prototype.sign.mockReturnValue('token');
-      adminsRepository.findOne.mockResolvedValue({
+      mockedAdminRepository.prototype.findOne.mockResolvedValue({
         id: 'test',
-        password: 'test',
       });
       const res = await service.refresh('token');
 
@@ -165,8 +161,10 @@ describe('AuthService', () => {
         'token',
       );
 
-      expect(adminsRepository.findOne).toHaveBeenCalled();
-      expect(adminsRepository.findOne).toHaveBeenCalledWith('test');
+      expect(mockedAdminRepository.prototype.findOne).toHaveBeenCalled();
+      expect(mockedAdminRepository.prototype.findOne).toHaveBeenCalledWith({
+        id: 'test',
+      });
 
       expect(mockedJwtService.prototype.sign).toHaveBeenCalled();
       expect(mockedJwtService.prototype.sign).toHaveBeenNthCalledWith(1, {
@@ -199,7 +197,7 @@ describe('AuthService', () => {
         iat: 0,
         exp: 0,
       });
-      adminsRepository.findOne.mockResolvedValue(undefined);
+      mockedAdminRepository.prototype.findOne.mockResolvedValue(undefined);
       try {
         await service.refresh('token');
       } catch (e) {
@@ -214,12 +212,9 @@ describe('AuthService', () => {
     });
     it('should return nothing', async () => {
       const admin: Admin = { id: 'test', password: 'test' };
-      adminsRepository.findOne.mockResolvedValue(admin);
+      mockedAdminRepository.prototype.findOne.mockResolvedValue(admin);
       mockedBcrypt.compare.mockImplementation(() => Promise.resolve(true));
-      adminsRepository.update.mockResolvedValue({
-        generatedMaps: [{ id: 'test', password: 'encrypted_password' }],
-        affected: 1,
-      });
+      mockedAdminRepository.prototype.changePassword.mockResolvedValue(true);
       const password: ChangePwDto = {
         oldPassword: 'oldPassword',
         newPassword: 'newPassword',
@@ -229,14 +224,17 @@ describe('AuthService', () => {
 
       expect(res).toEqual(undefined);
 
-      expect(adminsRepository.update).toHaveBeenCalled();
-      expect(adminsRepository.update).toHaveBeenCalledWith('test', {
-        password: 'hashed_password',
+      expect(mockedAdminRepository.prototype.changePassword).toHaveBeenCalled();
+      expect(
+        mockedAdminRepository.prototype.changePassword,
+      ).toHaveBeenCalledWith({
+        id: 'test',
+        encrypted: 'hashed_password',
       });
     });
     it('should throw ConflictException', async () => {
       const admin: Admin = { id: 'test', password: 'test' };
-      adminsRepository.findOne.mockResolvedValue(admin);
+      mockedAdminRepository.prototype.findOne.mockResolvedValue(admin);
       mockedBcrypt.compare.mockImplementation(() => Promise.resolve(true));
       try {
         await service.changePw('test', {
@@ -248,7 +246,7 @@ describe('AuthService', () => {
       }
     });
     it('should throw UnauthorizedException', async () => {
-      adminsRepository.findOne.mockResolvedValue(undefined);
+      mockedAdminRepository.prototype.findOne.mockResolvedValue(undefined);
       mockedBcrypt.compare.mockImplementation(() => Promise.resolve(false));
       try {
         await service.changePw('test', {
@@ -264,7 +262,7 @@ describe('AuthService', () => {
   describe('login', () => {
     it('should return jwt token', async () => {
       const admin: Admin = { id: 'test', password: 'test' };
-      adminsRepository.findOne.mockResolvedValue(admin);
+      mockedAdminRepository.prototype.findOne.mockResolvedValue(admin);
       mockedBcrypt.compare.mockImplementation(() => Promise.resolve(true));
 
       const payload: LoginDto = { id: 'test', password: 'test' };
@@ -279,7 +277,7 @@ describe('AuthService', () => {
       });
     });
     it('should throw UnauthorizedException', async () => {
-      adminsRepository.findOne.mockResolvedValue(undefined);
+      mockedAdminRepository.prototype.findOne.mockResolvedValue(undefined);
       mockedBcrypt.compare.mockImplementation(() => Promise.resolve(false));
 
       const payload: LoginDto = { id: 'test', password: 'test' };
