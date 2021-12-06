@@ -2,15 +2,15 @@ import { CacheModule, Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Admin } from './entities/admin.entity';
 import { PassportModule } from '@nestjs/passport';
 import * as redisStore from 'cache-manager-redis-store';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
+import { AdminRepository } from 'src/shared/entities/admin/admin.repository';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Admin]),
+    TypeOrmModule.forFeature([AdminRepository]),
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,

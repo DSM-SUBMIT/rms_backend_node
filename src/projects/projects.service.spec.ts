@@ -2,27 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { mocked } from 'ts-jest/utils';
 import { ProjectsService } from './projects.service';
 import { MailService } from 'src/mail/mail.service';
-import { MembersService } from 'src/shared/members/members.service';
-import { PlansService } from 'src/shared/plans/plans.service';
-import { ProjectFieldService } from 'src/shared/projectField/projectField.service';
-import { ReportsService } from 'src/shared/reports/reports.service';
-import { StatusService } from 'src/shared/status/status.service';
-import { Like, Repository } from 'typeorm';
-import { getRepositoryToken } from '@nestjs/typeorm';
-import { Project } from './entities/project.entity';
-import { Status } from 'src/shared/status/entities/status.entity';
+import { Project } from 'src/shared/entities/project/project.entity';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
 import { ProjectItem } from './dto/response/projectItem.dto';
-import { Member } from 'src/shared/members/entities/member.entity';
-import { Plan } from 'src/shared/plans/entities/plan.entity';
-import { Report } from 'src/shared/reports/entities/report.entity';
 import {
   BadRequestException,
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { ProjectField } from 'src/shared/projectField/entities/projectField.entity';
-import { Field } from 'src/shared/fields/entities/field.entity';
+import { ProjectField } from 'src/shared/entities/projectField/projectField.entity';
+import { Field } from 'src/shared/entities/field/field.entity';
 import {
   ConfirmProjectBodyDto,
   ConfirmProjectParamDto,
@@ -32,134 +21,34 @@ import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { PendingProjectsDto } from './dto/request/pendingProjects.dto';
 import { PlanDetailDto } from './dto/response/planDetail.dto';
 import { ReportDetailDto } from './dto/response/reportDetail.dto';
-import { FieldsService } from 'src/shared/fields/fields.service';
+import { ProjectRepository } from '../shared/entities/project/project.repository';
+import { FieldRepository } from '../shared/entities/field/field.repository';
 
-jest.mock('src/shared/fields/fields.service');
 jest.mock('src/mail/mail.service');
-jest.mock('src/shared/members/members.service');
-jest.mock('src/shared/plans/plans.service');
-jest.mock('src/shared/projectField/projectField.service');
-jest.mock('src/shared/reports/reports.service');
-jest.mock('src/shared/status/status.service');
+jest.mock('src/shared/entities/project/project.repository');
+jest.mock('src/shared/entities/field/field.repository');
 
-const mockedFieldsService = mocked(FieldsService, true);
-const mockedStatusService = mocked(StatusService, true);
-const mockedPlansService = mocked(PlansService, true);
-const mockedProjectFieldService = mocked(ProjectFieldService, true);
-const mockedReportsService = mocked(ReportsService, true);
-const mockedMembersService = mocked(MembersService, true);
+const mockedRepository = mocked(ProjectRepository, true);
 const mockedMailService = mocked(MailService, true);
-
-const mockedRepository = () => ({
-  findOne: jest.fn(),
-  findAndCount: jest.fn(),
-});
-
-type MockRepository<T = any> = Partial<Record<keyof Repository<T>, jest.Mock>>;
 
 describe('ProjectsService', () => {
   let service: ProjectsService;
-  let projectsRepository: MockRepository<Project>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProjectsService,
-        {
-          provide: getRepositoryToken(Project),
-          useValue: mockedRepository(),
-        },
-        FieldsService,
+        ProjectRepository,
+        FieldRepository,
         MailService,
-        MembersService,
-        PlansService,
-        ProjectFieldService,
-        ReportsService,
-        StatusService,
       ],
     }).compile();
 
     service = module.get<ProjectsService>(ProjectsService);
-    projectsRepository = module.get<MockRepository<Project>>(
-      getRepositoryToken(Project),
-    );
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
-
-  describe('getProject', () => {
-    it('should return a project', async () => {
-      const mockProject: Project = {
-        id: 1,
-        projectName: 'test',
-        teamName: 'test',
-        techStacks: 'test',
-        writerId: {
-          id: 1,
-          email: 'test@example.com',
-          name: 'test',
-          studentNumber: 2400,
-          projects: undefined,
-          userId: undefined,
-        },
-        projectType: 'test',
-        githubUrl: null,
-        serviceUrl: null,
-        docsUrl: null,
-        teacher: 'test',
-        projectId: undefined,
-        projectField: undefined,
-      };
-      projectsRepository.findOne.mockResolvedValue(mockProject);
-      const res = await service.getProject(1);
-
-      expect(res).toEqual(mockProject);
-
-      expect(projectsRepository.findOne).toHaveBeenCalled();
-      expect(projectsRepository.findOne).toHaveBeenCalledWith(1, {
-        relations: ['writerId'],
-      });
-    });
-  });
-
-  describe('findLike', () => {
-    it('should return a project', async () => {
-      const mockProject: Project = {
-        id: 1,
-        projectName: 'test',
-        teamName: 'test',
-        techStacks: 'test',
-        writerId: {
-          id: 1,
-          email: 'test@example.com',
-          name: 'test',
-          studentNumber: 2400,
-          projects: undefined,
-          userId: undefined,
-        },
-        projectType: 'test',
-        githubUrl: null,
-        serviceUrl: null,
-        docsUrl: null,
-        teacher: 'test',
-        projectId: undefined,
-        projectField: undefined,
-      };
-      projectsRepository.findAndCount.mockResolvedValue([[mockProject], 1]);
-      const res = await service.findLike('test', 8, 1);
-
-      expect(res).toEqual([[mockProject], 1]);
-
-      expect(projectsRepository.findAndCount).toHaveBeenCalled();
-      expect(projectsRepository.findAndCount).toHaveBeenCalledWith({
-        where: { projectName: Like('%test%') },
-        take: 8,
-        skip: 0,
-        relations: ['projectField', 'projectField.fieldId'],
-      });
-    });
   });
 
   describe('getConfirmed', () => {
@@ -180,40 +69,43 @@ describe('ProjectsService', () => {
         projectName: 'test',
         teamName: 'test',
         techStacks: 'test',
-        writerId: {
+        writer: {
           id: 1,
           email: 'test@example.com',
           name: 'test',
           studentNumber: 2400,
           projects: undefined,
-          userId: undefined,
+          members: undefined,
         },
         projectType: 'test',
         githubUrl: null,
         serviceUrl: null,
         docsUrl: null,
         teacher: 'test',
-        projectId: [],
+        members: [],
+        plan: undefined,
+        report: undefined,
+        status: {
+          projectId: undefined,
+          isPlanSubmitted: true,
+          isReportSubmitted: true,
+          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+          isPlanAccepted: true,
+          isReportAccepted: true,
+        },
         projectField: mockFields,
       };
-      const mockStatus: Status = {
-        projectId: mockProject,
-        isPlanSubmitted: true,
-        isReportSubmitted: true,
-        planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-        reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-        isPlanAccepted: true,
-        isReportAccepted: true,
-      };
-      mockedStatusService.prototype.getConfirmedStatus.mockResolvedValue([
-        [mockStatus],
-        1,
-      ]);
 
       const mockedRequest: ConfirmedProjectsDto = {
         limit: 8,
         page: 1,
       };
+
+      mockedRepository.prototype.getConfirmedProjects.mockResolvedValue([
+        [mockProject],
+        1,
+      ]);
 
       const res = await service.getConfirmed(mockedRequest);
 
@@ -236,15 +128,15 @@ describe('ProjectsService', () => {
       expect(res).toEqual(mockProjectsList);
 
       expect(
-        mockedStatusService.prototype.getConfirmedStatus,
+        mockedRepository.prototype.getConfirmedProjects,
       ).toHaveBeenCalled();
       expect(
-        mockedStatusService.prototype.getConfirmedStatus,
-      ).toHaveBeenCalledWith(8, 1, undefined);
+        mockedRepository.prototype.getConfirmedProjects,
+      ).toHaveBeenCalledWith({ limit: 8, page: 1, fields: undefined });
     });
 
     it('should return nothing', async () => {
-      mockedStatusService.prototype.getConfirmedStatus.mockResolvedValue([
+      mockedRepository.prototype.getConfirmedProjects.mockResolvedValue([
         [],
         0,
       ]);
@@ -259,11 +151,11 @@ describe('ProjectsService', () => {
       expect(res).toEqual(undefined);
 
       expect(
-        mockedStatusService.prototype.getConfirmedStatus,
+        mockedRepository.prototype.getConfirmedProjects,
       ).toHaveBeenCalled();
       expect(
-        mockedStatusService.prototype.getConfirmedStatus,
-      ).toHaveBeenCalledWith(8, 1, undefined);
+        mockedRepository.prototype.getConfirmedProjects,
+      ).toHaveBeenCalledWith({ limit: 8, page: 1, fields: undefined });
     });
   });
 
@@ -273,70 +165,58 @@ describe('ProjectsService', () => {
       projectName: 'test',
       teamName: 'test',
       techStacks: 'test',
-      writerId: {
+      writer: {
         id: 1,
         email: 'test@example.com',
         name: 'test',
         studentNumber: 2400,
         projects: undefined,
-        userId: undefined,
+        members: undefined,
       },
       projectType: 'test',
       githubUrl: null,
       serviceUrl: null,
       docsUrl: null,
       teacher: 'test',
-      projectId: undefined,
-      projectField: undefined,
-    };
-
-    const mockMembers: Member[] = [
-      {
-        projectId: mockProject,
-        userId: {
-          id: 1,
-          email: 'test@example.com',
-          name: 'test',
-          studentNumber: 2400,
-          projects: undefined,
-          userId: undefined,
+      members: [
+        {
+          projectId: undefined,
+          userId: {
+            id: 1,
+            email: 'test@example.com',
+            name: 'test',
+            studentNumber: 2400,
+            projects: undefined,
+            members: undefined,
+          },
+          role: 'test',
         },
-        role: 'test',
+      ],
+      plan: undefined,
+      report: undefined,
+      status: {
+        projectId: undefined,
+        isPlanSubmitted: true,
+        isReportSubmitted: true,
+        planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+        reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+        isPlanAccepted: true,
+        isReportAccepted: true,
       },
-    ];
-
-    const mockProjectField: ProjectField[] = [
-      {
-        fieldId: {
-          id: 1,
-          field: 'test',
-          projectField: undefined,
+      projectField: [
+        {
+          fieldId: {
+            id: 1,
+            field: 'test',
+            projectField: undefined,
+          },
+          projectId: undefined,
         },
-        projectId: mockProject,
-      },
-    ];
-
-    const mockStatus: Status = {
-      projectId: mockProject,
-      isPlanSubmitted: true,
-      isReportSubmitted: true,
-      planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-      reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-      isPlanAccepted: true,
-      isReportAccepted: true,
+      ],
     };
-
-    mockedStatusService.prototype.getStatusById.mockResolvedValue(mockStatus);
-
-    mockedMembersService.prototype.getUsersByProject.mockResolvedValue(
-      mockMembers,
-    );
-    mockedProjectFieldService.prototype.getFieldsByProject.mockResolvedValue(
-      mockProjectField,
-    );
 
     it('should return a project w/ plan', async () => {
-      const mockPlan: Plan = {
+      mockProject.plan = {
         projectId: mockProject,
         goal: 'test',
         content: 'test',
@@ -347,7 +227,7 @@ describe('ProjectsService', () => {
         includeOutcome: true,
         includeOthers: null,
       };
-      mockedPlansService.prototype.getPlanById.mockResolvedValue(mockPlan);
+      mockedRepository.prototype.findOne.mockResolvedValue(mockProject);
 
       const res = await service.getPlanDetail(1);
 
@@ -375,33 +255,25 @@ describe('ProjectsService', () => {
       };
       expect(res).toEqual(mockPlanResult);
 
-      expect(mockedPlansService.prototype.getPlanById).toHaveBeenCalled();
-      expect(mockedPlansService.prototype.getPlanById).toHaveBeenCalledWith(1);
-
-      expect(
-        mockedMembersService.prototype.getUsersByProject,
-      ).toHaveBeenCalled();
-      expect(
-        mockedMembersService.prototype.getUsersByProject,
-      ).toHaveBeenCalledWith(1);
-
-      expect(
-        mockedProjectFieldService.prototype.getFieldsByProject,
-      ).toHaveBeenCalled();
-      expect(
-        mockedProjectFieldService.prototype.getFieldsByProject,
-      ).toHaveBeenCalledWith(1);
+      expect(mockedRepository.prototype.findOne).toHaveBeenCalled();
+      expect(mockedRepository.prototype.findOne).toHaveBeenCalledWith(
+        { id: 1 },
+        {
+          writer: true,
+          members: true,
+          status: true,
+          plan: true,
+          field: true,
+        },
+      );
     });
 
     it('should return a project w/ report', async () => {
-      const mockReport: Report = {
-        projectId: mockProject,
+      mockProject.report = {
+        projectId: undefined,
         videoUrl: 'http://example.com',
         content: 'test',
       };
-      mockedReportsService.prototype.getReportById.mockResolvedValue(
-        mockReport,
-      );
 
       const res = await service.getReportDetail(1);
 
@@ -421,28 +293,21 @@ describe('ProjectsService', () => {
 
       expect(res).toEqual(mockReportResult);
 
-      expect(mockedReportsService.prototype.getReportById).toHaveBeenCalled();
-      expect(mockedReportsService.prototype.getReportById).toHaveBeenCalledWith(
-        1,
+      expect(mockedRepository.prototype.findOne).toHaveBeenCalled();
+      expect(mockedRepository.prototype.findOne).toHaveBeenCalledWith(
+        { id: 1 },
+        {
+          writer: true,
+          members: true,
+          status: true,
+          report: true,
+          field: true,
+        },
       );
-
-      expect(
-        mockedMembersService.prototype.getUsersByProject,
-      ).toHaveBeenCalled();
-      expect(
-        mockedMembersService.prototype.getUsersByProject,
-      ).toHaveBeenCalledWith(1);
-
-      expect(
-        mockedProjectFieldService.prototype.getFieldsByProject,
-      ).toHaveBeenCalled();
-      expect(
-        mockedProjectFieldService.prototype.getFieldsByProject,
-      ).toHaveBeenCalledWith(1);
     });
 
-    it('should throw NotFoundException(project is not exsist)', async () => {
-      mockedStatusService.prototype.getStatusById.mockResolvedValue(undefined);
+    it('should throw NotFoundException(project is not exist)', async () => {
+      mockedRepository.prototype.findOne.mockResolvedValue(undefined);
       try {
         await service.getPlanDetail(1);
       } catch (e) {
@@ -450,7 +315,7 @@ describe('ProjectsService', () => {
       }
     });
     it('should throw NotFoundException(plan is not submitted)', async () => {
-      const mockStatus: Status = {
+      mockProject.status = {
         projectId: mockProject,
         isPlanSubmitted: false,
         isReportSubmitted: false,
@@ -459,7 +324,6 @@ describe('ProjectsService', () => {
         isPlanAccepted: null,
         isReportAccepted: null,
       };
-      mockedStatusService.prototype.getStatusById.mockResolvedValue(mockStatus);
       try {
         await service.getPlanDetail(1);
       } catch (e) {
@@ -467,7 +331,7 @@ describe('ProjectsService', () => {
       }
     });
     it('should throw NotFoundException(report is not submitted)', async () => {
-      const mockStatus: Status = {
+      mockProject.status = {
         projectId: mockProject,
         isPlanSubmitted: false,
         isReportSubmitted: false,
@@ -476,7 +340,7 @@ describe('ProjectsService', () => {
         isPlanAccepted: null,
         isReportAccepted: null,
       };
-      mockedStatusService.prototype.getStatusById.mockResolvedValue(mockStatus);
+      mockedRepository.prototype.findOne.mockResolvedValue(mockProject);
       try {
         await service.getReportDetail(1);
       } catch (e) {
@@ -502,24 +366,27 @@ describe('ProjectsService', () => {
       projectName: 'test',
       teamName: 'test',
       techStacks: 'test',
-      writerId: {
+      writer: {
         id: 1,
         email: 'test@example.com',
         name: 'test',
         studentNumber: 2400,
         projects: undefined,
-        userId: undefined,
+        members: undefined,
       },
       projectType: 'test',
       githubUrl: null,
       serviceUrl: null,
       docsUrl: null,
       teacher: 'test',
-      projectId: undefined,
+      members: [],
+      plan: undefined,
+      report: undefined,
+      status: undefined,
       projectField: mockFields,
     };
     it('should return a project', async () => {
-      projectsRepository.findAndCount.mockResolvedValue([[mockProject], 1]);
+      mockedRepository.prototype.search.mockResolvedValue([[mockProject], 1]);
 
       const mockProjectItem: ProjectItem = {
         id: 1,
@@ -548,16 +415,18 @@ describe('ProjectsService', () => {
 
       expect(res).toEqual(mockProjectsList);
 
-      expect(projectsRepository.findAndCount).toHaveBeenCalled();
-      expect(projectsRepository.findAndCount).toHaveBeenCalledWith({
-        where: { projectName: Like('%test%') },
-        take: 8,
-        skip: 8 * (1 - 1),
-        relations: ['projectField', 'projectField.fieldId'],
-      });
+      expect(mockedRepository.prototype.search).toHaveBeenCalled();
+      expect(mockedRepository.prototype.search).toHaveBeenCalledWith(
+        {
+          query: 'test',
+          limit: 8,
+          page: 1,
+        },
+        { field: true },
+      );
     });
     it('should return nothing', async () => {
-      projectsRepository.findAndCount.mockResolvedValue([[], 0]);
+      mockedRepository.prototype.search.mockResolvedValue([[], 0]);
 
       const mockedRequest: SearchProjectsDto = {
         query: 'test',
@@ -569,13 +438,15 @@ describe('ProjectsService', () => {
 
       expect(res).toEqual(undefined);
 
-      expect(projectsRepository.findAndCount).toHaveBeenCalled();
-      expect(projectsRepository.findAndCount).toHaveBeenCalledWith({
-        where: { projectName: Like('%test%') },
-        take: 8,
-        skip: 8 * (1 - 1),
-        relations: ['projectField', 'projectField.fieldId'],
-      });
+      expect(mockedRepository.prototype.search).toHaveBeenCalled();
+      expect(mockedRepository.prototype.search).toHaveBeenCalledWith(
+        {
+          query: 'test',
+          limit: 8,
+          page: 1,
+        },
+        { field: true },
+      );
     });
   });
 
@@ -598,34 +469,38 @@ describe('ProjectsService', () => {
           projectName: 'test',
           teamName: 'test',
           techStacks: 'test',
-          writerId: {
+          writer: {
             id: 1,
             email: 'test@example.com',
             name: 'test',
             studentNumber: 2400,
             projects: undefined,
-            userId: undefined,
+            members: undefined,
           },
           projectType: 'test',
           githubUrl: null,
           serviceUrl: null,
           docsUrl: null,
           teacher: 'test',
-          projectId: undefined,
+          members: [],
+          plan: undefined,
+          report: undefined,
+          status: {
+            projectId: undefined,
+            isPlanSubmitted: true,
+            isReportSubmitted: true,
+            planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+            reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+            isPlanAccepted: true,
+            isReportAccepted: true,
+          },
           projectField: mockFields,
         };
-        const mockStatus: Status = {
-          projectId: mockProject,
-          isPlanSubmitted: true,
-          isReportSubmitted: true,
-          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-          isPlanAccepted: true,
-          isReportAccepted: true,
-        };
-        mockedStatusService.prototype.getStatusDescByPlanDate.mockResolvedValue(
-          [[mockStatus], 1],
-        );
+
+        mockedRepository.prototype.getProjectsByDate.mockResolvedValue([
+          [mockProject],
+          1,
+        ]);
 
         const mockedRequest: PendingProjectsDto = {
           type: 'plan',
@@ -654,17 +529,17 @@ describe('ProjectsService', () => {
 
         expect(res).toEqual(mockProjectsList);
 
+        expect(mockedRepository.prototype.getProjectsByDate).toHaveBeenCalled();
         expect(
-          mockedStatusService.prototype.getStatusDescByPlanDate,
-        ).toHaveBeenCalled();
-        expect(
-          mockedStatusService.prototype.getStatusDescByPlanDate,
-        ).toHaveBeenCalledWith(8, 1);
+          mockedRepository.prototype.getProjectsByDate,
+        ).toHaveBeenCalledWith({
+          type: 'plan',
+          limit: 8,
+          page: 1,
+        });
       });
       it('should return nothing', async () => {
-        mockedStatusService.prototype.getStatusDescByPlanDate.mockResolvedValue(
-          [[], 0],
-        );
+        mockedRepository.prototype.getProjectsByDate.mockResolvedValue([[], 0]);
 
         const mockedRequest: PendingProjectsDto = {
           type: 'plan',
@@ -676,12 +551,14 @@ describe('ProjectsService', () => {
 
         expect(res).toEqual(undefined);
 
+        expect(mockedRepository.prototype.getProjectsByDate).toHaveBeenCalled();
         expect(
-          mockedStatusService.prototype.getStatusDescByPlanDate,
-        ).toHaveBeenCalled();
-        expect(
-          mockedStatusService.prototype.getStatusDescByPlanDate,
-        ).toHaveBeenCalledWith(8, 1);
+          mockedRepository.prototype.getProjectsByDate,
+        ).toHaveBeenCalledWith({
+          type: 'plan',
+          limit: 8,
+          page: 1,
+        });
       });
     });
     describe('report', () => {
@@ -702,34 +579,38 @@ describe('ProjectsService', () => {
           projectName: 'test',
           teamName: 'test',
           techStacks: 'test',
-          writerId: {
+          writer: {
             id: 1,
             email: 'test@example.com',
             name: 'test',
             studentNumber: 2400,
             projects: undefined,
-            userId: undefined,
+            members: undefined,
           },
           projectType: 'test',
           githubUrl: null,
           serviceUrl: null,
           docsUrl: null,
           teacher: 'test',
-          projectId: undefined,
+          members: [],
+          plan: undefined,
+          report: undefined,
+          status: {
+            projectId: undefined,
+            isPlanSubmitted: true,
+            isReportSubmitted: true,
+            planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+            reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+            isPlanAccepted: true,
+            isReportAccepted: true,
+          },
           projectField: mockFields,
         };
-        const mockStatus: Status = {
-          projectId: mockProject,
-          isPlanSubmitted: true,
-          isReportSubmitted: true,
-          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-          isPlanAccepted: true,
-          isReportAccepted: true,
-        };
-        mockedStatusService.prototype.getStatusDescByReportDate.mockResolvedValue(
-          [[mockStatus], 1],
-        );
+
+        mockedRepository.prototype.getProjectsByDate.mockResolvedValue([
+          [mockProject],
+          1,
+        ]);
 
         const mockedRequest: PendingProjectsDto = {
           type: 'report',
@@ -758,17 +639,17 @@ describe('ProjectsService', () => {
 
         expect(res).toEqual(mockProjectsList);
 
+        expect(mockedRepository.prototype.getProjectsByDate).toHaveBeenCalled();
         expect(
-          mockedStatusService.prototype.getStatusDescByReportDate,
-        ).toHaveBeenCalled();
-        expect(
-          mockedStatusService.prototype.getStatusDescByReportDate,
-        ).toHaveBeenCalledWith(8, 1);
+          mockedRepository.prototype.getProjectsByDate,
+        ).toHaveBeenCalledWith({
+          type: 'report',
+          limit: 8,
+          page: 1,
+        });
       });
       it('should return nothing', async () => {
-        mockedStatusService.prototype.getStatusDescByReportDate.mockResolvedValue(
-          [[], 0],
-        );
+        mockedRepository.prototype.getProjectsByDate.mockResolvedValue([[], 0]);
 
         const mockedRequest: PendingProjectsDto = {
           type: 'report',
@@ -780,12 +661,14 @@ describe('ProjectsService', () => {
 
         expect(res).toEqual(undefined);
 
+        expect(mockedRepository.prototype.getProjectsByDate).toHaveBeenCalled();
         expect(
-          mockedStatusService.prototype.getStatusDescByReportDate,
-        ).toHaveBeenCalled();
-        expect(
-          mockedStatusService.prototype.getStatusDescByReportDate,
-        ).toHaveBeenCalledWith(8, 1);
+          mockedRepository.prototype.getProjectsByDate,
+        ).toHaveBeenCalledWith({
+          type: 'report',
+          limit: 8,
+          page: 1,
+        });
       });
     });
 
@@ -822,34 +705,34 @@ describe('ProjectsService', () => {
           projectName: 'test',
           teamName: 'test',
           techStacks: 'test',
-          writerId: {
+          writer: {
             id: 1,
             email: 'test@example.com',
             name: 'test',
             studentNumber: 2400,
             projects: undefined,
-            userId: undefined,
+            members: undefined,
           },
           projectType: 'test',
           githubUrl: null,
           serviceUrl: null,
           docsUrl: null,
           teacher: 'test',
-          projectId: undefined,
+          members: [],
+          plan: undefined,
+          report: undefined,
+          status: {
+            projectId: undefined,
+            isPlanSubmitted: true,
+            isReportSubmitted: true,
+            planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+            reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+            isPlanAccepted: null,
+            isReportAccepted: null,
+          },
           projectField: mockFields,
         };
-        const mockStatus: Status = {
-          projectId: mockProject,
-          isPlanSubmitted: true,
-          isReportSubmitted: true,
-          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-          isPlanAccepted: null,
-          isReportAccepted: null,
-        };
-        mockedStatusService.prototype.getStatusById.mockResolvedValue(
-          mockStatus,
-        );
+        mockedRepository.prototype.findOne.mockResolvedValue(mockProject);
         const mockConfirmRequestBody: ConfirmProjectBodyDto = {
           type: 'approve',
           comment: 'test',
@@ -893,34 +776,34 @@ describe('ProjectsService', () => {
           projectName: 'test',
           teamName: 'test',
           techStacks: 'test',
-          writerId: {
+          writer: {
             id: 1,
             email: 'test@example.com',
             name: 'test',
             studentNumber: 2400,
             projects: undefined,
-            userId: undefined,
+            members: undefined,
           },
           projectType: 'test',
           githubUrl: null,
           serviceUrl: null,
           docsUrl: null,
           teacher: 'test',
-          projectId: undefined,
+          members: [],
+          plan: undefined,
+          report: undefined,
+          status: {
+            projectId: undefined,
+            isPlanSubmitted: true,
+            isReportSubmitted: true,
+            planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+            reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+            isPlanAccepted: null,
+            isReportAccepted: null,
+          },
           projectField: mockFields,
         };
-        const mockStatus: Status = {
-          projectId: mockProject,
-          isPlanSubmitted: true,
-          isReportSubmitted: true,
-          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-          isPlanAccepted: null,
-          isReportAccepted: null,
-        };
-        mockedStatusService.prototype.getStatusById.mockResolvedValue(
-          mockStatus,
-        );
+        mockedRepository.prototype.findOne.mockResolvedValue(mockProject);
         const mockConfirmRequestBody: ConfirmProjectBodyDto = {
           type: 'deny',
           comment: 'test',
@@ -949,9 +832,7 @@ describe('ProjectsService', () => {
       });
       describe('should throw exception', () => {
         it('NotFoundException', async () => {
-          mockedStatusService.prototype.getStatusById.mockResolvedValue(
-            undefined,
-          );
+          mockedRepository.prototype.findOne.mockResolvedValue(undefined);
           const mockConfirmRequestBody: ConfirmProjectBodyDto = {
             type: 'approve',
             comment: 'test',
@@ -971,14 +852,37 @@ describe('ProjectsService', () => {
         });
         describe('ConflictException', () => {
           it('plan is not submitted', async () => {
-            const mockStatus: Status = {
-              projectId: undefined,
-              isPlanSubmitted: false,
-              isReportSubmitted: false,
-              planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-              reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-              isPlanAccepted: null,
-              isReportAccepted: null,
+            const mockProject: Project = {
+              id: 1,
+              projectName: 'test',
+              teamName: 'test',
+              techStacks: 'test',
+              writer: {
+                id: 1,
+                email: 'test@example.com',
+                name: 'test',
+                studentNumber: 2400,
+                projects: undefined,
+                members: undefined,
+              },
+              projectType: 'test',
+              githubUrl: null,
+              serviceUrl: null,
+              docsUrl: null,
+              teacher: 'test',
+              members: [],
+              plan: undefined,
+              report: undefined,
+              status: {
+                projectId: undefined,
+                isPlanSubmitted: false,
+                isReportSubmitted: false,
+                planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+                reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+                isPlanAccepted: null,
+                isReportAccepted: null,
+              },
+              projectField: [],
             };
             const mockConfirmRequest: ConfirmProjectBodyDto = {
               type: 'approve',
@@ -988,9 +892,7 @@ describe('ProjectsService', () => {
               projectId: 1,
               type: 'plan',
             };
-            mockedStatusService.prototype.getStatusById.mockResolvedValue(
-              mockStatus,
-            );
+            mockedRepository.prototype.findOne.mockResolvedValue(mockProject);
             try {
               await service.confirmProject(
                 mockConfirmRequestParam,
@@ -1001,14 +903,37 @@ describe('ProjectsService', () => {
             }
           });
           it('plan is already confirmed', async () => {
-            const mockStatus: Status = {
-              projectId: undefined,
-              isPlanSubmitted: true,
-              isReportSubmitted: true,
-              planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-              reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-              isPlanAccepted: true,
-              isReportAccepted: false,
+            const mockProject: Project = {
+              id: 1,
+              projectName: 'test',
+              teamName: 'test',
+              techStacks: 'test',
+              writer: {
+                id: 1,
+                email: 'test@example.com',
+                name: 'test',
+                studentNumber: 2400,
+                projects: undefined,
+                members: undefined,
+              },
+              projectType: 'test',
+              githubUrl: null,
+              serviceUrl: null,
+              docsUrl: null,
+              teacher: 'test',
+              members: [],
+              plan: undefined,
+              report: undefined,
+              status: {
+                projectId: undefined,
+                isPlanSubmitted: true,
+                isReportSubmitted: true,
+                planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+                reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+                isPlanAccepted: true,
+                isReportAccepted: false,
+              },
+              projectField: [],
             };
             const mockConfirmRequestBody: ConfirmProjectBodyDto = {
               type: 'approve',
@@ -1018,9 +943,7 @@ describe('ProjectsService', () => {
               projectId: 1,
               type: 'plan',
             };
-            mockedStatusService.prototype.getStatusById.mockResolvedValue(
-              mockStatus,
-            );
+            mockedRepository.prototype.findOne.mockResolvedValue(mockProject);
             try {
               await service.confirmProject(
                 mockConfirmRequestParam,
@@ -1051,34 +974,34 @@ describe('ProjectsService', () => {
           projectName: 'test',
           teamName: 'test',
           techStacks: 'test',
-          writerId: {
+          writer: {
             id: 1,
             email: 'test@example.com',
             name: 'test',
             studentNumber: 2400,
             projects: undefined,
-            userId: undefined,
+            members: undefined,
           },
           projectType: 'test',
           githubUrl: null,
           serviceUrl: null,
           docsUrl: null,
           teacher: 'test',
-          projectId: undefined,
+          members: [],
+          plan: undefined,
+          report: undefined,
+          status: {
+            projectId: undefined,
+            isPlanSubmitted: true,
+            isReportSubmitted: true,
+            planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+            reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+            isPlanAccepted: null,
+            isReportAccepted: null,
+          },
           projectField: mockFields,
         };
-        const mockStatus: Status = {
-          projectId: mockProject,
-          isPlanSubmitted: true,
-          isReportSubmitted: true,
-          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-          isPlanAccepted: null,
-          isReportAccepted: null,
-        };
-        mockedStatusService.prototype.getStatusById.mockResolvedValue(
-          mockStatus,
-        );
+        mockedRepository.prototype.findOne.mockResolvedValue(mockProject);
         const mockConfirmRequestBody: ConfirmProjectBodyDto = {
           type: 'approve',
           comment: 'test',
@@ -1122,34 +1045,34 @@ describe('ProjectsService', () => {
           projectName: 'test',
           teamName: 'test',
           techStacks: 'test',
-          writerId: {
+          writer: {
             id: 1,
             email: 'test@example.com',
             name: 'test',
             studentNumber: 2400,
             projects: undefined,
-            userId: undefined,
+            members: undefined,
           },
           projectType: 'test',
           githubUrl: null,
           serviceUrl: null,
           docsUrl: null,
           teacher: 'test',
-          projectId: undefined,
+          members: [],
+          plan: undefined,
+          report: undefined,
+          status: {
+            projectId: undefined,
+            isPlanSubmitted: true,
+            isReportSubmitted: true,
+            planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+            reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+            isPlanAccepted: null,
+            isReportAccepted: null,
+          },
           projectField: mockFields,
         };
-        const mockStatus: Status = {
-          projectId: mockProject,
-          isPlanSubmitted: true,
-          isReportSubmitted: true,
-          planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-          reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-          isPlanAccepted: null,
-          isReportAccepted: null,
-        };
-        mockedStatusService.prototype.getStatusById.mockResolvedValue(
-          mockStatus,
-        );
+        mockedRepository.prototype.findOne.mockResolvedValue(mockProject);
         const mockConfirmRequestBody: ConfirmProjectBodyDto = {
           type: 'deny',
           comment: 'test',
@@ -1178,9 +1101,7 @@ describe('ProjectsService', () => {
       });
       describe('should throw exception', () => {
         it('NotFoundException', async () => {
-          mockedStatusService.prototype.getStatusById.mockResolvedValue(
-            undefined,
-          );
+          mockedRepository.prototype.findOne.mockResolvedValue(undefined);
           const mockConfirmRequestBody: ConfirmProjectBodyDto = {
             type: 'approve',
             comment: 'test',
@@ -1200,14 +1121,37 @@ describe('ProjectsService', () => {
         });
         describe('ConflictException', () => {
           it('report is not submitted', async () => {
-            const mockStatus: Status = {
-              projectId: undefined,
-              isPlanSubmitted: false,
-              isReportSubmitted: false,
-              planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-              reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-              isPlanAccepted: null,
-              isReportAccepted: null,
+            const mockProject: Project = {
+              id: 1,
+              projectName: 'test',
+              teamName: 'test',
+              techStacks: 'test',
+              writer: {
+                id: 1,
+                email: 'test@example.com',
+                name: 'test',
+                studentNumber: 2400,
+                projects: undefined,
+                members: undefined,
+              },
+              projectType: 'test',
+              githubUrl: null,
+              serviceUrl: null,
+              docsUrl: null,
+              teacher: 'test',
+              members: [],
+              plan: undefined,
+              report: undefined,
+              status: {
+                projectId: undefined,
+                isPlanSubmitted: false,
+                isReportSubmitted: false,
+                planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+                reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+                isPlanAccepted: null,
+                isReportAccepted: null,
+              },
+              projectField: [],
             };
             const mockConfirmRequestBody: ConfirmProjectBodyDto = {
               type: 'approve',
@@ -1217,9 +1161,7 @@ describe('ProjectsService', () => {
               projectId: 1,
               type: 'report',
             };
-            mockedStatusService.prototype.getStatusById.mockResolvedValue(
-              mockStatus,
-            );
+            mockedRepository.prototype.findOne.mockResolvedValue(mockProject);
             try {
               await service.confirmProject(
                 mockConfirmRequestParam,
@@ -1230,14 +1172,37 @@ describe('ProjectsService', () => {
             }
           });
           it('report is already confirmed', async () => {
-            const mockStatus: Status = {
-              projectId: undefined,
-              isPlanSubmitted: true,
-              isReportSubmitted: true,
-              planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
-              reportSubmittedAt: new Date('2021-09-20T00:00:00'),
-              isPlanAccepted: true,
-              isReportAccepted: false,
+            const mockProject: Project = {
+              id: 1,
+              projectName: 'test',
+              teamName: 'test',
+              techStacks: 'test',
+              writer: {
+                id: 1,
+                email: 'test@example.com',
+                name: 'test',
+                studentNumber: 2400,
+                projects: undefined,
+                members: undefined,
+              },
+              projectType: 'test',
+              githubUrl: null,
+              serviceUrl: null,
+              docsUrl: null,
+              teacher: 'test',
+              members: [],
+              plan: undefined,
+              report: undefined,
+              status: {
+                projectId: undefined,
+                isPlanSubmitted: true,
+                isReportSubmitted: true,
+                planSubmittedAt: new Date('2021-09-20T00:00:00Z'),
+                reportSubmittedAt: new Date('2021-09-20T00:00:00'),
+                isPlanAccepted: true,
+                isReportAccepted: false,
+              },
+              projectField: [],
             };
             const mockConfirmRequestBody: ConfirmProjectBodyDto = {
               type: 'approve',
@@ -1247,9 +1212,7 @@ describe('ProjectsService', () => {
               projectId: 1,
               type: 'report',
             };
-            mockedStatusService.prototype.getStatusById.mockResolvedValue(
-              mockStatus,
-            );
+            mockedRepository.prototype.findOne.mockResolvedValue(mockProject);
             try {
               await service.confirmProject(
                 mockConfirmRequestParam,
