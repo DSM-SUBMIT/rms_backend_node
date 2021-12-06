@@ -1,19 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ProjectsService } from 'src/projects/projects.service';
-import { ReportsService } from 'src/shared/reports/reports.service';
-import { StatusService } from 'src/shared/status/status.service';
 import { FilesService } from './files.service';
 import { S3 } from 'aws-sdk';
 import { mocked } from 'ts-jest/utils';
+import { ProjectRepository } from '../shared/entities/project/project.repository';
 
-jest.mock('src/projects/projects.service');
-jest.mock('src/shared/reports/reports.service');
-jest.mock('src/shared/status/status.service');
+jest.mock('src/shared/entities/project/project.repository');
 jest.mock('aws-sdk');
 
-const mockedProjectsService = mocked(ProjectsService, true);
-const mockedReportsService = mocked(ReportsService, true);
-const mockedStatusService = mocked(StatusService, true);
 const mockedS3 = mocked(S3, true);
 
 const mockFiles: Express.MulterS3.File[] = [];
@@ -23,7 +16,7 @@ describe('FilesService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [FilesService, ProjectsService, ReportsService, StatusService],
+      providers: [FilesService, ProjectRepository],
     }).compile();
 
     service = module.get<FilesService>(FilesService);

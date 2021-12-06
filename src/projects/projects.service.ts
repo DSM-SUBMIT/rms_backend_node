@@ -4,39 +4,26 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { StatusService } from 'src/shared/status/status.service';
-import { Like, Repository } from 'typeorm';
 import { ProjectItem } from 'src/projects/dto/response/projectItem.dto';
 import {
   ConfirmProjectBodyDto,
   ConfirmProjectParamDto,
 } from './dto/request/confirmProject.dto';
 import { ProjectsListDto } from './dto/response/projectsList.dto';
-import { Project } from './entities/project.entity';
-import { PlansService } from 'src/shared/plans/plans.service';
-import { ReportsService } from 'src/shared/reports/reports.service';
-import { MembersService } from 'src/shared/members/members.service';
 import { MailService } from 'src/mail/mail.service';
 import { SearchProjectsDto } from './dto/request/searchProjects.dto';
 import { ConfirmedProjectsDto } from './dto/request/confirmedProjects.dto';
 import { PlanDetailDto } from './dto/response/planDetail.dto';
 import { ReportDetailDto } from './dto/response/reportDetail.dto';
-import { ProjectFieldService } from 'src/shared/projectField/projectField.service';
-import { FieldsService } from 'src/shared/fields/fields.service';
+import { ProjectRepository } from 'src/shared/entities/project/project.repository';
+import { FieldRepository } from 'src/shared/entities/field/field.repository';
 
 @Injectable()
 export class ProjectsService {
   constructor(
-    @InjectRepository(Project)
-    private readonly projectsRepository: Repository<Project>,
-    private readonly fieldsService: FieldsService,
+    private readonly projectRepository: ProjectRepository,
+    private readonly fieldRepository: FieldRepository,
     private readonly mailService: MailService,
-    private readonly membersService: MembersService,
-    private readonly plansService: PlansService,
-    private readonly projectFieldService: ProjectFieldService,
-    private readonly reportsService: ReportsService,
-    private readonly statusService: StatusService,
   ) {}
 
   async confirmProject(
@@ -44,74 +31,96 @@ export class ProjectsService {
     bodyPayload: ConfirmProjectBodyDto,
   ) {
     const { projectId, type } = paramPayload;
+    const project = await this.projectRepository.findOne(
+      { id: projectId },
+      {
+        status: true,
+        plan: true,
+        writer: true,
+      },
+    );
+    if (!project) throw new NotFoundException();
+    const status = project.status;
     switch (type) {
       case 'plan': {
-        const status = await this.statusService.getStatusById(projectId);
-        if (!status) throw new NotFoundException();
         if (!status.isPlanSubmitted || status.isPlanAccepted !== null)
           throw new ConflictException();
 
         switch (bodyPayload.type) {
           case 'approve': {
             await this.mailService.sendMail(
-              status.projectId.writerId.email,
+              project.writer.email,
               '[RMS] 계획서 승인 알림 메일입니다.',
               'planApproved',
               {
-                projectName: status.projectId.projectName,
+                projectName: project.projectName,
                 comment: bodyPayload.comment,
               },
             );
-            await this.statusService.updatePlanAccepted(projectId, true);
+            await this.projectRepository.updateProjectAccepted({
+              id: projectId,
+              type: 'plan',
+              status: true,
+            });
             break;
           }
           case 'deny': {
             await this.mailService.sendMail(
-              status.projectId.writerId.email,
+              project.writer.email,
               '[RMS] 계획서 거절 알림 메일입니다.',
               'planDenied',
               {
-                projectName: status.projectId.projectName,
+                projectName: project.projectName,
                 comment: bodyPayload.comment,
               },
             );
-            await this.statusService.updatePlanAccepted(projectId, false);
+            await this.projectRepository.updateProjectAccepted({
+              id: projectId,
+              type: 'plan',
+              status: false,
+            });
             break;
           }
         }
         return;
       }
       case 'report': {
-        const status = await this.statusService.getStatusById(projectId);
-        if (!status) throw new NotFoundException();
         if (!status.isReportSubmitted || status.isReportAccepted !== null)
           throw new ConflictException();
 
         switch (bodyPayload.type) {
           case 'approve': {
             await this.mailService.sendMail(
-              status.projectId.writerId.email,
+              project.writer.email,
               '[RMS] 보고서 승인 알림 메일입니다.',
               'reportApproved',
               {
-                projectName: status.projectId.projectName,
+                projectName: project.projectName,
                 comment: bodyPayload.comment,
               },
             );
-            await this.statusService.updateReportAccepted(projectId, true);
+            await this.projectRepository.updateProjectAccepted({
+              id: projectId,
+              type: 'report',
+              status: true,
+            });
             break;
           }
           case 'deny': {
             await this.mailService.sendMail(
-              status.projectId.writerId.email,
+              project.writer.email,
               '[RMS] 보고서 거절 알림 메일입니다.',
               'reportDenied',
               {
-                projectName: status.projectId.projectName,
+                projectName: project.projectName,
                 comment: bodyPayload.comment,
               },
             );
-            await this.statusService.updateReportAccepted(projectId, false);
+            await this.projectRepository.updateProjectAccepted({
+              id: projectId,
+              type: 'report',
+              status: false,
+            });
             break;
           }
         }
@@ -126,81 +135,47 @@ export class ProjectsService {
   async getPendingProjects(payload) {
     const { type, limit, page } = payload;
     const projectList = new Array<ProjectItem>();
-    switch (type) {
-      case 'plan': {
-        const [status, count] =
-          await this.statusService.getStatusDescByPlanDate(limit, page);
-        if (!count) return;
-        for (const s of status) {
-          const project = s.projectId;
-          const projectItem: ProjectItem = {
-            id: project.id,
-            project_type: project.projectType,
-            is_individual: project.projectType === 'PERS',
-            title: project.projectName,
-            team_name: project.teamName,
-            github_url: project.githubUrl,
-            service_url: project.serviceUrl,
-            docs_url: project.docsUrl,
-            fields: [],
-          };
+    const [projects, count] = await this.projectRepository.getProjectsByDate({
+      type,
+      limit,
+      page,
+    });
+    if (!count) return;
+    for (const p of projects) {
+      const projectItem: ProjectItem = {
+        id: p.id,
+        project_type: p.projectType,
+        is_individual: p.projectType === 'PERS',
+        title: p.projectName,
+        team_name: p.teamName,
+        github_url: p.githubUrl,
+        service_url: p.serviceUrl,
+        docs_url: p.docsUrl,
+        fields: [],
+      };
 
-          const fields = project.projectField;
+      const fields = p.projectField;
 
-          for (const field of fields) {
-            projectItem.fields.push(field.fieldId.field);
-          }
-
-          projectList.push(projectItem);
-        }
-        const projectsList: ProjectsListDto = {
-          total_page: Math.ceil(count / limit),
-          total_amount: count,
-          projects: projectList,
-        };
-        return projectsList;
+      for (const field of fields) {
+        projectItem.fields.push(field.fieldId.field);
       }
-      case 'report': {
-        const [status, count] =
-          await this.statusService.getStatusDescByReportDate(limit, page);
-        if (!count) return;
-        for (const s of status) {
-          const project = s.projectId;
-          const projectItem: ProjectItem = {
-            id: project.id,
-            project_type: project.projectType,
-            is_individual: project.projectType === 'PERS',
-            title: project.projectName,
-            team_name: project.teamName,
-            github_url: project.githubUrl,
-            service_url: project.serviceUrl,
-            docs_url: project.docsUrl,
-            fields: [],
-          };
 
-          const fields = project.projectField;
-
-          for (const field of fields) {
-            projectItem.fields.push(field.fieldId.field);
-          }
-
-          projectList.push(projectItem);
-        }
-        const projectsList: ProjectsListDto = {
-          total_page: Math.ceil(count / limit),
-          total_amount: count,
-          projects: projectList,
-        };
-        return projectsList;
-      }
-      default:
-        throw new BadRequestException();
+      projectList.push(projectItem);
     }
+    const projectsList: ProjectsListDto = {
+      total_page: Math.ceil(count / limit),
+      total_amount: count,
+      projects: projectList,
+    };
+    return projectsList;
   }
 
   async search(payload: SearchProjectsDto) {
     const { query, limit, page } = payload;
-    const [projects, count] = await this.findLike(query, limit, page);
+    const [projects, count] = await this.projectRepository.search(
+      { query, limit, page },
+      { field: true },
+    );
     if (!count) return;
 
     const projectList = new Array<ProjectItem>();
@@ -235,74 +210,80 @@ export class ProjectsService {
   }
 
   async getPlanDetail(projectId: number): Promise<PlanDetailDto> {
-    const status = await this.statusService.getStatusById(projectId);
-    if (!status || !status.isPlanSubmitted) throw new NotFoundException();
-
-    const res = await Promise.all([
-      this.plansService.getPlanById(projectId),
-      this.membersService.getUsersByProject(projectId),
-      this.projectFieldService.getFieldsByProject(projectId),
-    ]);
-
-    const plan = res[0];
-    const members = res[1];
-    const fields = res[2];
+    const project = await this.projectRepository.findOne(
+      { id: projectId },
+      {
+        status: true,
+        plan: true,
+        members: true,
+        field: true,
+        writer: true,
+      },
+    );
+    if (!project || !project.status.isPlanSubmitted)
+      throw new NotFoundException();
 
     return {
-      project_id: status.projectId.id,
-      project_name: status.projectId.projectName,
-      project_type: status.projectId.projectType,
-      is_individual: status.projectId.projectType === 'PERS',
-      writer: status.projectId.writerId.name,
-      writer_number: status.projectId.writerId.studentNumber,
-      members: members.map((member) => ({
+      project_id: project.id,
+      project_name: project.projectName,
+      project_type: project.projectType,
+      is_individual: project.projectType === 'PERS',
+      writer: project.writer.name,
+      writer_number: project.writer.studentNumber,
+      members: project.members.map((member) => ({
         name: member.userId.name,
         role: member.role,
       })),
-      fields: fields.map((field) => field.fieldId.field),
+      fields: project.projectField.map(
+        (projectField) => projectField.fieldId.field,
+      ),
       plan: {
-        goal: plan.goal,
-        content: plan.content,
-        start_date: plan.startDate,
-        end_date: plan.endDate,
+        goal: project.plan.goal,
+        content: project.plan.content,
+        start_date: project.plan.startDate,
+        end_date: project.plan.endDate,
         includes: {
-          result_report: plan.includeResultReport,
-          code: plan.includeCode,
-          outcome: plan.includeOutcome,
-          others: Boolean(plan.includeOthers) ? plan.includeOthers : false,
+          result_report: project.plan.includeResultReport,
+          code: project.plan.includeCode,
+          outcome: project.plan.includeOutcome,
+          others: Boolean(project.plan.includeOthers)
+            ? project.plan.includeOthers
+            : false,
         },
       },
     };
   }
 
   async getReportDetail(projectId: number): Promise<ReportDetailDto> {
-    const status = await this.statusService.getStatusById(projectId);
-    if (!status || !status.isReportSubmitted) throw new NotFoundException();
-
-    const res = await Promise.all([
-      this.reportsService.getReportById(projectId),
-      this.membersService.getUsersByProject(projectId),
-      this.projectFieldService.getFieldsByProject(projectId),
-    ]);
-
-    const report = res[0];
-    const members = res[1];
-    const fields = res[2];
+    const project = await this.projectRepository.findOne(
+      { id: projectId },
+      {
+        status: true,
+        report: true,
+        members: true,
+        field: true,
+        writer: true,
+      },
+    );
+    if (!project || !project.status.isReportSubmitted)
+      throw new NotFoundException();
 
     return {
-      project_id: status.projectId.id,
-      project_name: status.projectId.projectName,
-      project_type: status.projectId.projectType,
-      is_individual: status.projectId.projectType === 'PERS',
-      writer: status.projectId.writerId.name,
-      writer_number: status.projectId.writerId.studentNumber,
-      members: members.map((member) => ({
+      project_id: project.id,
+      project_name: project.projectName,
+      project_type: project.projectType,
+      is_individual: project.projectType === 'PERS',
+      writer: project.writer.name,
+      writer_number: project.writer.studentNumber,
+      members: project.members.map((member) => ({
         name: member.userId.name,
         role: member.role,
       })),
-      fields: fields.map((field) => field.fieldId.field),
+      fields: project.projectField.map(
+        (projectField) => projectField.fieldId.field,
+      ),
       report: {
-        content: report.content,
+        content: project.report.content,
       },
     };
   }
@@ -310,16 +291,18 @@ export class ProjectsService {
   async getConfirmed(payload: ConfirmedProjectsDto) {
     const { limit, page, field } = payload;
 
-    const [status, count] = await this.statusService.getConfirmedStatus(
-      limit,
-      page,
-      await this.fieldsService.getIdsByField(field),
+    const [projects, count] = await this.projectRepository.getConfirmedProjects(
+      {
+        limit,
+        page,
+        fields: (
+          await this.fieldRepository.getFieldsByName(field)
+        )?.map((field) => {
+          return field.id;
+        }),
+      },
     );
     if (!count) return;
-
-    const projects = status.map((s) => {
-      return s.projectId;
-    });
 
     const projectList = new Array<ProjectItem>();
     for (const p of projects) {
@@ -349,20 +332,5 @@ export class ProjectsService {
     };
 
     return projectsList;
-  }
-
-  async findLike(query: string, limit: number, page: number) {
-    return this.projectsRepository.findAndCount({
-      where: { projectName: Like(`%${query}%`) },
-      take: limit,
-      skip: limit * (page - 1),
-      relations: ['projectField', 'projectField.fieldId'],
-    });
-  }
-
-  async getProject(id: number): Promise<Project> {
-    return this.projectsRepository.findOne(id, {
-      relations: ['writerId'],
-    });
   }
 }
