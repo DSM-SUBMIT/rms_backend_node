@@ -13,7 +13,7 @@ import { LoginDto } from './dto/request/login.dto';
 import { ChangePwDto } from './dto/request/changePw.dto';
 import { AccessTokenDto } from './dto/response/accessToken.dto';
 import { AdminRepository } from 'src/shared/entities/admin/admin.repository';
-import { iif, Observable, of, tap, throwError } from 'rxjs';
+import { from, iif, Observable, of, tap, throwError } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -42,17 +42,20 @@ export class AuthService {
 
   async changePw(id: string, { oldPassword, newPassword }: ChangePwDto) {
     const res = await this.validateUser(id, oldPassword);
-    if (res) {
-      if (res && oldPassword !== newPassword) {
-        await this.adminRepository.changePassword({
-          id,
-          encrypted: await this.encrypt(newPassword),
-        });
-        return;
-      }
-      throw new ConflictException();
-    }
-    throw new UnauthorizedException();
+    return iif(
+      () => res,
+      iif(
+        () => oldPassword !== newPassword,
+        from(
+          this.adminRepository.changePassword({
+            id,
+            encrypted: await this.encrypt(newPassword),
+          }),
+        ),
+        throwError(() => new ConflictException()),
+      ),
+      throwError(() => new UnauthorizedException()),
+    );
   }
 
   async refresh(token: string): Promise<AccessTokenDto> {
