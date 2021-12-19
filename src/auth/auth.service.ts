@@ -13,6 +13,7 @@ import { LoginDto } from './dto/request/login.dto';
 import { ChangePwDto } from './dto/request/changePw.dto';
 import { AccessTokenDto } from './dto/response/accessToken.dto';
 import { AdminRepository } from 'src/shared/entities/admin/admin.repository';
+import { iif, Observable, of, tap, throwError } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -23,14 +24,20 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async login({ id, password }: LoginDto): Promise<AccessTokenDto> {
-    const res = await this.validateUser(id, password);
-    if (res) {
-      const tokens = this.signJwt({ sub: id, role: 'admin' });
-      await this.cacheManager.set(id, tokens.refresh_token);
-      return tokens;
-    }
-    throw new UnauthorizedException();
+  async login({
+    id,
+    password,
+  }: LoginDto): Promise<Observable<AccessTokenDto | never>> {
+    const isValid = await this.validateUser(id, password);
+    return iif(
+      () => isValid,
+      of(this.signJwt({ sub: id, role: 'admin' })).pipe(
+        tap((tokens) => {
+          this.cacheManager.set(id, tokens.refresh_token);
+        }),
+      ),
+      throwError(() => new UnauthorizedException()),
+    );
   }
 
   async changePw(id: string, { oldPassword, newPassword }: ChangePwDto) {
